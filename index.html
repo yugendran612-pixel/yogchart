@@ -3,296 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yogchart - Pro Terminal</title>
+    <title>Yogchart - Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
-    <script>
-        tailwind.config = { darkMode: 'class' }
-    </script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap');
-        body { margin: 0; padding: 0; overflow: hidden; }
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
         .terminal-font { font-family: 'Fira Code', monospace; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
-        .active-tool { background-color: #3B82F6 !important; color: white !important; }
-        
-        #chart-wrapper {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-        #chartContainer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        }
+        #chart-wrapper { position: relative; width: 100%; height: 100%; }
+        #chartContainer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 h-screen flex flex-col transition-colors duration-200">
+<body class="bg-gray-50 dark:bg-[#030712] text-gray-900 dark:text-gray-100 h-screen flex">
     
-    <!-- Navbar -->
-    <header class="flex justify-between items-center px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-20">
-        <div class="flex items-center gap-4">
-            <h1 class="text-xl font-bold tracking-tighter">YOGCHART<span class="text-blue-500">.</span></h1>
-            
-            <div class="flex items-center bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2">
-                <span class="text-gray-400 text-sm mr-1">🔍</span>
-                <input id="symbolInput" type="text" value="XRPUSDT" class="bg-transparent border-none focus:outline-none py-1 text-sm font-bold uppercase w-24 terminal-font" placeholder="BTCUSDT">
-                <button id="loadSymbolBtn" class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 font-bold ml-2">LOAD</button>
-            </div>
-
-            <div class="flex flex-col ml-4">
-                <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Live Price</span>
-                <span id="livePrice" class="font-bold text-lg terminal-font leading-none text-gray-400">Loading...</span>
-            </div>
+    <!-- Global Navigation Rail -->
+    <nav class="w-16 flex flex-col items-center py-4 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-30">
+        <div class="font-bold text-xl mb-8 tracking-tighter text-blue-500">Y.</div>
+        <a href="index.html" class="p-3 mb-2 bg-blue-500/10 text-blue-500 rounded-xl" title="Terminal">📈</a>
+        <a href="portfolio.html" class="p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition" title="Portfolio">💼</a>
+        <a href="social.html" class="p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition" title="Trollbox">💬</a>
+        <div class="mt-auto">
+            <button id="themeToggle" class="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500">🌓</button>
         </div>
-        <div class="flex gap-3 items-center">
-            <span id="statusIndicator" class="text-xs font-bold text-yellow-500 terminal-font flex items-center gap-1">
-                <span class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span> INITIATING...
-            </span>
-            <button id="themeToggle" class="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-800 rounded hover:opacity-80 border border-gray-300 dark:border-gray-700">🌓 Theme</button>
-        </div>
-    </header>
+    </nav>
 
-    <!-- Main Workspace -->
-    <main class="flex-1 flex overflow-hidden">
-        
-        <!-- Toolbar (Left) -->
-        <aside class="w-14 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] flex flex-col items-center py-4 gap-3 z-10">
-            <button id="drawTrendlineBtn" class="w-10 h-10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-800 rounded text-xl transition-colors border border-transparent dark:border-gray-800" title="Draw Trendline">📉</button>
-            <button id="clearDrawingsBtn" class="w-10 h-10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-800 rounded text-xl transition-colors border border-transparent dark:border-gray-800" title="Clear Drawings">🗑️</button>
-        </aside>
-
-        <!-- Chart Area (Center) -->
-        <section class="flex-1 bg-white dark:bg-[#030712] relative" id="chart-wrapper">
-            <div id="chartContainer"></div>
-        </section>
-
-        <!-- Sidebar: Order Flow & AI (Right) -->
-        <aside class="w-80 border-l border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-[#0B0E14] terminal-font text-xs z-10 shadow-xl">
-            
-            <!-- AI Recommender -->
-            <div class="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-gray-500">YOGCHART AI</h3>
-                    <span class="text-[10px] bg-blue-500/20 text-blue-500 px-1.5 py-0.5 rounded">BETA</span>
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header class="h-14 flex justify-between items-center px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-20">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2">
+                    <span class="text-gray-400 text-sm">🔍</span>
+                    <input id="symbolInput" type="text" value="XRPUSDT" class="bg-transparent border-none focus:outline-none py-1 px-2 text-sm font-bold uppercase w-24 terminal-font">
                 </div>
-                <button id="runAi" class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition">RUN ANALYSIS</button>
-                <div id="aiOutput" class="mt-3 hidden text-gray-600 dark:text-gray-400 space-y-1 bg-white dark:bg-gray-950 p-2 rounded border border-gray-200 dark:border-gray-800">
-                    <p class="text-green-500 font-bold mb-1">> SIGNAL: BULLISH MOMENTUM</p>
-                    <p>> RSI: <span class="text-white">58.4</span> (Neutral)</p>
-                    <p>> MACD: <span class="text-green-500">Crossover Detected</span></p>
-                    <p>> AI Target: <span class="text-white">+2.4%</span></p>
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Live Price</span>
+                    <span id="livePrice" class="font-bold text-lg terminal-font leading-none text-gray-400">--</span>
                 </div>
             </div>
-
-            <!-- Live Order Tape -->
-            <div class="flex-1 overflow-hidden flex flex-col">
-                <div class="bg-gray-100 dark:bg-gray-900 px-4 py-2 border-b border-gray-200 dark:border-gray-800">
-                    <h3 class="font-bold text-gray-500 flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> LIVE TAPE
-                    </h3>
-                </div>
-                <div class="flex justify-between text-gray-400 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0E14]">
-                    <span class="w-1/3">PRICE</span>
-                    <span class="w-1/3 text-right">SIZE</span>
-                    <span class="w-1/3 text-right">TIME</span>
-                </div>
-                <div id="orderTape" class="flex-1 overflow-y-auto space-y-0.5 p-1">
-                    <!-- Trades inject here -->
-                </div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-gray-500 font-bold hidden md:block">HOTKEY: <span class="bg-gray-800 px-1.5 py-0.5 rounded text-white">Shift+B</span> Buy</span>
+                <button class="bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded hover:bg-blue-700">LOGIN</button>
             </div>
-        </aside>
-    </main>
+        </header>
 
-    <script>
-        // --- 1. Global Setup & Theme ---
-        const html = document.documentElement;
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            html.classList.toggle('dark');
-            updateThemeColors();
-        });
+        <!-- Workspace -->
+        <main class="flex-1 flex overflow-hidden">
+            <!-- Chart Section -->
+            <section class="flex-1 relative" id="chart-wrapper">
+                <div id="chartContainer"></div>
+            </section>
 
-        const darkColors = { bg: '#030712', text: '#9ca3af', grid: '#1f2937' };
-        const lightColors = { bg: '#ffffff', text: '#374151', grid: '#e5e7eb' };
-
-        // --- 2. Chart Initialization ---
-        const chartContainer = document.getElementById('chartContainer');
-        const chart = LightweightCharts.createChart(chartContainer, {
-            layout: { background: { type: 'solid', color: darkColors.bg }, textColor: darkColors.text },
-            grid: { vertLines: { color: darkColors.grid }, horzLines: { color: darkColors.grid } },
-            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-            timeScale: { timeVisible: true, secondsVisible: false },
-        });
-
-        new ResizeObserver(entries => {
-            if (entries.length === 0 || entries[0].target !== chartContainer) return;
-            const newRect = entries[0].contentRect;
-            chart.applyOptions({ height: newRect.height, width: newRect.width });
-        }).observe(chartContainer);
-
-        const candleSeries = chart.addCandlestickSeries({
-            upColor: '#22c55e', downColor: '#ef4444', borderVisible: false,
-            wickUpColor: '#22c55e', wickDownColor: '#ef4444'
-        });
-
-        function updateThemeColors() {
-            const isDark = html.classList.contains('dark');
-            const colors = isDark ? darkColors : lightColors;
-            chart.applyOptions({
-                layout: { background: { color: colors.bg }, textColor: colors.text },
-                grid: { vertLines: { color: colors.grid }, horzLines: { color: colors.grid } }
-            });
-        }
-
-        // --- 3. Drawing Tools (Trendlines) ---
-        let isDrawingMode = false;
-        let drawnLines = [];
-        let currentPoints = [];
-
-        const drawBtn = document.getElementById('drawTrendlineBtn');
-        drawBtn.addEventListener('click', () => {
-            isDrawingMode = !isDrawingMode;
-            drawBtn.classList.toggle('active-tool');
-            chartContainer.style.cursor = isDrawingMode ? 'crosshair' : 'default';
-        });
-
-        document.getElementById('clearDrawingsBtn').addEventListener('click', () => {
-            drawnLines.forEach(line => chart.removeSeries(line));
-            drawnLines = [];
-            currentPoints = [];
-        });
-
-        chart.subscribeClick((param) => {
-            if (!isDrawingMode || !param.point || !param.time) return;
-            const price = candleSeries.coordinateToPrice(param.point.y);
-            if (price === null) return;
-            currentPoints.push({ time: param.time, value: price });
-
-            if (currentPoints.length === 1) {
-                const line = chart.addLineSeries({ color: '#3b82f6', lineWidth: 2, crosshairMarkerVisible: false });
-                line.setData([currentPoints[0]]);
-                drawnLines.push(line);
-            } else if (currentPoints.length === 2) {
-                const activeLine = drawnLines[drawnLines.length - 1];
-                currentPoints.sort((a, b) => a.time - b.time);
-                activeLine.setData(currentPoints);
-                currentPoints = [];
-                isDrawingMode = false;
-                drawBtn.classList.remove('active-tool');
-                chartContainer.style.cursor = 'default';
-            }
-        });
-
-        // --- 4. Robust Live Data Engine ---
-        let wsKline = null;
-        let wsTrade = null;
-        const livePriceEl = document.getElementById('livePrice');
-        const orderTape = document.getElementById('orderTape');
-        const statusInd = document.getElementById('statusIndicator');
-
-        function setStatus(status, color) {
-            statusInd.innerHTML = `<span class="w-2 h-2 rounded-full ${color} animate-pulse"></span> ${status}`;
-            statusInd.className = `text-xs font-bold ${color.replace('bg-', 'text-')} terminal-font flex items-center gap-1`;
-        }
-
-        async function initSymbol(symbol) {
-            symbol = symbol.toUpperCase();
-            document.getElementById('symbolInput').value = symbol;
-            orderTape.innerHTML = '';
-            candleSeries.setData([]); // Clear chart
-            livePriceEl.innerText = 'Loading...';
-            setStatus('FETCHING DATA...', 'bg-yellow-500');
-
-            // 1. Fetch History via highly permissive MEXC API
-            try {
-                const res = await fetch(`https://api.mexc.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=200`);
-                if (res.ok) {
-                    const data = await res.json();
-                    const formattedData = data.map(d => ({
-                        time: Math.floor(d[0] / 1000), 
-                        open: parseFloat(d[1]), 
-                        high: parseFloat(d[2]), 
-                        low: parseFloat(d[3]), 
-                        close: parseFloat(d[4])
-                    })).sort((a, b) => a.time - b.time);
-                    candleSeries.setData(formattedData);
-                    setStatus('SYNCED', 'bg-green-500');
-                } else {
-                    throw new Error("API Blocked");
-                }
-            } catch (err) {
-                console.warn("History fetch blocked. Starting live stream only.");
-                setStatus('LIVE ONLY', 'bg-blue-500');
-                // We do NOT return here. The code continues to start the live stream.
-            }
-
-            const wsSymbol = symbol.toLowerCase();
-
-            // 2. K-Line WebSocket (Binance Stream - Extremely fast and rarely blocked)
-            if (wsKline) wsKline.close();
-            wsKline = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@kline_1m`);
-            wsKline.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                const k = msg.k;
-                const closePrice = parseFloat(k.c);
-                const timestamp = Math.floor(k.t / 1000);
-                
-                candleSeries.update({
-                    time: timestamp,
-                    open: parseFloat(k.o),
-                    high: parseFloat(k.h),
-                    low: parseFloat(k.l),
-                    close: closePrice
-                });
-
-                livePriceEl.innerText = closePrice >= 10 ? closePrice.toFixed(2) : closePrice.toFixed(4);
-                livePriceEl.className = closePrice >= parseFloat(k.o) ? 'font-bold text-lg terminal-font leading-none text-green-500' : 'font-bold text-lg terminal-font leading-none text-red-500';
-            };
-
-            // 3. Trade WebSocket (Live Order Tape)
-            if (wsTrade) wsTrade.close();
-            wsTrade = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@trade`);
-            wsTrade.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                const isBuy = !msg.m; 
-                
-                const price = parseFloat(msg.p);
-                const qty = parseFloat(msg.q);
-                const timeStr = new Date(msg.T).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' });
-
-                const formattedPrice = price >= 10 ? price.toFixed(2) : price.toFixed(4);
-                const formattedQty = qty > 1000 ? (qty/1000).toFixed(1) + 'K' : qty.toFixed(2);
-
-                const div = document.createElement('div');
-                div.className = `flex justify-between px-3 py-1 rounded text-[11px] ${isBuy ? 'text-green-500 bg-green-500/5' : 'text-red-500 bg-red-500/5'} hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors`;
-                div.innerHTML = `<span class="w-1/3 font-bold">${formattedPrice}</span><span class="w-1/3 text-right">${formattedQty}</span><span class="w-1/3 text-right text-gray-500">${timeStr}</span>`;
-                
-                orderTape.prepend(div);
-                if (orderTape.children.length > 50) orderTape.lastChild.remove();
-            };
-        }
-
-        // --- 5. Inputs & AI Interactions ---
-        document.getElementById('loadSymbolBtn').addEventListener('click', () => initSymbol(document.getElementById('symbolInput').value));
-        document.getElementById('symbolInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') initSymbol(e.target.value); });
-        
-        document.getElementById('runAi').addEventListener('click', (e) => {
-            const btn = e.target;
-            btn.innerText = "ANALYZING...";
-            btn.classList.add('animate-pulse', 'bg-gray-600');
-            setTimeout(() => {
-                btn.innerText = "RUN ANALYSIS";
-                btn.classList.remove('animate-pulse', 'bg-gray-600');
-                document.getElementById('aiOutput').classList.remove('hidden');
-            }, 1500);
-        });
-
-        initSymbol('XRPUSDT');
-    </script>
+            <!-- Order Tape & AI -->
+            <aside class="w-80 border-l border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-[#0B0E14] terminal-font text-xs z-10">
+                <!-- AI Module -->
+                <div class="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/30">
+                    <h3 class="font-bold text-gray-500 mb-2">AI ENGINE</h3>
+                    <button class="w-full bg-blue-600 text-white py-1.5 rounded font-bold hover:bg-blue-700">ANALYZE LUNC</button>
+                </div>
+                <!-- Live Tape -->
+                <div class="flex-1 overflow-hidden flex flex-col">
+                    <div class="flex justify-between text-gray-400 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0E14]">
+                        <span class="w-1/3">PRICE</span><span class="w-1/3 text-right">SIZE</span><span class="w-1/3 text-right">TIME</span>
+                    </div>
+                    <div id="orderTape" class="flex-1 overflow-y-auto p-1"></div>
+                </div>
+            </aside>
+        </main>
+    </div>
+    <script src="js/chart.js"></script>
+    <script src="js/global.js"></script>
 </body>
 </html>
