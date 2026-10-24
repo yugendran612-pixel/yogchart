@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yogchart - Direct Binance API Terminal</title>
+    <title>Yogchart - Professional Institutional Terminal</title>
     
     <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +17,10 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        
+        /* Completely hide TradingView watermark branding */
+        .tv-lightweight-charts__watermark, .tv-chart-watermark { display: none !important; }
+
         #chart-wrapper { position: relative; width: 100%; height: 100%; min-width: 0; display: flex; flex-direction: column; }
         #chartContainer { flex: 1; width: 100%; position: relative; }
         #rsiContainer { height: 110px; width: 100%; position: relative; display: none; border-top: 1px solid #1f2937; }
@@ -77,12 +81,12 @@
             </div>
         </header>
 
-        <!-- VIEW 1: HOME / SCREENER -->
+        <!-- VIEW 1: HOME SCREENER -->
         <div id="view-home" class="flex-1 overflow-y-auto p-6 bg-[#030712] flex flex-col gap-6">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-2xl font-black tracking-tight text-white">Yogchart Direct Binance API</h1>
-                    <p class="text-xs text-gray-400">Select a direct crypto pair powered entirely by Binance REST APIs & WebSockets[cite: 4].</p>
+                    <h1 class="text-2xl font-black tracking-tight text-white">Yogchart Institutional Markets</h1>
+                    <p class="text-xs text-gray-400">Direct Binance API liquidity streams & high-performance websocket orderbooks.</p>
                 </div>
             </div>
 
@@ -107,10 +111,10 @@
                 <div class="p-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <h3 class="font-bold text-blue-400 flex items-center gap-1.5">🤖 AI TAPE ENGINE</h3>
-                        <span id="aiStatus" class="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-bold">ACTIVE API</span>
+                        <span id="aiStatus" class="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-bold">ONLINE</span>
                     </div>
                     <div id="aiInsightsBox" class="bg-gray-900/80 border border-gray-800 p-2 rounded text-[11px] text-gray-300 space-y-1">
-                        <div>Bias: <span id="aiBias" class="font-bold text-gray-400">Scanning API...</span></div>
+                        <div>Bias: <span id="aiBias" class="font-bold text-gray-400">Scanning Ticks...</span></div>
                         <div>Entry Zone: <span id="aiEntry" class="font-bold text-gray-300">--</span></div>
                         <div>Stop Loss: <span id="aiStop" class="font-bold text-red-400">--</span></div>
                     </div>
@@ -120,7 +124,7 @@
                     </div>
                 </div>
                 
-                <!-- Live Order Tape -->
+                <!-- Live Order Tape (Throttled Buffer Pipeline) -->
                 <div class="flex-1 overflow-hidden flex flex-col min-h-0">
                     <div class="flex justify-between text-gray-400 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0E14]">
                         <span class="w-1/3">PRICE</span><span class="w-1/3 text-right">SIZE</span><span class="w-1/3 text-right">TIME</span>
@@ -157,7 +161,6 @@
         let currentChartType = 'Candlestick';
         let rawCandles = [];
 
-        // Direct Binance Crypto Pairs for the Home Screener
         const cryptoCatalog = [
             { symbol: 'XRPUSDT', name: 'XRP / Tether', price: '1.28', change: '+4.2%' },
             { symbol: 'BTCUSDT', name: 'Bitcoin / Tether', price: '92,450', change: '+1.8%' },
@@ -213,7 +216,7 @@
         }
         renderScreener();
 
-        // --- AUTHENTICATION & WORKSPACE ---
+        // --- AUTH & WORKSPACE PERSISTENCE ---
         const loginBtn = document.getElementById('loginBtn'); 
         const saveWorkspaceBtn = document.getElementById('saveWorkspace');
 
@@ -375,7 +378,6 @@
             if(!activeSeries) setChartType(currentChartType);
 
             try {
-                // Direct Binance API REST Endpoint Call
                 const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${timeframe}&limit=300`);
                 if (res.ok) {
                     const data = await res.json();
@@ -391,7 +393,6 @@
 
             const wsSymbol = currentSymbol.toLowerCase();
 
-            // Direct Binance WebSocket Feeds
             if (wsKline) wsKline.close();
             wsKline = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@kline_${timeframe}`);
             wsKline.onmessage = (event) => {
@@ -425,7 +426,7 @@
                 div.className = `flex justify-between px-3 py-1 rounded text-[11px] ${isBuy ? 'text-green-500 bg-green-500/5' : 'text-red-500 bg-red-500/5'} hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors`;
                 div.innerHTML = `<span class="w-1/3 font-bold">${formattedPrice}</span><span class="w-1/3 text-right">${formattedQty}</span><span class="w-1/3 text-right text-gray-500">${timeStr}</span>`;
                 orderTape.prepend(div);
-                if (orderTape.children.length > 40) orderTape.lastChild.remove();
+                if (orderTape.children.length > 30) orderTape.lastChild.remove();
             };
 
             if (wsDepth) wsDepth.close();
@@ -458,7 +459,6 @@
             };
         }
 
-        // --- AI TAPE ENGINE LOGIC ---
         window.runAiAnalysis = function() {
             if (rawCandles.length < 20) return;
             const recent = rawCandles.slice(-20);
