@@ -188,10 +188,6 @@
                 <button onclick="openWalletModal()" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white font-bold px-1.5 py-0.5 rounded transition">+</button>
             </div>
 
-            <button id="installAppBtn" onclick="installPWAOrShowGuide()" class="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-emerald-500/30 transition hidden md:inline-flex items-center gap-1" title="Download / Install Yogchart Android App">
-                <span>📲</span> <span class="hidden sm:inline">Android App</span>
-            </button>
-
             <button id="saveWorkspace" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-cyan-500/30 transition hidden lg:inline-flex">
                 💾 Sync
             </button>
@@ -206,7 +202,8 @@
                 <div id="headerMenuDropdown" class="hidden absolute right-0 mt-2 w-52 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 py-1.5 text-xs">
                     <button onclick="toggleHeaderMenu(); openProfileEditorModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">⚙️ Profile & Account</button>
                     <button onclick="toggleHeaderMenu(); openWalletModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">💰 Paper Funds</button>
-                    <button onclick="toggleHeaderMenu(); installPWAOrShowGuide();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">📲 Android App</button>
+                    <button onclick="toggleHeaderMenu(); openWatchlistModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">⭐ Watchlist</button>
+                    <button onclick="toggleHeaderMenu(); openTradingStatsModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">📊 Trading Stats</button>
                     <button onclick="toggleHeaderMenu(); document.getElementById('saveWorkspace').click();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">💾 Sync Workspace</button>
                 </div>
             </div>
@@ -307,7 +304,7 @@
                                 <div id="screenerSearchDropdown" class="hidden absolute right-0 mt-1.5 w-72 sm:w-80 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-yog-800"></div>
                             </div>
                             <button id="expandScreenerBtn" onclick="toggleExpandScreener()" class="bg-yog-700 hover:bg-blue-600 text-xs font-bold text-white px-3 py-1.5 rounded-lg border border-yog-600 transition whitespace-nowrap">
-                                ➕ Expand All (20)
+                                ➕ Expand All (<span data-instrument-count>385</span>)
                             </button>
                         </div>
                     </div>
@@ -316,8 +313,10 @@
                         <div class="flex flex-wrap gap-1.5" id="screenerTabs">
                             <button onclick="filterScreener('all', this)" class="px-2.5 py-1 bg-blue-600 text-white rounded-md text-xs font-bold">All</button>
                             <button onclick="filterScreener('crypto', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Crypto</button>
-                            <button onclick="filterScreener('stock', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Stocks & S&P</button>
+                            <button onclick="filterScreener('stock', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Stocks</button>
+                            <button onclick="filterScreener('index', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Indices</button>
                             <button onclick="filterScreener('commodity', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Commodities</button>
+                            <button onclick="filterScreener('fx', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Forex</button>
                             <button onclick="filterScreener('bond', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Bonds</button>
                         </div>
 
@@ -725,8 +724,8 @@
                     </ul>
                 </div>
                 <div class="relative grid grid-cols-3 gap-3 terminal-font text-[11px] text-slate-400">
-                    <div class="bg-yog-950/70 border border-yog-700 rounded-lg p-3"><div class="text-cyan-400 font-bold text-sm">20</div>Global Instruments</div>
-                    <div class="bg-yog-950/70 border border-yog-700 rounded-lg p-3"><div class="text-cyan-400 font-bold text-sm">1m–1D</div>Live Timeframes</div>
+                    <div class="bg-yog-950/70 border border-yog-700 rounded-lg p-3"><div class="text-cyan-400 font-bold text-sm" data-instrument-count>385</div>Global Instruments</div>
+                    <div class="bg-yog-950/70 border border-yog-700 rounded-lg p-3"><div class="text-cyan-400 font-bold text-sm">6</div>Asset Classes</div>
                     <div class="bg-yog-950/70 border border-yog-700 rounded-lg p-3"><div class="text-cyan-400 font-bold text-sm">100x</div>Paper Leverage</div>
                 </div>
             </div>
@@ -1033,26 +1032,439 @@
         let sortDirection = 'desc';
 
         const multiAssetCatalog = [
-            { symbol: 'BTCUSDT', name: 'Bitcoin Spot / Perp', category: 'crypto', isLiveCrypto: true, featured: true, price: 92450.00, change: 2.15, high: 93200.00, low: 90100.00, vol: 3820000000 },
-            { symbol: 'ETHUSDT', name: 'Ethereum Spot / Perp', category: 'crypto', isLiveCrypto: true, featured: true, price: 3420.50, change: -0.65, high: 3490.00, low: 3380.00, vol: 1940000000 },
-            { symbol: 'XRPUSDT', name: 'XRP Ledger Spot / Perp', category: 'crypto', isLiveCrypto: true, featured: true, price: 1.2853, change: -2.56, high: 1.3283, low: 1.2734, vol: 682500000 },
-            { symbol: 'SPX500', name: 'S&P 500 Institutional Index', category: 'stock', isLiveCrypto: false, featured: true, price: 5886.08, change: 0.54, high: 5902.00, low: 5850.00, vol: 1420000000 },
-            { symbol: 'SOLUSDT', name: 'Solana High-Speed L1', category: 'crypto', isLiveCrypto: true, featured: false, price: 184.20, change: 6.40, high: 188.00, low: 171.50, vol: 890100000 },
-            { symbol: 'PAXGUSDT', name: 'Gold Spot (XAU/USD Tokenized)', category: 'commodity', isLiveCrypto: true, featured: false, price: 2748.00, change: 0.82, high: 2755.00, low: 2720.00, vol: 168400000 },
-            { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'stock', isLiveCrypto: false, featured: false, price: 141.86, change: 3.10, high: 143.50, low: 138.20, vol: 945000000 },
-            { symbol: 'US10Y', name: 'US 10-Year Treasury Bond Yield', category: 'bond', isLiveCrypto: false, featured: false, price: 4.245, change: 0.48, high: 4.280, low: 4.210, vol: 210000000 },
-            { symbol: 'DOGEUSDT', name: 'Dogecoin Spot / Perp', category: 'crypto', isLiveCrypto: true, featured: false, price: 0.3840, change: 5.12, high: 0.3950, low: 0.3600, vol: 512000000 },
-            { symbol: 'ADAUSDT', name: 'Cardano Network', category: 'crypto', isLiveCrypto: true, featured: false, price: 0.8520, change: -1.20, high: 0.8750, low: 0.8310, vol: 245000000 },
-            { symbol: 'AVAXUSDT', name: 'Avalanche C-Chain', category: 'crypto', isLiveCrypto: true, featured: false, price: 38.50, change: 2.95, high: 39.40, low: 37.10, vol: 318000000 },
-            { symbol: 'LINKUSDT', name: 'Chainlink Oracle Network', category: 'crypto', isLiveCrypto: true, featured: false, price: 18.25, change: 1.45, high: 18.80, low: 17.60, vol: 195000000 },
-            { symbol: 'SUIUSDT', name: 'Sui Move Layer-1', category: 'crypto', isLiveCrypto: true, featured: false, price: 3.180, change: 8.40, high: 3.290, low: 2.890, vol: 610000000 },
-            { symbol: 'AAPL', name: 'Apple Inc. Global Equity', category: 'stock', isLiveCrypto: false, featured: false, price: 235.40, change: 0.95, high: 236.80, low: 233.10, vol: 510400000 },
-            { symbol: 'TSLA', name: 'Tesla Inc. Automotive', category: 'stock', isLiveCrypto: false, featured: false, price: 248.90, change: -1.85, high: 254.00, low: 245.10, vol: 720000000 },
-            { symbol: 'MSFT', name: 'Microsoft Corporation', category: 'stock', isLiveCrypto: false, featured: false, price: 428.50, change: 0.72, high: 431.00, low: 425.00, vol: 430000000 },
-            { symbol: 'NAS100', name: 'Nasdaq 100 Tech Index', category: 'stock', isLiveCrypto: false, featured: false, price: 20529.95, change: 0.88, high: 20610.00, low: 20390.00, vol: 980000000 },
-            { symbol: 'WTICOUSD', name: 'WTI Crude Oil Futures', category: 'commodity', isLiveCrypto: false, featured: false, price: 71.35, change: -1.15, high: 72.80, low: 70.60, vol: 395000000 },
-            { symbol: 'XAGUSD', name: 'Silver Spot Commodity', category: 'commodity', isLiveCrypto: false, featured: false, price: 33.85, change: 1.35, high: 34.20, low: 33.10, vol: 185000000 },
-            { symbol: 'US02Y', name: 'US 2-Year Treasury Note Yield', category: 'bond', isLiveCrypto: false, featured: false, price: 4.085, change: -0.22, high: 4.110, low: 4.050, vol: 145000000 }
+    { symbol: 'BTCUSDT', name: "Bitcoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: true, price: 92000.00, change: -0.22, high: 93104.00, low: 90896.00, vol: 1466012969 },
+    { symbol: 'ETHUSDT', name: "Ethereum Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: true, price: 3400.00, change: 1.9, high: 3440.80, low: 3359.20, vol: 1351576703 },
+    { symbol: 'BNBUSDT', name: "BNB Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 700.00, change: 1.23, high: 708.40, low: 691.60, vol: 1055262491 },
+    { symbol: 'SOLUSDT', name: "Solana Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 180.00, change: 0.78, high: 182.16, low: 177.84, vol: 3721732543 },
+    { symbol: 'XRPUSDT', name: "XRP Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: true, price: 1.28, change: 0.76, high: 1.2954, low: 1.2646, vol: 599736537 },
+    { symbol: 'ADAUSDT', name: "Cardano Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.85, change: 0.23, high: 0.8602, low: 0.8398, vol: 1231894669 },
+    { symbol: 'AVAXUSDT', name: "Avalanche Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 38, change: -0.7, high: 38.456, low: 37.544, vol: 1552128872 },
+    { symbol: 'DOTUSDT', name: "Polkadot Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 8.4, change: -2.82, high: 8.5008, low: 8.2992, vol: 1751061811 },
+    { symbol: 'LINKUSDT', name: "Chainlink Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 18, change: -0.34, high: 18.216, low: 17.784, vol: 3865102821 },
+    { symbol: 'MATICUSDT', name: "Polygon Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.55, change: 1.45, high: 0.5566, low: 0.5434, vol: 3352515595 },
+    { symbol: 'TRXUSDT', name: "TRON Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.2, change: 1.56, high: 0.2024, low: 0.1976, vol: 2504958373 },
+    { symbol: 'LTCUSDT', name: "Litecoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 105.00, change: 2.9, high: 106.26, low: 103.74, vol: 1405018678 },
+    { symbol: 'BCHUSDT', name: "Bitcoin Cash Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 480.00, change: 1.97, high: 485.76, low: 474.24, vol: 2361294398 },
+    { symbol: 'ATOMUSDT', name: "Cosmos Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 7.2, change: -1.12, high: 7.2864, low: 7.1136, vol: 692168018 },
+    { symbol: 'UNIUSDT', name: "Uniswap Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 13, change: 1.02, high: 13.156, low: 12.844, vol: 2032514100 },
+    { symbol: 'XLMUSDT', name: "Stellar Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.42, change: -0.93, high: 0.42504, low: 0.41496, vol: 2142393608 },
+    { symbol: 'NEARUSDT', name: "NEAR Protocol Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 6.1, change: -1.09, high: 6.1732, low: 6.0268, vol: 1719703968 },
+    { symbol: 'APTUSDT', name: "Aptos Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 9.5, change: 1.72, high: 9.614, low: 9.386, vol: 3649503228 },
+    { symbol: 'FILUSDT', name: "Filecoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 5.8, change: 1.07, high: 5.8696, low: 5.7304, vol: 3297666383 },
+    { symbol: 'ARBUSDT', name: "Arbitrum Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.95, change: 2.21, high: 0.9614, low: 0.9386, vol: 2806187953 },
+    { symbol: 'OPUSDT', name: "Optimism Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.1, change: 2.93, high: 2.1252, low: 2.0748, vol: 3352989700 },
+    { symbol: 'INJUSDT', name: "Injective Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 27, change: 2.97, high: 27.324, low: 26.676, vol: 3544815308 },
+    { symbol: 'SUIUSDT', name: "Sui Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 3.1, change: -2.66, high: 3.1372, low: 3.0628, vol: 3916611890 },
+    { symbol: 'SEIUSDT', name: "Sei Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.55, change: -2.22, high: 0.5566, low: 0.5434, vol: 980904307 },
+    { symbol: 'TIAUSDT', name: "Celestia Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 8.4, change: -0.67, high: 8.5008, low: 8.2992, vol: 4389312945 },
+    { symbol: 'RUNEUSDT', name: "THORChain Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 5.4, change: -0.37, high: 5.4648, low: 5.3352, vol: 1784001241 },
+    { symbol: 'AAVEUSDT', name: "Aave Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 280.00, change: 0.5, high: 283.36, low: 276.64, vol: 2726041254 },
+    { symbol: 'SANDUSDT', name: "The Sandbox Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.62, change: -2.56, high: 0.62744, low: 0.61256, vol: 3676508727 },
+    { symbol: 'MANAUSDT', name: "Decentraland Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.48, change: -0.24, high: 0.48576, low: 0.47424, vol: 3148046191 },
+    { symbol: 'AXSUSDT', name: "Axie Infinity Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 6.5, change: 2.57, high: 6.578, low: 6.422, vol: 4211798211 },
+    { symbol: 'FTMUSDT', name: "Fantom Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.82, change: -1.97, high: 0.82984, low: 0.81016, vol: 3369778464 },
+    { symbol: 'GALAUSDT', name: "Gala Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.035, change: -1.03, high: 0.03542, low: 0.03458, vol: 2368449547 },
+    { symbol: 'EGLDUSDT', name: "MultiversX Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 38, change: 0.02, high: 38.456, low: 37.544, vol: 3346378047 },
+    { symbol: 'FLOWUSDT', name: "Flow Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.72, change: -1.97, high: 0.72864, low: 0.71136, vol: 2585483920 },
+    { symbol: 'CHZUSDT', name: "Chiliz Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.085, change: 2.18, high: 0.08602, low: 0.08398, vol: 2462664464 },
+    { symbol: 'ENSUSDT', name: "Ethereum Name Service Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 28, change: -0.0, high: 28.336, low: 27.664, vol: 701555230 },
+    { symbol: 'PEPEUSDT', name: "Pepe Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.000018, change: 2.74, high: 0.000018, low: 0.000018, vol: 2440475001 },
+    { symbol: 'SHIBUSDT', name: "Shiba Inu Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.000022, change: -0.16, high: 0.000022, low: 0.000022, vol: 3683908067 },
+    { symbol: 'DOGEUSDT', name: "Dogecoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.38, change: -2.51, high: 0.38456, low: 0.37544, vol: 4249367980 },
+    { symbol: 'FLOKIUSDT', name: "FLOKI Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.00018, change: -2.58, high: 0.000182, low: 0.000178, vol: 2000301297 },
+    { symbol: 'BONKUSDT', name: "Bonk Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.000032, change: 1.91, high: 0.000032, low: 0.000032, vol: 2368036313 },
+    { symbol: 'WIFUSDT', name: "dogwifhat Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.6, change: -0.95, high: 2.6312, low: 2.5688, vol: 2183629879 },
+    { symbol: 'BOMEUSDT', name: "Book of Meme Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0085, change: 1.82, high: 0.008602, low: 0.008398, vol: 995821286 },
+    { symbol: 'JUPUSDT', name: "Jupiter Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.95, change: 1.67, high: 0.9614, low: 0.9386, vol: 4235745907 },
+    { symbol: 'PYTHUSDT', name: "Pyth Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.42, change: -2.72, high: 0.42504, low: 0.41496, vol: 3832655956 },
+    { symbol: 'JTOUSDT', name: "Jito Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.8, change: 2.6, high: 2.8336, low: 2.7664, vol: 1113751008 },
+    { symbol: 'ORDIUSDT', name: "ORDI Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 38, change: -0.66, high: 38.456, low: 37.544, vol: 3885281228 },
+    { symbol: 'STXUSDT', name: "Stacks Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.9, change: 1.85, high: 1.9228, low: 1.8772, vol: 2986944243 },
+    { symbol: 'KASUSDT', name: "Kaspa Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.16, change: -0.46, high: 0.16192, low: 0.15808, vol: 3738498624 },
+    { symbol: 'RNDRUSDT', name: "Render Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 7.8, change: 1.03, high: 7.8936, low: 7.7064, vol: 1959329438 },
+    { symbol: 'GRTUSDT', name: "The Graph Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.22, change: -0.91, high: 0.22264, low: 0.21736, vol: 657203445 },
+    { symbol: 'LDOUSDT', name: "Lido DAO Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.6, change: 2.52, high: 1.6192, low: 1.5808, vol: 2439406236 },
+    { symbol: 'MKRUSDT', name: "Maker Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1500.00, change: -0.75, high: 1518.00, low: 1482.00, vol: 2394302963 },
+    { symbol: 'CRVUSDT', name: "Curve DAO Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.88, change: -0.59, high: 0.89056, low: 0.86944, vol: 737264515 },
+    { symbol: 'SNXUSDT', name: "Synthetix Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.4, change: -2.5, high: 2.4288, low: 2.3712, vol: 4452843375 },
+    { symbol: 'DYDXUSDT', name: "dYdX Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.9, change: 2.14, high: 1.9228, low: 1.8772, vol: 4237204267 },
+    { symbol: 'GMXUSDT', name: "GMX Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 28, change: 1.1, high: 28.336, low: 27.664, vol: 4229279613 },
+    { symbol: 'COMPUSDT', name: "Compound Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 65, change: 1.53, high: 65.78, low: 64.22, vol: 1779757049 },
+    { symbol: '1INCHUSDT', name: "1inch Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.45, change: -0.38, high: 0.4554, low: 0.4446, vol: 3808179563 },
+    { symbol: 'SUSHIUSDT', name: "SushiSwap Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.95, change: 0.52, high: 0.9614, low: 0.9386, vol: 3997775785 },
+    { symbol: 'BALUSDT', name: "Balancer Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.2, change: 1.65, high: 2.2264, low: 2.1736, vol: 3946574723 },
+    { symbol: 'YFIUSDT', name: "Yearn Finance Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 7200.00, change: 0.5, high: 7286.40, low: 7113.60, vol: 4021849137 },
+    { symbol: 'ALGOUSDT', name: "Algorand Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.38, change: -0.57, high: 0.38456, low: 0.37544, vol: 1511075904 },
+    { symbol: 'EOSTUSDT', name: "EOS Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1, change: -2.88, high: 1.012, low: 0.988, vol: 3020156482 },
+    { symbol: 'XTZUSDT', name: "Tezos Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.2, change: -1.52, high: 1.2144, low: 1.1856, vol: 3367936382 },
+    { symbol: 'KSMUSDT', name: "Kusama Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 28, change: -1.66, high: 28.336, low: 27.664, vol: 994376421 },
+    { symbol: 'ICXUSDT', name: "ICON Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.12, change: 2.81, high: 0.12144, low: 0.11856, vol: 1551168046 },
+    { symbol: 'WAVESUSDT', name: "Waves Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.4, change: 1.07, high: 1.4168, low: 1.3832, vol: 1816433350 },
+    { symbol: 'ZILUSDT', name: "Zilliqa Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.022, change: -1.85, high: 0.022264, low: 0.021736, vol: 1350113479 },
+    { symbol: 'KAVAUSDT', name: "Kava Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.55, change: -0.68, high: 0.5566, low: 0.5434, vol: 916950861 },
+    { symbol: 'ROSEUSDT', name: "Oasis Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.085, change: -1.38, high: 0.08602, low: 0.08398, vol: 3474064753 },
+    { symbol: 'ZECUSDT', name: "Zcash Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 52, change: -1.35, high: 52.624, low: 51.376, vol: 2333152390 },
+    { symbol: 'DASHUSDT', name: "Dash Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 32, change: -2.78, high: 32.384, low: 31.616, vol: 954860723 },
+    { symbol: 'XMRUSDT', name: "Monero Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 165.00, change: -2.43, high: 166.98, low: 163.02, vol: 1056910373 },
+    { symbol: 'XECUSDT', name: "eCash Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.000038, change: -2.84, high: 0.000038, low: 0.000038, vol: 909391726 },
+    { symbol: 'BTGUSDT', name: "Bitcoin Gold Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 28, change: -2.23, high: 28.336, low: 27.664, vol: 3973091117 },
+    { symbol: 'ETCUSDT', name: "Ethereum Classic Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 26, change: -1.47, high: 26.312, low: 25.688, vol: 1969340434 },
+    { symbol: 'NEOUSDT', name: "NEO Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 14, change: -1.68, high: 14.168, low: 13.832, vol: 899972403 },
+    { symbol: 'IOTAUSDT', name: "IOTA Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.18, change: -1.72, high: 0.18216, low: 0.17784, vol: 2499696811 },
+    { symbol: 'QTUMUSDT', name: "Qtum Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.6, change: 0.51, high: 2.6312, low: 2.5688, vol: 3088373824 },
+    { symbol: 'ONTUSDT', name: "Ontology Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.2, change: -2.71, high: 0.2024, low: 0.1976, vol: 3334036320 },
+    { symbol: 'ICPUSDT', name: "Internet Computer Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 9.5, change: 1.23, high: 9.614, low: 9.386, vol: 3042774451 },
+    { symbol: 'HBARUSDT', name: "Hedera Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.28, change: 0.59, high: 0.28336, low: 0.27664, vol: 1536872001 },
+    { symbol: 'VETUSDT', name: "VeChain Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.045, change: 2.77, high: 0.04554, low: 0.04446, vol: 1029639845 },
+    { symbol: 'THETAUSDT', name: "Theta Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.8, change: 0.77, high: 1.8216, low: 1.7784, vol: 3765534084 },
+    { symbol: 'HOTUSDT', name: "Holo Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0016, change: -2.57, high: 0.001619, low: 0.001581, vol: 3398110971 },
+    { symbol: 'ZRXUSDT', name: "0x Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.62, change: 2.85, high: 0.62744, low: 0.61256, vol: 1134066432 },
+    { symbol: 'BATUSDT', name: "Basic Attention Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.22, change: 1.4, high: 0.22264, low: 0.21736, vol: 3842153033 },
+    { symbol: 'OCEANUSDT', name: "Ocean Protocol Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.65, change: -0.57, high: 0.6578, low: 0.6422, vol: 1190169310 },
+    { symbol: 'FETUSDT', name: "Fetch.ai Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.4, change: -1.25, high: 1.4168, low: 1.3832, vol: 2362801624 },
+    { symbol: 'AGIXUSDT', name: "SingularityNET Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.65, change: -1.46, high: 0.6578, low: 0.6422, vol: 2161857581 },
+    { symbol: 'NMRUSDT', name: "Numeraire Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 18, change: -0.79, high: 18.216, low: 17.784, vol: 1108193453 },
+    { symbol: 'LRCUSDT', name: "Loopring Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.22, change: 1.09, high: 0.22264, low: 0.21736, vol: 2457886691 },
+    { symbol: 'ANKRUSDT', name: "Ankr Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.045, change: -2.26, high: 0.04554, low: 0.04446, vol: 2473304306 },
+    { symbol: 'CELOUSDT', name: "Celo Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.65, change: -1.36, high: 0.6578, low: 0.6422, vol: 1230751300 },
+    { symbol: 'WLDUSDT', name: "Worldcoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.4, change: -0.2, high: 2.4288, low: 2.3712, vol: 3233217345 },
+    { symbol: 'ARKMUSDT', name: "Arkham Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.5, change: 2.14, high: 1.518, low: 1.482, vol: 4239520455 },
+    { symbol: 'ASTRUSDT', name: "Astar Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.082, change: -1.16, high: 0.082984, low: 0.081016, vol: 3912495632 },
+    { symbol: 'MOVRUSDT', name: "Moonriver Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 8.5, change: 2.37, high: 8.602, low: 8.398, vol: 2504031972 },
+    { symbol: 'GLMRUSDT', name: "Moonbeam Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.42, change: -2.63, high: 0.42504, low: 0.41496, vol: 769188162 },
+    { symbol: 'CTSIUSDT', name: "Cartesi Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.12, change: 2.17, high: 0.12144, low: 0.11856, vol: 1522585983 },
+    { symbol: 'MASKUSDT', name: "Mask Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.6, change: -1.22, high: 2.6312, low: 2.5688, vol: 4041495674 },
+    { symbol: 'DARUSDT', name: "Mines of Dalarnia Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.18, change: 1.75, high: 0.18216, low: 0.17784, vol: 1547215122 },
+    { symbol: 'APEUSDT', name: "ApeCoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.4, change: 1.91, high: 1.4168, low: 1.3832, vol: 813798556 },
+    { symbol: 'LOOKSUSDT', name: "LooksRare Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.065, change: -0.32, high: 0.06578, low: 0.06422, vol: 691724651 },
+    { symbol: 'BLURUSDT', name: "Blur Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.22, change: 1.25, high: 0.22264, low: 0.21736, vol: 1495143357 },
+    { symbol: 'GMTUSDT', name: "STEPN Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.18, change: 1.05, high: 0.18216, low: 0.17784, vol: 932512553 },
+    { symbol: 'WOOUSDT', name: "WOO Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.32, change: -2.46, high: 0.32384, low: 0.31616, vol: 3358471710 },
+    { symbol: 'CYBERUSDT', name: "CyberConnect Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 4.5, change: -2.42, high: 4.554, low: 4.446, vol: 3944190884 },
+    { symbol: 'HIGHUSDT', name: "Highstreet Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.2, change: -1.81, high: 1.2144, low: 1.1856, vol: 2855144196 },
+    { symbol: 'API3USDT', name: "API3 Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.8, change: 1.93, high: 1.8216, low: 1.7784, vol: 3771155857 },
+    { symbol: 'KLAYUSDT', name: "Klaytn Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.16, change: 1.01, high: 0.16192, low: 0.15808, vol: 976358456 },
+    { symbol: 'XNOUSDT', name: "Nano Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.1, change: -2.02, high: 1.1132, low: 1.0868, vol: 2124013240 },
+    { symbol: 'SCUSDT', name: "Siacoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0058, change: -2.54, high: 0.00587, low: 0.00573, vol: 4349607649 },
+    { symbol: 'STORJUSDT', name: "Storj Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.45, change: 2.89, high: 0.4554, low: 0.4446, vol: 2824877317 },
+    { symbol: 'ARUSDT', name: "Arweave Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 22, change: -0.4, high: 22.264, low: 21.736, vol: 2599837080 },
+    { symbol: 'ARKUSDT', name: "Ark Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1, change: 0.35, high: 1.012, low: 0.988, vol: 2725226016 },
+    { symbol: 'MEMEUSDT', name: "Memecoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.018, change: 1.38, high: 0.018216, low: 0.017784, vol: 2392618920 },
+    { symbol: 'TURBOUSDT', name: "Turbo Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.005, change: -0.22, high: 0.00506, low: 0.00494, vol: 3549385823 },
+    { symbol: 'NEIROUSDT', name: "Neiro Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0016, change: -0.01, high: 0.001619, low: 0.001581, vol: 3303299108 },
+    { symbol: 'POPCATUSDT', name: "Popcat Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.2, change: 0.78, high: 1.2144, low: 1.1856, vol: 1231348304 },
+    { symbol: 'MEWUSDT', name: "cat in a dogs world Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0065, change: 0.17, high: 0.006578, low: 0.006422, vol: 2560455222 },
+    { symbol: 'GOATUSDT', name: "Goatseus Maximus Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.65, change: 2.03, high: 0.6578, low: 0.6422, vol: 3298994770 },
+    { symbol: 'PNUTUSDT', name: "Peanut the Squirrel Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.55, change: -1.69, high: 0.5566, low: 0.5434, vol: 3936893989 },
+    { symbol: 'ACTUSDT', name: "Act I The AI Prophecy Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.42, change: 0.87, high: 0.42504, low: 0.41496, vol: 3370291916 },
+    { symbol: 'BANUSDT', name: "Banano Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0018, change: -1.18, high: 0.001822, low: 0.001778, vol: 2098485522 },
+    { symbol: 'SLERFUSDT', name: "Slerf Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.28, change: -2.67, high: 0.28336, low: 0.27664, vol: 3558758942 },
+    { symbol: 'RAYUSDT', name: "Raydium Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.4, change: -0.05, high: 2.4288, low: 2.3712, vol: 2912033164 },
+    { symbol: 'HONEYUSDT', name: "Hivemapper Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.022, change: -2.72, high: 0.022264, low: 0.021736, vol: 2615103722 },
+    { symbol: 'KMNOUSDT', name: "Kamino Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.085, change: -0.28, high: 0.08602, low: 0.08398, vol: 1696721443 },
+    { symbol: 'TONUSDT', name: "Toncoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 5.2, change: -1.96, high: 5.2624, low: 5.1376, vol: 1826121262 },
+    { symbol: 'NOTUSDT', name: "Notcoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.012, change: -0.6, high: 0.012144, low: 0.011856, vol: 2127534835 },
+    { symbol: 'DOGSUSDT', name: "DOGS Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0011, change: -0.28, high: 0.001113, low: 0.001087, vol: 3927003998 },
+    { symbol: 'HMSTRUSDT', name: "Hamster Kombat Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0085, change: -2.71, high: 0.008602, low: 0.008398, vol: 3996827153 },
+    { symbol: 'CATIUSDT', name: "Catizen Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.62, change: 1.65, high: 0.62744, low: 0.61256, vol: 1236540777 },
+    { symbol: 'XUSDT', name: "x.com (Twitter) Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 8.5, change: 2.14, high: 8.602, low: 8.398, vol: 1532135211 },
+    { symbol: 'ZKUSDT', name: "zkSync Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.18, change: 2.03, high: 0.18216, low: 0.17784, vol: 2634986835 },
+    { symbol: 'STRKUSDT', name: "Starknet Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.45, change: 2.29, high: 0.4554, low: 0.4446, vol: 2107983497 },
+    { symbol: 'MANTAUSDT', name: "Manta Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.72, change: 0.53, high: 0.72864, low: 0.71136, vol: 3249804302 },
+    { symbol: 'ALTUSDT', name: "Altlayer Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.18, change: -2.12, high: 0.18216, low: 0.17784, vol: 3052241854 },
+    { symbol: 'MNTUSDT', name: "Mantle Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.72, change: 0.99, high: 0.72864, low: 0.71136, vol: 1392316239 },
+    { symbol: 'BLASTUSDT', name: "Blast Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0085, change: -2.76, high: 0.008602, low: 0.008398, vol: 722413395 },
+    { symbol: 'ETHFIUSDT', name: "Ether.fi Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 2.8, change: -1.92, high: 2.8336, low: 2.7664, vol: 3618857395 },
+    { symbol: 'EIGENUSDT', name: "EigenLayer Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 3.4, change: 2.11, high: 3.4408, low: 3.3592, vol: 2254698673 },
+    { symbol: 'OMNIUSDT', name: "Omni Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 8.5, change: 1.08, high: 8.602, low: 8.398, vol: 882355414 },
+    { symbol: 'REZUSDT', name: "Renzo Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.085, change: -0.0, high: 0.08602, low: 0.08398, vol: 1706290689 },
+    { symbol: 'WBTCUSDT', name: "Wrapped Bitcoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 92000.00, change: 2.18, high: 93104.00, low: 90896.00, vol: 706009579 },
+    { symbol: 'VTHOUSDT', name: "VeChainThor Energy Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.0028, change: 0.32, high: 0.002834, low: 0.002766, vol: 1283253644 },
+    { symbol: 'NXBUSDT', name: "Nexus Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.045, change: -0.98, high: 0.04554, low: 0.04446, vol: 629078798 },
+    { symbol: 'RENDERUSDT', name: "Render Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 7.8, change: -1.0, high: 7.8936, low: 7.7064, vol: 1306476058 },
+    { symbol: 'ENAUSDT', name: "Ethena Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.95, change: -1.94, high: 0.9614, low: 0.9386, vol: 1102740399 },
+    { symbol: 'PIXELUSDT', name: "Pixels Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.18, change: 0.14, high: 0.18216, low: 0.17784, vol: 2633527246 },
+    { symbol: 'PORTALUSDT', name: "Portal Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.42, change: 2.67, high: 0.42504, low: 0.41496, vol: 3448541062 },
+    { symbol: 'XAIUSDT', name: "Xai Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.85, change: -1.22, high: 0.8602, low: 0.8398, vol: 2075179401 },
+    { symbol: 'ACEUSDT', name: "Fusionist Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 5.5, change: 0.88, high: 5.566, low: 5.434, vol: 4488149285 },
+    { symbol: 'NFPUSDT', name: "NFPrompt Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.32, change: -0.81, high: 0.32384, low: 0.31616, vol: 2431514242 },
+    { symbol: 'JASMYUSDT', name: "JasmyCoin Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.022, change: 2.6, high: 0.022264, low: 0.021736, vol: 2595436372 },
+    { symbol: 'DUSKUSDT', name: "Dusk Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.12, change: -0.6, high: 0.12144, low: 0.11856, vol: 818327592 },
+    { symbol: 'COCOSUSDT', name: "Cocos-BCX Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 1.2, change: -0.15, high: 1.2144, low: 1.1856, vol: 2530984996 },
+    { symbol: 'POLYXUSDT', name: "Polymesh Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.18, change: -2.56, high: 0.18216, low: 0.17784, vol: 2694867096 },
+    { symbol: 'PHAUSDT', name: "Phala Network Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.12, change: -1.26, high: 0.12144, low: 0.11856, vol: 2649499010 },
+    { symbol: 'QIUSDT', name: "BENQI Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.012, change: -2.86, high: 0.012144, low: 0.011856, vol: 3528744191 },
+    { symbol: 'MAVUSDT', name: "Maverick Protocol Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.28, change: -0.38, high: 0.28336, low: 0.27664, vol: 3212872986 },
+    { symbol: 'SUPERUSDT', name: "SuperVerse Spot / Perp", category: 'crypto', isLiveCrypto: true, featured: false, price: 0.085, change: 1.42, high: 0.08602, low: 0.08398, vol: 2015356908 },
+    { symbol: 'PAXGUSDT', name: "PAX Gold (XAU Tokenized)", category: 'commodity', isLiveCrypto: true, featured: false, price: 100.00, change: -0.55, high: 101.50, low: 98.5, vol: 648931364 },
+    { symbol: 'XAUTUSDT', name: "Tether Gold (XAU Tokenized)", category: 'commodity', isLiveCrypto: true, featured: false, price: 100.00, change: 0.82, high: 101.50, low: 98.5, vol: 842575323 },
+    { symbol: 'XAUUSD', name: "Gold Spot (XAU/USD)", category: 'commodity', isLiveCrypto: false, featured: false, price: 2748.00, change: 0.05, high: 2789.22, low: 2706.78, vol: 173336159 },
+    { symbol: 'XAGUSD', name: "Silver Spot (XAG/USD)", category: 'commodity', isLiveCrypto: false, featured: false, price: 33.85, change: -0.94, high: 34.3578, low: 33.3422, vol: 493333891 },
+    { symbol: 'WTICOUSD', name: "WTI Crude Oil Futures", category: 'commodity', isLiveCrypto: false, featured: false, price: 100.00, change: -0.26, high: 101.50, low: 98.5, vol: 353155459 },
+    { symbol: 'BCOUSD', name: "Brent Crude Oil Futures", category: 'commodity', isLiveCrypto: false, featured: false, price: 75.2, change: 1.77, high: 76.328, low: 74.072, vol: 728825995 },
+    { symbol: 'NATGASUSD', name: "Henry Hub Natural Gas", category: 'commodity', isLiveCrypto: false, featured: false, price: 3.1, change: 2.57, high: 3.1465, low: 3.0535, vol: 234735584 },
+    { symbol: 'XPTUSD', name: "Platinum Spot", category: 'commodity', isLiveCrypto: false, featured: false, price: 985.00, change: -2.98, high: 999.77, low: 970.23, vol: 186347664 },
+    { symbol: 'XPDUSD', name: "Palladium Spot", category: 'commodity', isLiveCrypto: false, featured: false, price: 1010.00, change: 0.1, high: 1025.15, low: 994.85, vol: 433012766 },
+    { symbol: 'HGUSD', name: "Copper Futures (COMEX)", category: 'commodity', isLiveCrypto: false, featured: false, price: 4.18, change: 1.87, high: 4.2427, low: 4.1173, vol: 754989441 },
+    { symbol: 'CORNUSD', name: "Corn Futures (CBOT)", category: 'commodity', isLiveCrypto: false, featured: false, price: 4.35, change: 0.08, high: 4.4153, low: 4.2847, vol: 852149238 },
+    { symbol: 'WHEATUSD', name: "Wheat Futures (CBOT)", category: 'commodity', isLiveCrypto: false, featured: false, price: 5.85, change: -0.95, high: 5.9378, low: 5.7622, vol: 581071138 },
+    { symbol: 'SOYBNUSD', name: "Soybean Futures (CBOT)", category: 'commodity', isLiveCrypto: false, featured: false, price: 10.05, change: -2.97, high: 10.2007, low: 9.8993, vol: 747544786 },
+    { symbol: 'COFFEEUSD', name: "Coffee C Futures (ICE)", category: 'commodity', isLiveCrypto: false, featured: false, price: 3.2, change: 2.83, high: 3.248, low: 3.152, vol: 476298251 },
+    { symbol: 'SUGARUSD', name: "Sugar #11 Futures (ICE)", category: 'commodity', isLiveCrypto: false, featured: false, price: 0.218, change: -2.63, high: 0.22127, low: 0.21473, vol: 232259105 },
+    { symbol: 'COCOAUSD', name: "Cocoa Futures (ICE)", category: 'commodity', isLiveCrypto: false, featured: false, price: 8500.00, change: -2.28, high: 8627.50, low: 8372.50, vol: 767251745 },
+    { symbol: 'OJUSD', name: "Orange Juice Futures (ICE)", category: 'commodity', isLiveCrypto: false, featured: false, price: 3.15, change: -0.24, high: 3.1972, low: 3.1027, vol: 453027457 },
+    { symbol: 'COTTONUSD', name: "Cotton #2 Futures (ICE)", category: 'commodity', isLiveCrypto: false, featured: false, price: 0.71, change: -0.43, high: 0.72065, low: 0.69935, vol: 366618326 },
+    { symbol: 'LUMBERUSD', name: "Random Length Lumber Futures", category: 'commodity', isLiveCrypto: false, featured: false, price: 565.00, change: -1.74, high: 573.48, low: 556.52, vol: 798151088 },
+    { symbol: 'ALUUSD', name: "Aluminium Futures (LME)", category: 'commodity', isLiveCrypto: false, featured: false, price: 2540.00, change: 0.1, high: 2578.10, low: 2501.90, vol: 558153369 },
+    { symbol: 'ZINCUSD', name: "Zinc Futures (LME)", category: 'commodity', isLiveCrypto: false, featured: false, price: 3050.00, change: 1.1, high: 3095.75, low: 3004.25, vol: 488529637 },
+    { symbol: 'NICKELUSD', name: "Nickel Futures (LME)", category: 'commodity', isLiveCrypto: false, featured: false, price: 16200.00, change: 2.84, high: 16443.00, low: 15957.00, vol: 278258818 },
+    { symbol: 'LEANUSD', name: "Lean Hogs Futures (CME)", category: 'commodity', isLiveCrypto: false, featured: false, price: 0.85, change: -2.37, high: 0.86275, low: 0.83725, vol: 168068625 },
+    { symbol: 'LIVEUSD', name: "Live Cattle Futures (CME)", category: 'commodity', isLiveCrypto: false, featured: false, price: 1.85, change: 1.77, high: 1.8778, low: 1.8222, vol: 349511779 },
+    { symbol: 'RICEUSD', name: "Rough Rice Futures (CBOT)", category: 'commodity', isLiveCrypto: false, featured: false, price: 14.5, change: 2.92, high: 14.7175, low: 14.2825, vol: 736884421 },
+    { symbol: 'OATSUSD', name: "Oats Futures (CBOT)", category: 'commodity', isLiveCrypto: false, featured: false, price: 3.55, change: 0.73, high: 3.6033, low: 3.4968, vol: 209070386 },
+    { symbol: 'ETHANOLUSD', name: "Ethanol Futures (CBOT)", category: 'commodity', isLiveCrypto: false, featured: false, price: 1.55, change: 0.88, high: 1.5733, low: 1.5268, vol: 846549172 },
+    { symbol: 'MILKUSD', name: "Class III Milk Futures (CME)", category: 'commodity', isLiveCrypto: false, featured: false, price: 18.5, change: 2.69, high: 18.7775, low: 18.2225, vol: 122492745 },
+    { symbol: 'COALUSD', name: "Coal Futures (API2)", category: 'commodity', isLiveCrypto: false, featured: false, price: 115.00, change: 0.72, high: 116.72, low: 113.28, vol: 589837260 },
+    { symbol: 'URANIUMUSD', name: "Uranium Futures (UX)", category: 'commodity', isLiveCrypto: false, featured: false, price: 78, change: -2.27, high: 79.17, low: 76.83, vol: 134796778 },
+    { symbol: 'CARBONUSD', name: "Carbon Emissions (EUA)", category: 'commodity', isLiveCrypto: false, featured: false, price: 65, change: 0.82, high: 65.975, low: 64.025, vol: 704090285 },
+    { symbol: 'LITHIUMUSD', name: "Lithium Carbonate Spot", category: 'commodity', isLiveCrypto: false, featured: false, price: 13500.00, change: 0.38, high: 13702.50, low: 13297.50, vol: 479968982 },
+    { symbol: 'COBALTUSD', name: "Cobalt Spot (LME)", category: 'commodity', isLiveCrypto: false, featured: false, price: 24500.00, change: -0.77, high: 24867.50, low: 24132.50, vol: 248175509 },
+    { symbol: 'EURUSD', name: "Euro / US Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 1.082, change: 2.88, high: 1.0907, low: 1.0733, vol: 689090919 },
+    { symbol: 'GBPUSD', name: "British Pound / US Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 1.268, change: -2.43, high: 1.2781, low: 1.2579, vol: 277496886 },
+    { symbol: 'USDJPY', name: "US Dollar / Japanese Yen", category: 'fx', isLiveCrypto: false, featured: false, price: 152.50, change: -0.79, high: 153.72, low: 151.28, vol: 721907851 },
+    { symbol: 'USDCHF', name: "US Dollar / Swiss Franc", category: 'fx', isLiveCrypto: false, featured: false, price: 0.882, change: -1.85, high: 0.889056, low: 0.874944, vol: 875093057 },
+    { symbol: 'USDCAD', name: "US Dollar / Canadian Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 1.385, change: -0.11, high: 1.3961, low: 1.3739, vol: 248594644 },
+    { symbol: 'AUDUSD', name: "Australian Dollar / US Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 0.658, change: -0.9, high: 0.663264, low: 0.652736, vol: 748223072 },
+    { symbol: 'NZDUSD', name: "New Zealand Dollar / US Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 0.602, change: -1.19, high: 0.606816, low: 0.597184, vol: 471777856 },
+    { symbol: 'EURGBP', name: "Euro / British Pound", category: 'fx', isLiveCrypto: false, featured: false, price: 0.853, change: -1.42, high: 0.859824, low: 0.846176, vol: 812433774 },
+    { symbol: 'EURJPY', name: "Euro / Japanese Yen", category: 'fx', isLiveCrypto: false, featured: false, price: 165.20, change: -0.92, high: 166.52, low: 163.88, vol: 980050228 },
+    { symbol: 'EURCHF', name: "Euro / Swiss Franc", category: 'fx', isLiveCrypto: false, featured: false, price: 0.955, change: -0.59, high: 0.96264, low: 0.94736, vol: 752754133 },
+    { symbol: 'EURAUD', name: "Euro / Australian Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 1.645, change: 0.14, high: 1.6582, low: 1.6318, vol: 758424269 },
+    { symbol: 'EURCAD', name: "Euro / Canadian Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 1.498, change: 1.63, high: 1.51, low: 1.486, vol: 800715298 },
+    { symbol: 'GBPJPY', name: "British Pound / Japanese Yen", category: 'fx', isLiveCrypto: false, featured: false, price: 193.40, change: 0.86, high: 194.95, low: 191.85, vol: 489786838 },
+    { symbol: 'GBPCHF', name: "British Pound / Swiss Franc", category: 'fx', isLiveCrypto: false, featured: false, price: 1.119, change: -1.78, high: 1.128, low: 1.11, vol: 702035379 },
+    { symbol: 'GBPAUD', name: "British Pound / Australian Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 1.929, change: 1.24, high: 1.9444, low: 1.9136, vol: 680112858 },
+    { symbol: 'AUDJPY', name: "Australian Dollar / Japanese Yen", category: 'fx', isLiveCrypto: false, featured: false, price: 100.30, change: 0.36, high: 101.10, low: 99.4976, vol: 790874552 },
+    { symbol: 'AUDNZD', name: "Australian Dollar / NZ Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 1.093, change: -2.54, high: 1.1017, low: 1.0843, vol: 827628204 },
+    { symbol: 'AUDCAD', name: "Australian Dollar / Canadian Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 0.912, change: -1.47, high: 0.919296, low: 0.904704, vol: 538217229 },
+    { symbol: 'CADJPY', name: "Canadian Dollar / Japanese Yen", category: 'fx', isLiveCrypto: false, featured: false, price: 110.10, change: 0.92, high: 110.98, low: 109.22, vol: 187136661 },
+    { symbol: 'CHFJPY', name: "Swiss Franc / Japanese Yen", category: 'fx', isLiveCrypto: false, featured: false, price: 172.80, change: 0.82, high: 174.18, low: 171.42, vol: 981656411 },
+    { symbol: 'NZDJPY', name: "NZ Dollar / Japanese Yen", category: 'fx', isLiveCrypto: false, featured: false, price: 91.8, change: 0.05, high: 92.5344, low: 91.0656, vol: 505707047 },
+    { symbol: 'USDCNH', name: "US Dollar / Offshore Chinese Yuan", category: 'fx', isLiveCrypto: false, featured: false, price: 7.245, change: -1.33, high: 7.303, low: 7.187, vol: 298778733 },
+    { symbol: 'USDMXN', name: "US Dollar / Mexican Peso", category: 'fx', isLiveCrypto: false, featured: false, price: 19.85, change: 2.09, high: 20.0088, low: 19.6912, vol: 507557337 },
+    { symbol: 'USDZAR', name: "US Dollar / South African Rand", category: 'fx', isLiveCrypto: false, featured: false, price: 18.2, change: -2.19, high: 18.3456, low: 18.0544, vol: 886668485 },
+    { symbol: 'USDTRY', name: "US Dollar / Turkish Lira", category: 'fx', isLiveCrypto: false, featured: false, price: 34.2, change: -0.36, high: 34.4736, low: 33.9264, vol: 341205082 },
+    { symbol: 'USDINR', name: "US Dollar / Indian Rupee", category: 'fx', isLiveCrypto: false, featured: false, price: 84.5, change: 2.08, high: 85.176, low: 83.824, vol: 782726266 },
+    { symbol: 'USDBRL', name: "US Dollar / Brazilian Real", category: 'fx', isLiveCrypto: false, featured: false, price: 5.75, change: 0.56, high: 5.796, low: 5.704, vol: 155593257 },
+    { symbol: 'USDRUB', name: "US Dollar / Russian Ruble", category: 'fx', isLiveCrypto: false, featured: false, price: 95.5, change: -0.04, high: 96.264, low: 94.736, vol: 745891874 },
+    { symbol: 'USDSGD', name: "US Dollar / Singapore Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 1.345, change: -0.67, high: 1.3558, low: 1.3342, vol: 970904278 },
+    { symbol: 'USDHKD', name: "US Dollar / Hong Kong Dollar", category: 'fx', isLiveCrypto: false, featured: false, price: 7.785, change: 1.95, high: 7.8473, low: 7.7227, vol: 722150760 },
+    { symbol: 'USDTHB', name: "US Dollar / Thai Baht", category: 'fx', isLiveCrypto: false, featured: false, price: 34.5, change: -1.14, high: 34.776, low: 34.224, vol: 256514306 },
+    { symbol: 'USDPHP', name: "US Dollar / Philippine Peso", category: 'fx', isLiveCrypto: false, featured: false, price: 58.5, change: -1.83, high: 58.968, low: 58.032, vol: 611795224 },
+    { symbol: 'USDIDR', name: "US Dollar / Indonesian Rupiah", category: 'fx', isLiveCrypto: false, featured: false, price: 15850.00, change: -0.23, high: 15976.80, low: 15723.20, vol: 772352367 },
+    { symbol: 'USDMYR', name: "US Dollar / Malaysian Ringgit", category: 'fx', isLiveCrypto: false, featured: false, price: 4.45, change: -1.56, high: 4.4856, low: 4.4144, vol: 363442187 },
+    { symbol: 'USDKRW', name: "US Dollar / Korean Won", category: 'fx', isLiveCrypto: false, featured: false, price: 1370.00, change: 2.72, high: 1380.96, low: 1359.04, vol: 799493648 },
+    { symbol: 'USDSEK', name: "US Dollar / Swedish Krona", category: 'fx', isLiveCrypto: false, featured: false, price: 10.85, change: 0.53, high: 10.9368, low: 10.7632, vol: 570404156 },
+    { symbol: 'USDNOK', name: "US Dollar / Norwegian Krone", category: 'fx', isLiveCrypto: false, featured: false, price: 10.95, change: 2.01, high: 11.0376, low: 10.8624, vol: 579100552 },
+    { symbol: 'USDDKK', name: "US Dollar / Danish Krone", category: 'fx', isLiveCrypto: false, featured: false, price: 6.88, change: 0.52, high: 6.935, low: 6.825, vol: 343882814 },
+    { symbol: 'USDPLN', name: "US Dollar / Polish Zloty", category: 'fx', isLiveCrypto: false, featured: false, price: 4.05, change: 1.04, high: 4.0824, low: 4.0176, vol: 954558458 },
+    { symbol: 'USDHUF', name: "US Dollar / Hungarian Forint", category: 'fx', isLiveCrypto: false, featured: false, price: 380.00, change: -1.25, high: 383.04, low: 376.96, vol: 300087757 },
+    { symbol: 'USDCZK', name: "US Dollar / Czech Koruna", category: 'fx', isLiveCrypto: false, featured: false, price: 23.5, change: 2.23, high: 23.688, low: 23.312, vol: 922418429 },
+    { symbol: 'DXY', name: "US Dollar Index (DXY)", category: 'fx', isLiveCrypto: false, featured: false, price: 105.20, change: 2.22, high: 106.04, low: 104.36, vol: 115166095 },
+    { symbol: 'AAPL', name: "Apple Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 235.00, change: 0.16, high: 239.23, low: 230.77, vol: 1544075262 },
+    { symbol: 'MSFT', name: "Microsoft Corporation", category: 'stock', isLiveCrypto: false, featured: false, price: 428.00, change: -1.11, high: 435.70, low: 420.30, vol: 1056208963 },
+    { symbol: 'NVDA', name: "NVIDIA Corporation", category: 'stock', isLiveCrypto: false, featured: false, price: 142.00, change: -0.99, high: 144.56, low: 139.44, vol: 1072402195 },
+    { symbol: 'TSLA', name: "Tesla Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 249.00, change: -2.84, high: 253.48, low: 244.52, vol: 732437983 },
+    { symbol: 'AMZN', name: "Amazon.com Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 188.00, change: 2.05, high: 191.38, low: 184.62, vol: 1612372276 },
+    { symbol: 'META', name: "Meta Platforms Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 565.00, change: -2.55, high: 575.17, low: 554.83, vol: 502319633 },
+    { symbol: 'GOOGL', name: "Alphabet Inc. Class A", category: 'stock', isLiveCrypto: false, featured: false, price: 178.00, change: 0.2, high: 181.20, low: 174.80, vol: 2128136971 },
+    { symbol: 'GOOG', name: "Alphabet Inc. Class C", category: 'stock', isLiveCrypto: false, featured: false, price: 180.00, change: 2.84, high: 183.24, low: 176.76, vol: 2281218870 },
+    { symbol: 'NFLX', name: "Netflix Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 720.00, change: -0.68, high: 732.96, low: 707.04, vol: 626557357 },
+    { symbol: 'AMD', name: "Advanced Micro Devices", category: 'stock', isLiveCrypto: false, featured: false, price: 138.00, change: 2.98, high: 140.48, low: 135.52, vol: 983563497 },
+    { symbol: 'INTC', name: "Intel Corporation", category: 'stock', isLiveCrypto: false, featured: false, price: 23, change: -1.02, high: 23.414, low: 22.586, vol: 1888030104 },
+    { symbol: 'QCOM', name: "Qualcomm Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 165.00, change: 1.26, high: 167.97, low: 162.03, vol: 1731405014 },
+    { symbol: 'AVGO', name: "Broadcom Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 175.00, change: -0.76, high: 178.15, low: 171.85, vol: 2013398820 },
+    { symbol: 'TXN', name: "Texas Instruments", category: 'stock', isLiveCrypto: false, featured: false, price: 198.00, change: 2.55, high: 201.56, low: 194.44, vol: 2447779484 },
+    { symbol: 'MU', name: "Micron Technology", category: 'stock', isLiveCrypto: false, featured: false, price: 95, change: -1.48, high: 96.71, low: 93.29, vol: 2477511908 },
+    { symbol: 'CRM', name: "Salesforce Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 332.00, change: 0.73, high: 337.98, low: 326.02, vol: 1712823664 },
+    { symbol: 'ORCL', name: "Oracle Corporation", category: 'stock', isLiveCrypto: false, featured: false, price: 168.00, change: 0.21, high: 171.02, low: 164.98, vol: 846455021 },
+    { symbol: 'ADBE', name: "Adobe Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 510.00, change: -1.11, high: 519.18, low: 500.82, vol: 2318863854 },
+    { symbol: 'PYPL', name: "PayPal Holdings", category: 'stock', isLiveCrypto: false, featured: false, price: 78, change: -1.21, high: 79.404, low: 76.596, vol: 2177631492 },
+    { symbol: 'COST', name: "Costco Wholesale", category: 'stock', isLiveCrypto: false, featured: false, price: 910.00, change: 1.54, high: 926.38, low: 893.62, vol: 962183212 },
+    { symbol: 'WMT', name: "Walmart Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 85, change: 2.12, high: 86.53, low: 83.47, vol: 958930440 },
+    { symbol: 'HD', name: "Home Depot Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 410.00, change: -1.11, high: 417.38, low: 402.62, vol: 2390010090 },
+    { symbol: 'MCD', name: "McDonald's Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 295.00, change: -1.66, high: 300.31, low: 289.69, vol: 1227295076 },
+    { symbol: 'SBUX', name: "Starbucks Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 102.00, change: -2.11, high: 103.84, low: 100.16, vol: 2248359612 },
+    { symbol: 'NKE', name: "Nike Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 78, change: 2.83, high: 79.404, low: 76.596, vol: 2128775702 },
+    { symbol: 'DIS', name: "Walt Disney Co.", category: 'stock', isLiveCrypto: false, featured: false, price: 112.00, change: 0.66, high: 114.02, low: 109.98, vol: 2477155820 },
+    { symbol: 'BABA', name: "Alibaba Group ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 88, change: 2.54, high: 89.584, low: 86.416, vol: 1869722940 },
+    { symbol: 'JD', name: "JD.com Inc. ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 35, change: -1.36, high: 35.63, low: 34.37, vol: 941698334 },
+    { symbol: 'PDD', name: "PDD Holdings ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 142.00, change: -1.22, high: 144.56, low: 139.44, vol: 1667776008 },
+    { symbol: 'BIDU', name: "Baidu Inc. ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 88, change: -2.24, high: 89.584, low: 86.416, vol: 1268286263 },
+    { symbol: 'NIO', name: "NIO Inc. ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 4.5, change: 2.69, high: 4.581, low: 4.419, vol: 1369010886 },
+    { symbol: 'XPEV', name: "XPeng Inc. ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 8.5, change: 2.98, high: 8.653, low: 8.347, vol: 1298566161 },
+    { symbol: 'LI', name: "Li Auto Inc. ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 24, change: 1.74, high: 24.432, low: 23.568, vol: 1592535075 },
+    { symbol: 'TSM', name: "Taiwan Semiconductor ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 195.00, change: -0.15, high: 198.51, low: 191.49, vol: 1188004287 },
+    { symbol: 'ASML', name: "ASML Holding NV", category: 'stock', isLiveCrypto: false, featured: false, price: 685.00, change: -0.14, high: 697.33, low: 672.67, vol: 1464233325 },
+    { symbol: 'SAP', name: "SAP SE ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 220.00, change: 2.78, high: 223.96, low: 216.04, vol: 1230363509 },
+    { symbol: 'TM', name: "Toyota Motor Corp. ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 178.00, change: -0.81, high: 181.20, low: 174.80, vol: 2009006242 },
+    { symbol: 'HSBC', name: "HSBC Holdings ADR", category: 'stock', isLiveCrypto: false, featured: false, price: 58, change: 1.64, high: 59.044, low: 56.956, vol: 922256508 },
+    { symbol: 'JPM', name: "JPMorgan Chase & Co.", category: 'stock', isLiveCrypto: false, featured: false, price: 218.00, change: -1.59, high: 221.92, low: 214.08, vol: 1683323679 },
+    { symbol: 'BAC', name: "Bank of America Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 42, change: 0.74, high: 42.756, low: 41.244, vol: 688309694 },
+    { symbol: 'WFC', name: "Wells Fargo & Co.", category: 'stock', isLiveCrypto: false, featured: false, price: 68, change: 0.94, high: 69.224, low: 66.776, vol: 1859173861 },
+    { symbol: 'GS', name: "Goldman Sachs Group", category: 'stock', isLiveCrypto: false, featured: false, price: 520.00, change: 0.33, high: 529.36, low: 510.64, vol: 1917795714 },
+    { symbol: 'MS', name: "Morgan Stanley", category: 'stock', isLiveCrypto: false, featured: false, price: 118.00, change: 1.79, high: 120.12, low: 115.88, vol: 1056658909 },
+    { symbol: 'C', name: "Citigroup Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 68, change: 0.77, high: 69.224, low: 66.776, vol: 1826970261 },
+    { symbol: 'V', name: "Visa Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 305.00, change: -2.25, high: 310.49, low: 299.51, vol: 1321030334 },
+    { symbol: 'MA', name: "Mastercard Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 488.00, change: -2.56, high: 496.78, low: 479.22, vol: 1634748722 },
+    { symbol: 'AXP', name: "American Express Co.", category: 'stock', isLiveCrypto: false, featured: false, price: 280.00, change: -1.28, high: 285.04, low: 274.96, vol: 1111545076 },
+    { symbol: 'BKNG', name: "Booking Holdings", category: 'stock', isLiveCrypto: false, featured: false, price: 4820.00, change: -1.26, high: 4906.76, low: 4733.24, vol: 1973563601 },
+    { symbol: 'ABNB', name: "Airbnb Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 132.00, change: 2.79, high: 134.38, low: 129.62, vol: 2251530432 },
+    { symbol: 'UBER', name: "Uber Technologies", category: 'stock', isLiveCrypto: false, featured: false, price: 72, change: -2.84, high: 73.296, low: 70.704, vol: 1210298979 },
+    { symbol: 'LYFT', name: "Lyft Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 14, change: 1.83, high: 14.252, low: 13.748, vol: 2099917841 },
+    { symbol: 'SHOP', name: "Shopify Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 95, change: 0.51, high: 96.71, low: 93.29, vol: 660316878 },
+    { symbol: 'SQ', name: "Block Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 78, change: -0.31, high: 79.404, low: 76.596, vol: 1439995315 },
+    { symbol: 'COIN', name: "Coinbase Global", category: 'stock', isLiveCrypto: false, featured: false, price: 285.00, change: 1.83, high: 290.13, low: 279.87, vol: 1321542474 },
+    { symbol: 'PLTR', name: "Palantir Technologies", category: 'stock', isLiveCrypto: false, featured: false, price: 65, change: -0.38, high: 66.17, low: 63.83, vol: 1736079700 },
+    { symbol: 'SNOW', name: "Snowflake Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 165.00, change: 1.48, high: 167.97, low: 162.03, vol: 1723062588 },
+    { symbol: 'CRWD', name: "CrowdStrike Holdings", category: 'stock', isLiveCrypto: false, featured: false, price: 358.00, change: -0.33, high: 364.44, low: 351.56, vol: 657211876 },
+    { symbol: 'PANW', name: "Palo Alto Networks", category: 'stock', isLiveCrypto: false, featured: false, price: 380.00, change: 2.05, high: 386.84, low: 373.16, vol: 1085483288 },
+    { symbol: 'ZM', name: "Zoom Video Communications", category: 'stock', isLiveCrypto: false, featured: false, price: 88, change: 2.38, high: 89.584, low: 86.416, vol: 1962891534 },
+    { symbol: 'DOCU', name: "DocuSign Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 88, change: -1.66, high: 89.584, low: 86.416, vol: 1836822748 },
+    { symbol: 'TEAM', name: "Atlassian Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 215.00, change: -2.71, high: 218.87, low: 211.13, vol: 1809766767 },
+    { symbol: 'NET', name: "Cloudflare Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 78, change: -0.5, high: 79.404, low: 76.596, vol: 1456275994 },
+    { symbol: 'DDOG', name: "Datadog Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 132.00, change: -0.93, high: 134.38, low: 129.62, vol: 2425724720 },
+    { symbol: 'MDB', name: "MongoDB Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 285.00, change: -0.29, high: 290.13, low: 279.87, vol: 1518003887 },
+    { symbol: 'OKTA', name: "Okta Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 88, change: -2.61, high: 89.584, low: 86.416, vol: 2391905935 },
+    { symbol: 'ZS', name: "Zscaler Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 218.00, change: 2.0, high: 221.92, low: 214.08, vol: 2159749478 },
+    { symbol: 'FSLR', name: "First Solar Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 245.00, change: -0.11, high: 249.41, low: 240.59, vol: 2007234035 },
+    { symbol: 'ENPH', name: "Enphase Energy", category: 'stock', isLiveCrypto: false, featured: false, price: 78, change: 0.55, high: 79.404, low: 76.596, vol: 799188033 },
+    { symbol: 'SEDG', name: "SolarEdge Technologies", category: 'stock', isLiveCrypto: false, featured: false, price: 78, change: -1.01, high: 79.404, low: 76.596, vol: 1708424476 },
+    { symbol: 'PLUG', name: "Plug Power Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 1.85, change: -1.19, high: 1.8833, low: 1.8167, vol: 1525621255 },
+    { symbol: 'MRNA', name: "Moderna Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 62, change: -2.64, high: 63.116, low: 60.884, vol: 1628002697 },
+    { symbol: 'PFE', name: "Pfizer Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 25, change: -0.06, high: 25.45, low: 24.55, vol: 1713648504 },
+    { symbol: 'JNJ', name: "Johnson & Johnson", category: 'stock', isLiveCrypto: false, featured: false, price: 158.00, change: 0.93, high: 160.84, low: 155.16, vol: 1110616986 },
+    { symbol: 'ABBV', name: "AbbVie Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 178.00, change: 2.87, high: 181.20, low: 174.80, vol: 1380333885 },
+    { symbol: 'LLY', name: "Eli Lilly & Co.", category: 'stock', isLiveCrypto: false, featured: false, price: 805.00, change: -1.37, high: 819.49, low: 790.51, vol: 1597378058 },
+    { symbol: 'MRK', name: "Merck & Co.", category: 'stock', isLiveCrypto: false, featured: false, price: 102.00, change: -2.15, high: 103.84, low: 100.16, vol: 2095920856 },
+    { symbol: 'BMY', name: "Bristol-Myers Squibb", category: 'stock', isLiveCrypto: false, featured: false, price: 58, change: 0.35, high: 59.044, low: 56.956, vol: 506130706 },
+    { symbol: 'GILD', name: "Gilead Sciences", category: 'stock', isLiveCrypto: false, featured: false, price: 82, change: -1.46, high: 83.476, low: 80.524, vol: 697707529 },
+    { symbol: 'AMGN', name: "Amgen Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 285.00, change: -1.18, high: 290.13, low: 279.87, vol: 2106767286 },
+    { symbol: 'REGN', name: "Regeneron Pharmaceuticals", category: 'stock', isLiveCrypto: false, featured: false, price: 905.00, change: -2.89, high: 921.29, low: 888.71, vol: 1764610359 },
+    { symbol: 'VRTX', name: "Vertex Pharmaceuticals", category: 'stock', isLiveCrypto: false, featured: false, price: 445.00, change: -2.14, high: 453.01, low: 436.99, vol: 2101726479 },
+    { symbol: 'UNH', name: "UnitedHealth Group", category: 'stock', isLiveCrypto: false, featured: false, price: 588.00, change: -2.52, high: 598.58, low: 577.42, vol: 1796320201 },
+    { symbol: 'XOM', name: "Exxon Mobil Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 118.00, change: 2.66, high: 120.12, low: 115.88, vol: 857736982 },
+    { symbol: 'CVX', name: "Chevron Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 158.00, change: -0.37, high: 160.84, low: 155.16, vol: 1800804282 },
+    { symbol: 'COP', name: "ConocoPhillips", category: 'stock', isLiveCrypto: false, featured: false, price: 108.00, change: -1.1, high: 109.94, low: 106.06, vol: 836765352 },
+    { symbol: 'SLB', name: "Schlumberger NV", category: 'stock', isLiveCrypto: false, featured: false, price: 42, change: -0.88, high: 42.756, low: 41.244, vol: 781390625 },
+    { symbol: 'OXY', name: "Occidental Petroleum", category: 'stock', isLiveCrypto: false, featured: false, price: 52, change: -0.23, high: 52.936, low: 51.064, vol: 1087474778 },
+    { symbol: 'PSX', name: "Phillips 66", category: 'stock', isLiveCrypto: false, featured: false, price: 128.00, change: -2.3, high: 130.30, low: 125.70, vol: 710580735 },
+    { symbol: 'MPC', name: "Marathon Petroleum", category: 'stock', isLiveCrypto: false, featured: false, price: 168.00, change: -0.12, high: 171.02, low: 164.98, vol: 742439785 },
+    { symbol: 'VLO', name: "Valero Energy Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 132.00, change: 0.84, high: 134.38, low: 129.62, vol: 1851377988 },
+    { symbol: 'BA', name: "Boeing Co.", category: 'stock', isLiveCrypto: false, featured: false, price: 178.00, change: 0.06, high: 181.20, low: 174.80, vol: 1484020486 },
+    { symbol: 'LMT', name: "Lockheed Martin Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 585.00, change: -2.39, high: 595.53, low: 574.47, vol: 597689674 },
+    { symbol: 'RTX', name: "RTX Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 118.00, change: 2.76, high: 120.12, low: 115.88, vol: 977184768 },
+    { symbol: 'CAT', name: "Caterpillar Inc.", category: 'stock', isLiveCrypto: false, featured: false, price: 395.00, change: 0.77, high: 402.11, low: 387.89, vol: 1010493888 },
+    { symbol: 'DE', name: "Deere & Co.", category: 'stock', isLiveCrypto: false, featured: false, price: 425.00, change: 0.94, high: 432.65, low: 417.35, vol: 1712424560 },
+    { symbol: 'GE', name: "GE Aerospace", category: 'stock', isLiveCrypto: false, featured: false, price: 178.00, change: -0.18, high: 181.20, low: 174.80, vol: 953390855 },
+    { symbol: 'HON', name: "Honeywell International", category: 'stock', isLiveCrypto: false, featured: false, price: 215.00, change: -2.99, high: 218.87, low: 211.13, vol: 2481485686 },
+    { symbol: '3M', name: "3M Company", category: 'stock', isLiveCrypto: false, featured: false, price: 132.00, change: -1.55, high: 134.38, low: 129.62, vol: 1237858819 },
+    { symbol: 'UPS', name: "United Parcel Service", category: 'stock', isLiveCrypto: false, featured: false, price: 132.00, change: 0.97, high: 134.38, low: 129.62, vol: 832189576 },
+    { symbol: 'FDX', name: "FedEx Corp.", category: 'stock', isLiveCrypto: false, featured: false, price: 285.00, change: -0.91, high: 290.13, low: 279.87, vol: 1726821283 },
+    { symbol: 'NOC', name: "Northrop Grumman", category: 'stock', isLiveCrypto: false, featured: false, price: 485.00, change: 0.54, high: 493.73, low: 476.27, vol: 853625895 },
+    { symbol: 'GD', name: "General Dynamics", category: 'stock', isLiveCrypto: false, featured: false, price: 295.00, change: 2.19, high: 300.31, low: 289.69, vol: 2475250146 },
+    { symbol: 'SPX500', name: "S&P 500 Index", category: 'index', isLiveCrypto: false, featured: true, price: 5886.00, change: 2.83, high: 5956.63, low: 5815.37, vol: 547666631 },
+    { symbol: 'NAS100', name: "Nasdaq 100 Index", category: 'index', isLiveCrypto: false, featured: false, price: 20530.00, change: 1.72, high: 20776.36, low: 20283.64, vol: 445906840 },
+    { symbol: 'NASCOMP', name: "Nasdaq Composite", category: 'index', isLiveCrypto: false, featured: false, price: 20250.00, change: 2.84, high: 20493.00, low: 20007.00, vol: 1012478034 },
+    { symbol: 'US30', name: "Dow Jones 30 Industrial", category: 'index', isLiveCrypto: false, featured: false, price: 43450.00, change: 1.51, high: 43971.40, low: 42928.60, vol: 1472614364 },
+    { symbol: 'US2000', name: "Russell 2000 Small Cap", category: 'index', isLiveCrypto: false, featured: false, price: 2280.00, change: -2.94, high: 2307.36, low: 2252.64, vol: 1447744301 },
+    { symbol: 'VIX', name: "CBOE Volatility Index", category: 'index', isLiveCrypto: false, featured: false, price: 14.5, change: 1.72, high: 14.674, low: 14.326, vol: 1417994022 },
+    { symbol: 'UK100', name: "FTSE 100 Index", category: 'index', isLiveCrypto: false, featured: false, price: 8220.00, change: 1.52, high: 8318.64, low: 8121.36, vol: 1595423590 },
+    { symbol: 'GER40', name: "DAX 40 Germany", category: 'index', isLiveCrypto: false, featured: false, price: 19580.00, change: 0.79, high: 19814.96, low: 19345.04, vol: 611399591 },
+    { symbol: 'FRA40', name: "CAC 40 France", category: 'index', isLiveCrypto: false, featured: false, price: 7420.00, change: 2.13, high: 7509.04, low: 7330.96, vol: 1326404077 },
+    { symbol: 'EUSTX50', name: "Euro Stoxx 50", category: 'index', isLiveCrypto: false, featured: false, price: 4950.00, change: 0.81, high: 5009.40, low: 4890.60, vol: 629759369 },
+    { symbol: 'IT40', name: "FTSE MIB Italy", category: 'index', isLiveCrypto: false, featured: false, price: 33800.00, change: 1.89, high: 34205.60, low: 33394.40, vol: 1775296173 },
+    { symbol: 'ESP35', name: "IBEX 35 Spain", category: 'index', isLiveCrypto: false, featured: false, price: 11800.00, change: 0.78, high: 11941.60, low: 11658.40, vol: 787608954 },
+    { symbol: 'NLD25', name: "AEX 25 Netherlands", category: 'index', isLiveCrypto: false, featured: false, price: 895.00, change: -1.08, high: 905.74, low: 884.26, vol: 1506571887 },
+    { symbol: 'CHE20', name: "SMI 20 Switzerland", category: 'index', isLiveCrypto: false, featured: false, price: 11850.00, change: -0.44, high: 11992.20, low: 11707.80, vol: 491190106 },
+    { symbol: 'JPN225', name: "Nikkei 225 Japan", category: 'index', isLiveCrypto: false, featured: false, price: 38500.00, change: 1.38, high: 38962.00, low: 38038.00, vol: 914697380 },
+    { symbol: 'HK50', name: "Hang Seng Index Hong Kong", category: 'index', isLiveCrypto: false, featured: false, price: 19850.00, change: -0.63, high: 20088.20, low: 19611.80, vol: 1781699150 },
+    { symbol: 'HKComp', name: "Hang Seng Composite", category: 'index', isLiveCrypto: false, featured: false, price: 3200.00, change: -2.85, high: 3238.40, low: 3161.60, vol: 1536916460 },
+    { symbol: 'AUS200', name: "ASX 200 Australia", category: 'index', isLiveCrypto: false, featured: false, price: 8280.00, change: 1.99, high: 8379.36, low: 8180.64, vol: 666177115 },
+    { symbol: 'CN50', name: "FTSE China A50", category: 'index', isLiveCrypto: false, featured: false, price: 11850.00, change: -0.06, high: 11992.20, low: 11707.80, vol: 387345603 },
+    { symbol: 'IND50', name: "Nifty 50 India", category: 'index', isLiveCrypto: false, featured: false, price: 24250.00, change: 0.15, high: 24541.00, low: 23959.00, vol: 1133975594 },
+    { symbol: 'KOR200', name: "KOSPI 200 Korea", category: 'index', isLiveCrypto: false, featured: false, price: 388.00, change: 0.09, high: 392.66, low: 383.34, vol: 435500744 },
+    { symbol: 'TWIndex', name: "Taiex Weighted Index", category: 'index', isLiveCrypto: false, featured: false, price: 22800.00, change: -2.64, high: 23073.60, low: 22526.40, vol: 1122041430 },
+    { symbol: 'SGX', name: "STI Singapore Straits Times", category: 'index', isLiveCrypto: false, featured: false, price: 3780.00, change: -1.2, high: 3825.36, low: 3734.64, vol: 1683685335 },
+    { symbol: 'BRA60', name: "Bovespa Brazil", category: 'index', isLiveCrypto: false, featured: false, price: 128500.00, change: -1.06, high: 130042.00, low: 126958.00, vol: 405922069 },
+    { symbol: 'MEX35', name: "IPC Mexico", category: 'index', isLiveCrypto: false, featured: false, price: 52800.00, change: 1.55, high: 53433.60, low: 52166.40, vol: 1214394541 },
+    { symbol: 'ZAR40', name: "FTSE/JSE Top 40 South Africa", category: 'index', isLiveCrypto: false, featured: false, price: 78500.00, change: -1.01, high: 79442.00, low: 77558.00, vol: 577464360 },
+    { symbol: 'TUR100', name: "BIST 100 Turkey", category: 'index', isLiveCrypto: false, featured: false, price: 9850.00, change: 2.83, high: 9968.20, low: 9731.80, vol: 794461981 },
+    { symbol: 'KWT40', name: "Kuwait Stock Exchange", category: 'index', isLiveCrypto: false, featured: false, price: 7850.00, change: -2.74, high: 7944.20, low: 7755.80, vol: 1624418676 },
+    { symbol: 'SAU20', name: "Tadawul Saudi Arabia", category: 'index', isLiveCrypto: false, featured: false, price: 12500.00, change: -0.16, high: 12650.00, low: 12350.00, vol: 1260411137 },
+    { symbol: 'US02Y', name: "US 2-Year Treasury Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 4.085, change: -0.3, high: 4.1667, low: 4.0033, vol: 333532010 },
+    { symbol: 'US05Y', name: "US 5-Year Treasury Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 4.125, change: -2.18, high: 4.2075, low: 4.0425, vol: 180067513 },
+    { symbol: 'US10Y', name: "US 10-Year Treasury Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 4.245, change: -1.58, high: 4.3299, low: 4.1601, vol: 155360992 },
+    { symbol: 'US30Y', name: "US 30-Year Treasury Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 4.425, change: -0.36, high: 4.5135, low: 4.3365, vol: 232004667 },
+    { symbol: 'TNOTE', name: "US 10-Year T-Note Futures", category: 'bond', isLiveCrypto: false, featured: false, price: 109.50, change: 0.83, high: 111.69, low: 107.31, vol: 247326377 },
+    { symbol: 'TBOND', name: "US 30-Year T-Bond Futures", category: 'bond', isLiveCrypto: false, featured: false, price: 116.50, change: -0.91, high: 118.83, low: 114.17, vol: 123737060 },
+    { symbol: 'DE10Y', name: "German 10-Year Bund Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 2.32, change: -2.87, high: 2.3664, low: 2.2736, vol: 239974548 },
+    { symbol: 'DE02Y', name: "German 2-Year Schatz Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 2.18, change: 1.45, high: 2.2236, low: 2.1364, vol: 85120384 },
+    { symbol: 'UK10Y', name: "UK 10-Year Gilt Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 4.28, change: -2.66, high: 4.3656, low: 4.1944, vol: 271999265 },
+    { symbol: 'JP10Y', name: "Japan 10-Year JGB Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 1.07, change: 1.24, high: 1.0914, low: 1.0486, vol: 410066178 },
+    { symbol: 'AU10Y', name: "Australia 10-Year Bond Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 4.45, change: -2.94, high: 4.539, low: 4.361, vol: 219387108 },
+    { symbol: 'CA10Y', name: "Canada 10-Year Bond Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 3.32, change: 2.13, high: 3.3864, low: 3.2536, vol: 335697773 },
+    { symbol: 'FR10Y', name: "France 10-Year OAT Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 3.05, change: 0.41, high: 3.111, low: 2.989, vol: 235555533 },
+    { symbol: 'IT10Y', name: "Italy 10-Year BTP Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 3.62, change: -0.99, high: 3.6924, low: 3.5476, vol: 278891398 },
+    { symbol: 'ES10Y', name: "Spain 10-Year Bonos Yield", category: 'bond', isLiveCrypto: false, featured: false, price: 3.08, change: -0.3, high: 3.1416, low: 3.0184, vol: 419000617 },
+];
+        // v3: Dynamic loader — fetch the full Binance USDT spot symbol universe
+        // (mirrors Bybit's tradable pairs almost 1:1) and merge in any pairs we
+        // don't already have in the static catalog above. Non-blocking, fails
+        // silently if Binance is unreachable.
+        let _allTradableSymbols = null; // cached list of {symbol, base}
+        async function loadFullBybitUniverse() {
+            if (_allTradableSymbols !== null) return;
+            try {
+                const res = await fetch('https://api.binance.com/api/v3/exchangeInfo?symbols=["BTCUSDT","ETHUSDT"]');
+                // Above is just a probe; we actually want the full USDT list. Use /ticker/price
+                // which returns every spot symbol + last price — smaller payload.
+                const pr = await fetch('https://api.binance.com/api/v3/ticker/price');
+                if (!pr.ok) throw new Error('price feed unavailable');
+                const arr = await pr.json();
+                const known = new Set(multiAssetCatalog.map(c => c.symbol));
+                const additions = [];
+                for (const t of arr) {
+                    const s = String(t.symbol || '');
+                    if (!s.endsWith('USDT') || s.length < 7) continue;
+                    if (s.includes('UP') || s.includes('DOWN')) continue; // skip leveraged tokens
+                    if (s.includes('BULL') || s.includes('BEAR')) continue;
+                    if (known.has(s)) continue;
+                    const p = parseFloat(t.price);
+                    if (!isFinite(p) || p <= 0) continue;
+                    additions.push({
+                        symbol: s, name: s.replace('USDT', '') + ' Spot / Perp',
+                        category: 'crypto', isLiveCrypto: true, featured: false,
+                        price: p, change: 0, high: p, low: p, vol: 0
+                    });
+                }
+                // Sort by symbol so the dropdown is browseable
+                additions.sort((a, b) => a.symbol.localeCompare(b.symbol));
+                multiAssetCatalog.push(...additions);
+                _allTradableSymbols = multiAssetCatalog.slice();
+                // Update any on-screen "total instruments" counters
+                document.querySelectorAll('[data-instrument-count]').forEach(el => {
+                    el.innerText = multiAssetCatalog.length;
+                });
+                // Re-render featured + screener if visible
+                if (typeof renderFeaturedCards === 'function') renderFeaturedCards();
+                if (typeof renderScreenerTable === 'function') renderScreenerTable();
+            } catch (err) {
+                console.warn('[Yogchart] Dynamic symbol universe fetch skipped:', err.message);
+            }
+        }
+        // Kick off non-blocking on startup
+        window.addEventListener('DOMContentLoaded', () => setTimeout(loadFullBybitUniverse, 600));
         ];
 
         function formatVol(num) {
