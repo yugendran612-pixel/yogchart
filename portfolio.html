@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yogchart - Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap'); .terminal-font { font-family: 'Fira Code', monospace; }</style>
+</head>
+<body class="bg-gray-50 dark:bg-[#030712] text-gray-900 dark:text-gray-100 h-screen flex">
+    
+    <!-- Global Navigation Rail -->
+    <nav class="w-16 flex flex-col items-center py-4 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-30">
+        <div class="font-bold text-xl mb-8 tracking-tighter text-blue-500">Y.</div>
+        <a href="index.html" class="p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition" title="Terminal">📈</a>
+        <a href="portfolio.html" class="p-3 mb-2 bg-blue-500/10 text-blue-500 rounded-xl" title="Portfolio">💼</a>
+        <a href="social.html" class="p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition" title="Trollbox">💬</a>
+    </nav>
+
+    <!-- Portfolio Dashboard -->
+    <div class="flex-1 flex flex-col overflow-y-auto p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold tracking-tight">Unified Portfolio</h1>
+            <p class="text-gray-500 mt-1">Aggregated read-only API balances and cold storage tracking.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Total Net Worth Widget -->
+            <div class="col-span-1 lg:col-span-3 bg-white dark:bg-[#0B0E14] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                <span class="text-sm text-gray-500 font-bold uppercase">Estimated Net Worth</span>
+                <div class="text-4xl font-bold mt-2 terminal-font">$14,204.50 <span class="text-green-500 text-lg">+2.4%</span></div>
+            </div>
+
+            <!-- Connected API: MEXC -->
+            <div class="bg-white dark:bg-[#0B0E14] border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold">MEXC Global</h3>
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                </div>
+                <div class="space-y-3 terminal-font text-sm">
+                    <div class="flex justify-between"><span>XRP</span><span>4,500</span></div>
+                    <div class="flex justify-between"><span>USDT</span><span>$1,200.00</span></div>
+                </div>
+            </div>
+
+            <!-- Cold Storage Watcher: Luno / WEEX -->
+            <div class="bg-white dark:bg-[#0B0E14] border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold">Self-Custody Watcher</h3>
+                    <button class="text-xs bg-gray-800 px-2 py-1 rounded text-white">+ Add Address</button>
+                </div>
+                <div class="space-y-3 terminal-font text-sm text-gray-400">
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                        <div class="flex flex-col">
+                            <span class="text-white">Hardware Vault 1</span>
+                            <span class="text-[10px]">0x71C...9A23</span>
+                        </div>
+                        <span class="text-white">2.5 ETH</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/global.js"></script>
+</body>
+</html>
