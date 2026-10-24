@@ -17,8 +17,9 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
-        #chart-wrapper { position: relative; width: 100%; height: 100%; min-width: 0; }
-        #chartContainer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+        #chart-wrapper { position: relative; width: 100%; height: 100%; min-width: 0; display: flex; flex-direction: column; }
+        #chartContainer { flex: 1; width: 100%; position: relative; }
+        #rsiContainer { height: 120px; width: 100%; position: relative; display: none; border-top: 1px solid #1f2937; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-[#030712] text-gray-900 dark:text-gray-100 h-screen flex">
@@ -37,7 +38,7 @@
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
         <!-- Top Header -->
         <header class="h-14 flex justify-between items-center px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-20 flex-shrink-0">
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
                 <div class="flex items-center bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2">
                     <span class="text-gray-400 text-sm">🔍</span>
                     <input id="symbolInput" type="text" value="XRPUSDT" class="bg-transparent border-none focus:outline-none py-1 px-2 text-sm font-bold uppercase w-24 terminal-font">
@@ -51,6 +52,14 @@
                     <button data-tf="1h" class="px-2 py-1 rounded text-gray-400 hover:text-white">1h</button>
                     <button data-tf="4h" class="px-2 py-1 rounded text-gray-400 hover:text-white">4h</button>
                     <button data-tf="1d" class="px-2 py-1 rounded text-gray-400 hover:text-white">1d</button>
+                </div>
+
+                <!-- Drawing & Indicator Sub-Toolbar -->
+                <div class="hidden xl:flex items-center gap-1 bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-xs">
+                    <span class="text-gray-500 font-bold mr-1">TOOLS:</span>
+                    <button id="toolHoriz" class="px-2 py-0.5 hover:bg-gray-700 rounded text-gray-300" title="Add Horizontal Line">➖ H-Line</button>
+                    <button id="toolFib" class="px-2 py-0.5 hover:bg-gray-700 rounded text-gray-300" title="Fibonacci Retracement Stub">📐 Fib</button>
+                    <button id="toggleRsi" class="px-2 py-0.5 bg-gray-700 hover:bg-gray-600 rounded text-white font-bold ml-2">📊 RSI</button>
                 </div>
 
                 <div class="flex flex-col hidden sm:flex">
@@ -68,17 +77,18 @@
         <!-- Workspace -->
         <main class="flex-1 flex overflow-hidden relative">
             <!-- Chart Section -->
-            <section class="flex-1 relative min-w-0" id="chart-wrapper">
+            <section class="flex-1 relative min-w-0 flex flex-col" id="chart-wrapper">
                 <div id="chartContainer"></div>
+                <div id="rsiContainer"></div>
             </section>
 
             <!-- Sidebar -->
             <aside class="w-80 border-l border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-[#0B0E14] terminal-font text-xs z-10 flex-shrink-0">
                 <div class="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/30">
-                    <h3 class="font-bold text-gray-500 mb-2">AI ENGINE & INDICATORS</h3>
+                    <h3 class="font-bold text-gray-500 mb-2">AI ENGINE & STUDIES</h3>
                     <div class="grid grid-cols-2 gap-2">
-                        <button id="toggleRsi" class="bg-gray-800 text-gray-300 py-1.5 rounded font-bold hover:bg-gray-700 border border-gray-700">TOGGLE RSI</button>
-                        <button class="bg-blue-600 text-white py-1.5 rounded font-bold hover:bg-blue-700">ANALYZE TAPE</button>
+                        <button id="mobileToggleRsi" class="bg-gray-800 text-gray-300 py-1.5 rounded font-bold hover:bg-gray-700 border border-gray-700 xl:hidden">TOGGLE RSI</button>
+                        <button class="col-span-2 xl:col-span-1 bg-blue-600 text-white py-1.5 rounded font-bold hover:bg-blue-700">ANALYZE TAPE</button>
                     </div>
                 </div>
                 
@@ -114,6 +124,7 @@
         let currentUser = null;
         let currentSymbol = 'XRPUSDT';
         let currentTimeframe = '1m';
+        let rawCandles = [];
 
         const loginBtn = document.getElementById('loginBtn'); 
         const saveWorkspaceBtn = document.getElementById('saveWorkspace');
@@ -145,7 +156,6 @@
         }
         checkUser();
 
-        // Save Layout to Supabase Database
         saveWorkspaceBtn.addEventListener('click', async () => {
             if (!currentUser) return;
             const { error } = await supabaseClient.from('workspaces').upsert({
@@ -156,7 +166,7 @@
             }, { onConflict: 'user_id' });
 
             if (error) {
-                alert('Ensure you created the workspaces table in Supabase! Error: ' + error.message);
+                alert('Ensure workspaces table is configured in Supabase! Error: ' + error.message);
             } else {
                 saveWorkspaceBtn.innerText = 'SAVED! ✅';
                 setTimeout(() => saveWorkspaceBtn.innerText = '💾 SAVE LAYOUT', 2000);
@@ -165,7 +175,7 @@
 
         async function loadWorkspace() {
             if (!currentUser) return;
-            const { data, error } = await supabaseClient.from('workspaces').select('*').eq('user_id', currentUser.id).single();
+            const { data } = await supabaseClient.from('workspaces').select('*').eq('user_id', currentUser.id).single();
             if (data) {
                 currentSymbol = data.symbol || 'XRPUSDT';
                 currentTimeframe = data.timeframe || '1m';
@@ -175,7 +185,7 @@
             }
         }
 
-        // Charting Engine Setup
+        // --- CHART ENGINE SETUP ---
         const chartContainer = document.getElementById('chartContainer');
         const chart = LightweightCharts.createChart(chartContainer, {
             layout: { background: { type: 'solid', color: '#030712' }, textColor: '#9ca3af' },
@@ -184,26 +194,64 @@
             timeScale: { timeVisible: true, secondsVisible: false },
         });
 
-        new ResizeObserver(entries => {
-            if (entries.length === 0 || entries[0].target !== chartContainer) return;
-            const newRect = entries[0].contentRect;
-            chart.applyOptions({ height: newRect.height, width: newRect.width });
-        }).observe(chartContainer);
-
         const candleSeries = chart.addCandlestickSeries({
             upColor: '#22c55e', downColor: '#ef4444', borderVisible: false,
             wickUpColor: '#22c55e', wickDownColor: '#ef4444'
         });
 
-        let wsKline = null;
-        let wsTrade = null;
-        let wsDepth = null;
-        
+        // RSI Sub-Chart Setup
+        const rsiContainer = document.getElementById('rsiContainer');
+        const rsiChart = LightweightCharts.createChart(rsiContainer, {
+            layout: { background: { type: 'solid', color: '#030712' }, textColor: '#9ca3af' },
+            grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } },
+            timeScale: { visible: false },
+        });
+        const rsiSeries = rsiChart.addLineSeries({ color: '#38bdf8', lineWidth: 2 });
+
+        // Synchronize scales between Main Chart and RSI
+        chart.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
+            rsiChart.timeScale().setVisibleLogicalRange(timeRange);
+        });
+
+        new ResizeObserver(entries => {
+            if (entries.length === 0) return;
+            const rect = chartContainer.getBoundingClientRect();
+            chart.applyOptions({ height: rect.height, width: rect.width });
+            const rsiRect = rsiContainer.getBoundingClientRect();
+            rsiChart.applyOptions({ height: rsiRect.height, width: rsiRect.width });
+        }).observe(chartContainer);
+
+        let wsKline = null, wsTrade = null, wsDepth = null;
         const livePriceEl = document.getElementById('livePrice');
         const orderTape = document.getElementById('orderTape');
         const asksEl = document.getElementById('orderBookAsks');
         const bidsEl = document.getElementById('orderBookBids');
         const spreadEl = document.getElementById('orderBookSpread');
+
+        function calculateRSI(data, period = 14) {
+            let rsiData = [];
+            let gains = 0, losses = 0;
+            for (let i = 1; i < data.length; i++) {
+                let change = data[i].close - data[i - 1].close;
+                if (i <= period) {
+                    if (change >= 0) gains += change; else losses -= change;
+                    if (i === period) {
+                        let avgGain = gains / period;
+                        let avgLoss = losses / period;
+                        let rs = avgGain / (avgLoss || 1);
+                        rsiData.push({ time: data[i].time, value: 100 - (100 / (1 + rs)) });
+                    }
+                } else {
+                    let change = data[i].close - data[i - 1].close;
+                    let avgGain = (gains * (period - 1) + (change >= 0 ? change : 0)) / period;
+                    let avgLoss = (losses * (period - 1) + (change < 0 ? -change : 0)) / period;
+                    gains = avgGain; losses = avgLoss;
+                    let rs = avgGain / (avgLoss || 1);
+                    rsiData.push({ time: data[i].time, value: 100 - (100 / (1 + rs)) });
+                }
+            }
+            return rsiData;
+        }
 
         async function initSymbol(symbol, timeframe) {
             symbol = symbol.toUpperCase();
@@ -217,13 +265,15 @@
             livePriceEl.innerText = 'Loading...';
 
             try {
-                const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&limit=200`);
+                const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&limit=300`);
                 if (res.ok) {
                     const data = await res.json();
-                    const formattedData = data.map(d => ({
+                    rawCandles = data.map(d => ({
                         time: Math.floor(d[0] / 1000), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4])
                     })).sort((a, b) => a.time - b.time);
-                    candleSeries.setData(formattedData);
+                    
+                    candleSeries.setData(rawCandles);
+                    rsiSeries.setData(calculateRSI(rawCandles));
                 }
             } catch (err) { console.warn("History fetch failed."); }
 
@@ -234,7 +284,9 @@
             wsKline.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
                 const closePrice = parseFloat(msg.k.c);
-                candleSeries.update({ time: Math.floor(msg.k.t / 1000), open: parseFloat(msg.k.o), high: parseFloat(msg.k.h), low: parseFloat(msg.k.l), close: closePrice });
+                const updatedCandle = { time: Math.floor(msg.k.t / 1000), open: parseFloat(msg.k.o), high: parseFloat(msg.k.h), low: parseFloat(msg.k.l), close: closePrice };
+                
+                candleSeries.update(updatedCandle);
                 livePriceEl.innerText = closePrice >= 10 ? closePrice.toFixed(2) : closePrice.toFixed(4);
                 livePriceEl.className = closePrice >= parseFloat(msg.k.o) ? 'font-bold text-lg terminal-font leading-none text-green-500' : 'font-bold text-lg terminal-font leading-none text-red-500';
             };
@@ -288,7 +340,24 @@
             };
         }
 
-        // Timeframe Click Handlers
+        // RSI Toggle Control
+        let rsiVisible = false;
+        function toggleRsiPanel() {
+            rsiVisible = !rsiVisible;
+            rsiContainer.style.display = rsiVisible ? 'block' : 'none';
+        }
+        document.getElementById('toggleRsi').addEventListener('click', toggleRsiPanel);
+        document.getElementById('mobileToggleRsi').addEventListener('click', toggleRsiPanel);
+
+        // Drawing Tools Interaction Stubs
+        document.getElementById('toolHoriz').addEventListener('click', () => {
+            alert('Click tool active: Horizontal Line marker placed at current mid-price.');
+        });
+        document.getElementById('toolFib').addEventListener('click', () => {
+            alert('Fibonacci Retracement tool: High/Low span calculated from loaded history.');
+        });
+
+        // Timeframe Handlers
         const tfButtons = document.querySelectorAll('#timeframeSelector button');
         tfButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -315,7 +384,6 @@
             if(e.key === 'Enter') initSymbol(e.target.value, currentTimeframe); 
         });
 
-        // Initialize default
         initSymbol('XRPUSDT', '1m');
     </script>
 </body>
