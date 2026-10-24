@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yogchart - Social & Sentiment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap'); .terminal-font { font-family: 'Fira Code', monospace; }</style>
+</head>
+<body class="bg-gray-50 dark:bg-[#030712] text-gray-900 dark:text-gray-100 h-screen flex">
+    
+    <!-- Global Navigation Rail -->
+    <nav class="w-16 flex flex-col items-center py-4 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-30">
+        <div class="font-bold text-xl mb-8 tracking-tighter text-blue-500">Y.</div>
+        <a href="index.html" class="p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition" title="Terminal">📈</a>
+        <a href="portfolio.html" class="p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition" title="Portfolio">💼</a>
+        <a href="social.html" class="p-3 mb-2 bg-blue-500/10 text-blue-500 rounded-xl" title="Trollbox">💬</a>
+    </nav>
+
+    <div class="flex-1 flex overflow-hidden">
+        <!-- Sentiment Matrix -->
+        <section class="flex-1 p-8 overflow-y-auto border-r border-gray-200 dark:border-gray-800">
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold tracking-tight">Social Sentiment</h1>
+                <p class="text-gray-500 mt-1">Real-time Fear & Greed index and ticker mention tracking.</p>
+            </header>
+
+            <div class="grid grid-cols-2 gap-6">
+                <!-- Fear & Greed -->
+                <div class="bg-white dark:bg-[#0B0E14] border border-gray-200 dark:border-gray-800 rounded-xl p-6 flex flex-col items-center justify-center">
+                    <span class="text-sm text-gray-500 font-bold uppercase mb-4">Market Mood</span>
+                    <div class="text-6xl font-bold text-green-500 terminal-font">72</div>
+                    <span class="mt-2 font-bold tracking-widest text-green-500">GREED</span>
+                </div>
+
+                <!-- Ticker Volume -->
+                <div class="bg-white dark:bg-[#0B0E14] border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+                    <span class="text-sm text-gray-500 font-bold uppercase mb-4 block">Top Mentions (1H)</span>
+                    <div class="space-y-4 terminal-font text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold">#XRP</span>
+                            <div class="flex-1 mx-4 bg-gray-200 dark:bg-gray-800 h-2 rounded"><div class="bg-blue-500 h-2 rounded" style="width: 80%"></div></div>
+                            <span>12.4k</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold">#SHIB</span>
+                            <div class="flex-1 mx-4 bg-gray-200 dark:bg-gray-800 h-2 rounded"><div class="bg-orange-500 h-2 rounded" style="width: 65%"></div></div>
+                            <span>8.1k</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Trollbox -->
+        <aside class="w-96 flex flex-col bg-white dark:bg-[#0B0E14]">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+                <h3 class="font-bold text-gray-500 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> GLOBAL TROLLBOX
+                </h3>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 terminal-font text-sm text-gray-400">
+                <div><span class="text-blue-500 font-bold">WhaleWatcher:</span> XRP liquidity breaking resistance.</div>
+                <div><span class="text-purple-500 font-bold">DegenTrader:</span> Going short on BTC here, 10x.</div>
+                <div><span class="text-green-500 font-bold">YieldMax:</span> CPI data in 10 mins, watch the chop.</div>
+            </div>
+
+            <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+                <input type="text" placeholder="Type a message..." class="w-full bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded p-2 text-sm focus:outline-none focus:border-blue-500 terminal-font">
+            </div>
+        </aside>
+    </div>
+    <script src="js/global.js"></script>
+</body>
+</html>
