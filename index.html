@@ -17,7 +17,6 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
-        /* Added min-width: 0 to prevent the flex container from blowing out */
         #chart-wrapper { position: relative; width: 100%; height: 100%; min-width: 0; }
         #chartContainer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
     </style>
@@ -43,13 +42,25 @@
                     <span class="text-gray-400 text-sm">🔍</span>
                     <input id="symbolInput" type="text" value="XRPUSDT" class="bg-transparent border-none focus:outline-none py-1 px-2 text-sm font-bold uppercase w-24 terminal-font">
                 </div>
-                <div class="flex flex-col">
+                
+                <!-- Timeframe Selector -->
+                <div id="timeframeSelector" class="flex bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded p-0.5 text-xs font-bold terminal-font">
+                    <button data-tf="1m" class="px-2 py-1 rounded bg-blue-600 text-white">1m</button>
+                    <button data-tf="5m" class="px-2 py-1 rounded text-gray-400 hover:text-white">5m</button>
+                    <button data-tf="15m" class="px-2 py-1 rounded text-gray-400 hover:text-white">15m</button>
+                    <button data-tf="1h" class="px-2 py-1 rounded text-gray-400 hover:text-white">1h</button>
+                    <button data-tf="4h" class="px-2 py-1 rounded text-gray-400 hover:text-white">4h</button>
+                    <button data-tf="1d" class="px-2 py-1 rounded text-gray-400 hover:text-white">1d</button>
+                </div>
+
+                <div class="flex flex-col hidden sm:flex">
                     <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Live Price</span>
                     <span id="livePrice" class="font-bold text-lg terminal-font leading-none text-gray-400">--</span>
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <span class="text-xs text-gray-500 font-bold hidden md:block">HOTKEY: <span class="bg-gray-800 px-1.5 py-0.5 rounded text-white">Shift+B</span> Buy</span>
+
+            <div class="flex items-center gap-3">
+                <button id="saveWorkspace" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold px-3 py-1.5 rounded border border-gray-700 transition hidden">💾 SAVE LAYOUT</button>
                 <button id="loginBtn" class="bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded hover:bg-blue-700 transition">LOGIN</button>
             </div>
         </header>
@@ -64,8 +75,11 @@
             <!-- Sidebar -->
             <aside class="w-80 border-l border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-[#0B0E14] terminal-font text-xs z-10 flex-shrink-0">
                 <div class="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/30">
-                    <h3 class="font-bold text-gray-500 mb-2">AI ENGINE</h3>
-                    <button class="w-full bg-blue-600 text-white py-1.5 rounded font-bold hover:bg-blue-700">ANALYZE TAPE</button>
+                    <h3 class="font-bold text-gray-500 mb-2">AI ENGINE & INDICATORS</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="toggleRsi" class="bg-gray-800 text-gray-300 py-1.5 rounded font-bold hover:bg-gray-700 border border-gray-700">TOGGLE RSI</button>
+                        <button class="bg-blue-600 text-white py-1.5 rounded font-bold hover:bg-blue-700">ANALYZE TAPE</button>
+                    </div>
                 </div>
                 
                 <div class="flex-1 overflow-hidden flex flex-col min-h-0">
@@ -91,52 +105,77 @@
     </div>
     
     <script type="module">
-        // 1. SUPABASE AUTHENTICATION
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
         const supabaseUrl = 'https://gqdirctfbzlnnfctcdcy.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxZGlyY3RmYnpsbm5mY3RjZGN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4MzIxMjMsImV4cCI6MjEwODQwODEyM30.D12kInUr6jHHxCNTWLuoNGXUrxFPWFYdKHxw0cAfaWA';
         const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
+        let currentUser = null;
+        let currentSymbol = 'XRPUSDT';
+        let currentTimeframe = '1m';
+
         const loginBtn = document.getElementById('loginBtn'); 
+        const saveWorkspaceBtn = document.getElementById('saveWorkspace');
+
         if (loginBtn) {
             loginBtn.addEventListener('click', async () => {
-                const { data, error } = await supabaseClient.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: { redirectTo: window.location.origin + '/index.html' }
-                });
-                if (error) alert("Login failed: " + error.message);
+                if (currentUser) {
+                    await supabaseClient.auth.signOut();
+                    window.location.reload();
+                } else {
+                    await supabaseClient.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: { redirectTo: window.location.origin + '/index.html' }
+                    });
+                }
             });
         }
 
         async function checkUser() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session && loginBtn) {
-                loginBtn.innerText = 'LOGGED IN';
-                loginBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                loginBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            if (session) {
+                currentUser = session.user;
+                loginBtn.innerText = 'LOG OUT';
+                loginBtn.classList.replace('bg-blue-600', 'bg-red-600');
+                loginBtn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
+                saveWorkspaceBtn.classList.remove('hidden');
+                loadWorkspace();
             }
         }
         checkUser();
 
-        // 2. THEME & HOTKEYS
-        const html = document.documentElement;
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            html.classList.toggle('dark');
-            const isDark = html.classList.contains('dark');
-            chart.applyOptions({
-                layout: { background: { color: isDark ? '#030712' : '#ffffff' }, textColor: isDark ? '#9ca3af' : '#374151' },
-                grid: { vertLines: { color: isDark ? '#1f2937' : '#e5e7eb' }, horzLines: { color: isDark ? '#1f2937' : '#e5e7eb' } }
-            });
+        // Save Layout to Supabase Database
+        saveWorkspaceBtn.addEventListener('click', async () => {
+            if (!currentUser) return;
+            const { error } = await supabaseClient.from('workspaces').upsert({
+                user_id: currentUser.id,
+                symbol: currentSymbol,
+                timeframe: currentTimeframe,
+                updated_at: new Date()
+            }, { onConflict: 'user_id' });
+
+            if (error) {
+                alert('Ensure you created the workspaces table in Supabase! Error: ' + error.message);
+            } else {
+                saveWorkspaceBtn.innerText = 'SAVED! ✅';
+                setTimeout(() => saveWorkspaceBtn.innerText = '💾 SAVE LAYOUT', 2000);
+            }
         });
 
-        document.addEventListener('keydown', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            if (e.shiftKey && e.key.toLowerCase() === 'b') { e.preventDefault(); alert('MARKET BUY EXECUTED'); }
-            if (e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); alert('MARKET SELL EXECUTED'); }
-        });
+        async function loadWorkspace() {
+            if (!currentUser) return;
+            const { data, error } = await supabaseClient.from('workspaces').select('*').eq('user_id', currentUser.id).single();
+            if (data) {
+                currentSymbol = data.symbol || 'XRPUSDT';
+                currentTimeframe = data.timeframe || '1m';
+                document.getElementById('symbolInput').value = currentSymbol;
+                updateTimeframeUI();
+                initSymbol(currentSymbol, currentTimeframe);
+            }
+        }
 
-        // 3. CHARTING & LIVE DATA ENGINE
+        // Charting Engine Setup
         const chartContainer = document.getElementById('chartContainer');
         const chart = LightweightCharts.createChart(chartContainer, {
             layout: { background: { type: 'solid', color: '#030712' }, textColor: '#9ca3af' },
@@ -166,8 +205,10 @@
         const bidsEl = document.getElementById('orderBookBids');
         const spreadEl = document.getElementById('orderBookSpread');
 
-        async function initSymbol(symbol) {
+        async function initSymbol(symbol, timeframe) {
             symbol = symbol.toUpperCase();
+            currentSymbol = symbol;
+            currentTimeframe = timeframe;
             document.getElementById('symbolInput').value = symbol;
             orderTape.innerHTML = '';
             asksEl.innerHTML = '';
@@ -176,7 +217,7 @@
             livePriceEl.innerText = 'Loading...';
 
             try {
-                const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=200`);
+                const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${timeframe}&limit=200`);
                 if (res.ok) {
                     const data = await res.json();
                     const formattedData = data.map(d => ({
@@ -184,12 +225,12 @@
                     })).sort((a, b) => a.time - b.time);
                     candleSeries.setData(formattedData);
                 }
-            } catch (err) { console.warn("History fetch blocked. Starting live stream only."); }
+            } catch (err) { console.warn("History fetch failed."); }
 
             const wsSymbol = symbol.toLowerCase();
 
             if (wsKline) wsKline.close();
-            wsKline = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@kline_1m`);
+            wsKline = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@kline_${timeframe}`);
             wsKline.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
                 const closePrice = parseFloat(msg.k.c);
@@ -247,8 +288,35 @@
             };
         }
 
-        document.getElementById('symbolInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') initSymbol(e.target.value); });
-        initSymbol('XRPUSDT');
+        // Timeframe Click Handlers
+        const tfButtons = document.querySelectorAll('#timeframeSelector button');
+        tfButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                tfButtons.forEach(b => { b.classList.remove('bg-blue-600', 'text-white'); b.classList.add('text-gray-400'); });
+                e.target.classList.add('bg-blue-600', 'text-white');
+                e.target.classList.remove('text-gray-400');
+                initSymbol(currentSymbol, e.target.dataset.tf);
+            });
+        });
+
+        function updateTimeframeUI() {
+            tfButtons.forEach(b => {
+                if (b.dataset.tf === currentTimeframe) {
+                    b.classList.add('bg-blue-600', 'text-white');
+                    b.classList.remove('text-gray-400');
+                } else {
+                    b.classList.remove('bg-blue-600', 'text-white');
+                    b.classList.add('text-gray-400');
+                }
+            });
+        }
+
+        document.getElementById('symbolInput').addEventListener('keypress', (e) => { 
+            if(e.key === 'Enter') initSymbol(e.target.value, currentTimeframe); 
+        });
+
+        // Initialize default
+        initSymbol('XRPUSDT', '1m');
     </script>
 </body>
 </html>
