@@ -59,6 +59,40 @@
         @media (min-width: 2200px) {
             html { font-size: 18px; }
         }
+
+        /* ================= v2: FULLSCREEN CHART MODE ================= */
+        #chart-wrapper.pseudo-fs { position: fixed !important; inset: 0 !important; z-index: 90 !important; width: 100vw !important; height: 100dvh !important; }
+        #fsFloatBtn { display: flex; }
+        body.chart-fs #fsFloatBtn { display: none; }
+        #fsTopBar { display: none; }
+        body.chart-fs #fsTopBar { display: flex; }
+        body.chart-fs .chart-legend { top: 3.6rem; }
+        body.chart-fs #drawingBanner { top: 3.6rem; right: 0.75rem; }
+        body.chart-fs.fs-zen #fsTopBar, body.chart-fs.fs-zen .chart-legend, body.chart-fs.fs-zen #drawingBanner, body.chart-fs.fs-zen #toolTrayHandle { display: none !important; }
+        #fsZenRestore { display: none; }
+        body.chart-fs.fs-zen #fsZenRestore { display: flex; }
+
+        /* ================= v2: FLOATING DRAWING TOOL TRAY (mobile + fullscreen) ================= */
+        #toolTrayHandle { display: none; }
+        #toolTrayPanel { display: none; }
+        #toolTrayPanel.fs-open { display: grid; }
+        @media (max-width: 1023.98px) {
+            #toolTrayHandle { display: flex; }
+        }
+        body.chart-fs #toolTrayHandle { display: flex; }
+
+        /* ================= v2: HEADER / MOBILE POLISH ================= */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media (max-height: 500px) and (orientation: landscape) {
+            header.h-14 { height: 3rem !important; }
+        }
+
+        /* ================= v2: AUTH PAGE + TOAST ================= */
+        @keyframes authSpin { to { transform: rotate(360deg); } }
+        .auth-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: authSpin 0.7s linear infinite; }
+        #appToast { position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%) translateY(24px); opacity: 0; transition: all .35s cubic-bezier(.4,0,.2,1); z-index: 130; pointer-events: none; max-width: 92vw; }
+        #appToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body class="h-[100dvh] w-screen flex flex-col bg-yog-950 text-slate-200 overflow-hidden">
@@ -95,7 +129,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="hidden xs:block">
+                <div class="hidden sm:block">
                     <div class="font-black text-sm sm:text-base tracking-tight text-white leading-none">YOG<span class="text-cyan-400">CHART</span></div>
                     <div class="text-[8px] sm:text-[9px] font-bold tracking-widest text-blue-400 uppercase mt-0.5">QUANT TERMINAL</div>
                 </div>
@@ -154,17 +188,44 @@
                 <button onclick="openWalletModal()" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white font-bold px-1.5 py-0.5 rounded transition">+</button>
             </div>
 
-            <button id="installAppBtn" onclick="installPWAOrShowGuide()" class="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-emerald-500/30 transition flex items-center gap-1" title="Download / Install Yogchart Android App">
+            <button id="installAppBtn" onclick="installPWAOrShowGuide()" class="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-emerald-500/30 transition hidden md:inline-flex items-center gap-1" title="Download / Install Yogchart Android App">
                 <span>📲</span> <span class="hidden sm:inline">Android App</span>
             </button>
 
-            <button id="saveWorkspace" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-cyan-500/30 transition hidden sm:inline-flex">
+            <button id="saveWorkspace" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-cyan-500/30 transition hidden lg:inline-flex">
                 💾 Sync
             </button>
 
-            <button onclick="openProfileEditorModal()" class="bg-yog-800 hover:bg-yog-700 text-slate-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-yog-600 transition" title="Edit Account Profile">
+            <button onclick="openProfileEditorModal()" class="bg-yog-800 hover:bg-yog-700 text-slate-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-yog-600 transition hidden md:inline-flex" title="Edit Account Profile">
                 ⚙️ <span class="hidden md:inline">Profile</span>
             </button>
+
+            <!-- v2: Mobile overflow menu (prevents header crowding on small screens) -->
+            <div id="headerMenuWrap" class="relative md:hidden">
+                <button onclick="toggleHeaderMenu()" class="bg-yog-800 hover:bg-yog-700 text-slate-200 text-[11px] font-bold w-8 h-8 rounded-lg border border-yog-600 transition flex items-center justify-center" title="More tools">⋯</button>
+                <div id="headerMenuDropdown" class="hidden absolute right-0 mt-2 w-52 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 py-1.5 text-xs">
+                    <button onclick="toggleHeaderMenu(); openProfileEditorModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">⚙️ Profile & Account</button>
+                    <button onclick="toggleHeaderMenu(); openWalletModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">💰 Paper Funds</button>
+                    <button onclick="toggleHeaderMenu(); installPWAOrShowGuide();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">📲 Android App</button>
+                    <button onclick="toggleHeaderMenu(); document.getElementById('saveWorkspace').click();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">💾 Sync Workspace</button>
+                </div>
+            </div>
+
+            <!-- v2: Logged-in user chip + account dropdown -->
+            <div id="userMenuWrap" class="relative hidden">
+                <button onclick="toggleUserMenu()" class="flex items-center gap-1.5 bg-yog-800 hover:bg-yog-700 border border-yog-600 rounded-lg pl-1 pr-2 py-1 transition max-w-[150px]">
+                    <span id="userChipAvatar" class="w-6 h-6 rounded-md bg-blue-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">YG</span>
+                    <span id="userChipName" class="text-[11px] font-bold text-white truncate hidden sm:inline">Trader</span>
+                    <span class="text-slate-400 text-[9px]">▾</span>
+                </button>
+                <div id="userMenuDropdown" class="hidden absolute right-0 mt-2 w-52 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 py-1.5 text-xs">
+                    <div class="px-3 py-2 border-b border-yog-700 mb-1">
+                        <div class="text-slate-400 text-[10px] truncate" id="userMenuEmail">trader@yogchart.com</div>
+                    </div>
+                    <button onclick="toggleUserMenu(); openProfileEditorModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">⚙️ Profile & Settings</button>
+                    <button onclick="toggleUserMenu(); handleSignOut();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-rose-400 font-semibold flex items-center gap-2.5">🚪 Sign Out</button>
+                </div>
+            </div>
 
             <button id="loginBtn" onclick="handleAuthClick()" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-[11px] font-extrabold px-2.5 sm:px-3.5 py-1.5 rounded-lg shadow-md transition whitespace-nowrap">
                 LOGIN
@@ -320,7 +381,7 @@
     <div id="view-terminal" class="flex-1 flex flex-col overflow-hidden hidden">
         
         <!-- Top Chart Control Bar (Scrollable horizontally on mobile phones) -->
-        <div class="h-10 bg-yog-900/90 border-b border-yog-700 px-2 sm:px-3 flex items-center justify-between gap-2 text-xs z-20 flex-shrink-0 overflow-x-auto">
+        <div class="h-10 bg-yog-900/90 border-b border-yog-700 px-2 sm:px-3 flex items-center justify-between gap-2 text-xs z-20 flex-shrink-0 overflow-x-auto no-scrollbar">
             <div class="flex items-center gap-2 flex-shrink-0">
                 <div id="timeframeSelector" class="flex bg-yog-950 border border-yog-700 rounded-md p-0.5 text-[11px] font-bold terminal-font">
                     <button data-tf="1m" class="px-2 py-0.5 rounded bg-blue-600 text-white">1m</button>
@@ -347,6 +408,7 @@
                 <span id="activeToolLabel" class="text-[11px] text-cyan-400 font-mono hidden md:inline">Tool: Crosshair</span>
                 <button onclick="undoLastDrawing()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-slate-300 px-2 py-0.5 rounded border border-yog-700">↩ Undo</button>
                 <button onclick="clearAllDrawings()" class="text-[11px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded border border-rose-500/30">🗑️ Clear</button>
+                <button onclick="toggleChartFullscreen()" id="fsToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Toggle fullscreen chart (PC, phone & landscape)">⛶ <span class="hidden sm:inline">Fullscreen</span></button>
             </div>
         </div>
 
@@ -354,23 +416,103 @@
         <div class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden min-h-0">
             
             <!-- Chart + Drawing Rail Wrapper (Always Visible & High Priority on Phone/Tablet/Desktop/TV) -->
-            <div id="mobileChartPane" class="flex-1 flex min-h-[360px] sm:min-h-[450px] lg:min-h-0 min-w-0">
-                <!-- Left Drawing Suite Toolbar -->
-                <aside class="w-10 sm:w-12 bg-yog-900 border-r border-yog-700 flex flex-col items-center py-2 gap-1 z-20 flex-shrink-0 overflow-y-auto">
-                    <button onclick="setDrawingTool('cursor')" id="draw-cursor" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent tool-active" title="Crosshair">➕</button>
-                    <button onclick="setDrawingTool('trendline')" id="draw-trendline" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Trendline">📏</button>
-                    <button onclick="setDrawingTool('ray')" id="draw-ray" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Extended Ray">↗️</button>
-                    <button onclick="setDrawingTool('hline')" id="draw-hline" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Horizontal S/R">➖</button>
-                    <button onclick="setDrawingTool('vline')" id="draw-vline" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Vertical Line">┃</button>
-                    <button onclick="setDrawingTool('fib')" id="draw-fib" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Fibonacci">📐</button>
-                    <button onclick="setDrawingTool('rect')" id="draw-rect" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Zone Box">🔲</button>
-                    <button onclick="setDrawingTool('brush')" id="draw-brush" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Brush">✏️</button>
-                    <button onclick="setDrawingTool('text')" id="draw-text" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Text Callout">🔤</button>
+            <div id="mobileChartPane" class="flex-1 flex min-h-[300px] sm:min-h-[420px] lg:min-h-0 min-w-0">
+                <!-- Left Drawing Suite Toolbar (desktop only — phones/tablets use the floating tool tray) -->
+                <aside id="drawSidebar" class="w-10 sm:w-12 bg-yog-900 border-r border-yog-700 hidden lg:flex flex-col items-center py-2 gap-1 z-20 flex-shrink-0 overflow-y-auto">
+                    <button onclick="setDrawingTool('cursor')" id="draw-cursor" data-tool="cursor" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent tool-active" title="Crosshair">➕</button>
+                    <button onclick="setDrawingTool('trendline')" id="draw-trendline" data-tool="trendline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Trendline">📏</button>
+                    <button onclick="setDrawingTool('ray')" id="draw-ray" data-tool="ray" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Extended Ray">↗️</button>
+                    <button onclick="setDrawingTool('hline')" id="draw-hline" data-tool="hline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Horizontal S/R">➖</button>
+                    <button onclick="setDrawingTool('vline')" id="draw-vline" data-tool="vline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Vertical Line">┃</button>
+                    <button onclick="setDrawingTool('fib')" id="draw-fib" data-tool="fib" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Fibonacci">📐</button>
+                    <button onclick="setDrawingTool('rect')" id="draw-rect" data-tool="rect" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Zone Box">🔲</button>
+                    <button onclick="setDrawingTool('brush')" id="draw-brush" data-tool="brush" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Brush">✏️</button>
+                    <button onclick="setDrawingTool('text')" id="draw-text" data-tool="text" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Text Callout">🔤</button>
                 </aside>
 
                 <!-- Center Interactive Chart -->
                 <section class="flex-1 flex flex-col min-w-0 bg-yog-950 relative" id="chart-wrapper">
-                    <div class="absolute top-2 left-2.5 z-20 pointer-events-none flex flex-col gap-0.5 terminal-font text-[10px] sm:text-[11px] bg-yog-950/80 px-2.5 py-1 rounded-lg border border-yog-800/80 backdrop-blur-sm">
+                    <!-- v2: Floating fullscreen button (always available, hidden while in fullscreen) -->
+                    <button id="fsFloatBtn" onclick="toggleChartFullscreen()" title="Fullscreen chart" class="absolute top-2 right-2 z-[25] w-8 h-8 rounded-lg bg-yog-900/85 hover:bg-yog-700 text-cyan-300 border border-yog-600 backdrop-blur-sm items-center justify-center text-sm shadow-lg transition">⛶</button>
+
+                    <!-- v2: Fullscreen top overlay control bar -->
+                    <div id="fsTopBar" class="absolute top-0 left-0 right-0 z-30 items-center justify-between gap-2 px-2 py-1.5 bg-yog-950/85 backdrop-blur-md border-b border-yog-800">
+                        <div class="flex items-center gap-2 min-w-0 overflow-hidden">
+                            <span id="fsSymbolBadge" class="font-extrabold text-white text-xs terminal-font whitespace-nowrap">XRPUSDT</span>
+                            <span id="fsLivePrice" class="font-bold text-emerald-400 text-xs terminal-font whitespace-nowrap">--</span>
+                            <div class="hidden sm:flex bg-yog-900 border border-yog-700 rounded-md p-0.5 text-[10px] font-bold terminal-font">
+                                <button class="tf-btn px-2 py-0.5 rounded bg-blue-600 text-white" data-tf="1m">1m</button>
+                                <button class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white" data-tf="5m">5m</button>
+                                <button class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white" data-tf="15m">15m</button>
+                                <button class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white" data-tf="1h">1h</button>
+                                <button class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white" data-tf="4h">4h</button>
+                                <button class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white" data-tf="1d">1D</button>
+                            </div>
+                            <select id="chartTypeSelectFs" class="hidden md:block bg-yog-900 border border-yog-700 text-[10px] font-bold rounded-md px-1.5 py-0.5 text-slate-200 terminal-font focus:outline-none">
+                                <option value="Candlestick">Candles</option>
+                                <option value="Bar">Bars</option>
+                                <option value="Line">Line</option>
+                                <option value="Area">Area</option>
+                                <option value="Baseline">Baseline</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-1 flex-shrink-0">
+                            <button onclick="toggleIndicatorModal()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-1 rounded-md border border-yog-600 transition font-bold" title="Indicators">ƒx</button>
+                            <button onclick="toggleRsiSubchart()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-slate-300 px-2 py-1 rounded-md border border-yog-600 transition font-bold" title="RSI subchart">RSI</button>
+                            <button onclick="undoLastDrawing()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-slate-300 px-2 py-1 rounded-md border border-yog-600 transition font-bold" title="Undo drawing">↩</button>
+                            <button onclick="clearAllDrawings()" class="text-[11px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-2 py-1 rounded-md border border-rose-500/30 transition font-bold" title="Clear drawings">🗑</button>
+                            <button onclick="toggleFsZen()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-slate-300 px-2 py-1 rounded-md border border-yog-600 transition font-bold" title="Hide all tools for a pure chart view">👁</button>
+                            <button onclick="exitChartFullscreen()" class="text-[11px] bg-rose-600 hover:bg-rose-500 text-white px-2.5 py-1 rounded-md transition font-extrabold">✕ Exit</button>
+                        </div>
+                    </div>
+
+                    <!-- v2: Minimized floating drawing tool tray (mobile + fullscreen) -->
+                    <div id="toolTrayHandle" onclick="toggleToolTray()" title="Open drawing tools" class="absolute left-1.5 top-1/2 -translate-y-1/2 z-30 flex-col items-center gap-1.5 bg-yog-900/95 backdrop-blur-sm border border-yog-600 rounded-2xl py-2.5 px-1.5 shadow-2xl cursor-pointer hover:border-cyan-400 transition">
+                        <span id="toolTrayIcon" class="text-base leading-none">➕</span>
+                        <span class="w-px h-4 bg-yog-600"></span>
+                        <span class="text-cyan-400 text-[11px] leading-none font-bold">›</span>
+                    </div>
+                    <div id="toolTrayPanel" class="absolute left-2 top-16 z-30 bg-yog-900/95 backdrop-blur-md border border-yog-600 rounded-2xl p-2.5 shadow-2xl grid-cols-3 gap-1.5 w-56">
+                        <button data-tool="cursor" onclick="setDrawingTool('cursor'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">➕</span><span>Crosshair</span>
+                        </button>
+                        <button data-tool="trendline" onclick="setDrawingTool('trendline'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">📏</span><span>Trendline</span>
+                        </button>
+                        <button data-tool="ray" onclick="setDrawingTool('ray'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">↗️</span><span>Ray</span>
+                        </button>
+                        <button data-tool="hline" onclick="setDrawingTool('hline'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">➖</span><span>H-Line</span>
+                        </button>
+                        <button data-tool="vline" onclick="setDrawingTool('vline'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">┃</span><span>V-Line</span>
+                        </button>
+                        <button data-tool="fib" onclick="setDrawingTool('fib'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">📐</span><span>Fibonacci</span>
+                        </button>
+                        <button data-tool="rect" onclick="setDrawingTool('rect'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">🔲</span><span>Zone Box</span>
+                        </button>
+                        <button data-tool="brush" onclick="setDrawingTool('brush'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">✏️</span><span>Brush</span>
+                        </button>
+                        <button data-tool="text" onclick="setDrawingTool('text'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">🔤</span><span>Text</span>
+                        </button>
+                        <div class="col-span-3 flex items-center gap-1.5 pt-1.5 mt-1 border-t border-yog-700">
+                            <button onclick="undoLastDrawing()" class="flex-1 text-[10px] bg-yog-800 hover:bg-yog-700 text-slate-300 py-1.5 rounded-lg font-bold transition">↩ Undo</button>
+                            <button onclick="clearAllDrawings()" class="flex-1 text-[10px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 py-1.5 rounded-lg font-bold transition">🗑 Clear</button>
+                            <button onclick="closeToolTray()" class="text-[10px] bg-yog-800 hover:bg-yog-700 text-slate-300 w-8 py-1.5 rounded-lg font-bold transition">✕</button>
+                        </div>
+                    </div>
+
+                    <!-- v2: Zen-mode restore button (pure view) -->
+                    <button id="fsZenRestore" onclick="toggleFsZen()" class="absolute bottom-4 right-4 z-30 items-center gap-1.5 bg-yog-900/70 hover:bg-yog-800 text-slate-300 border border-yog-600 rounded-full px-3.5 py-2 text-[11px] font-bold backdrop-blur-sm opacity-50 hover:opacity-100 transition">
+                        👁 Show tools
+                    </button>
+
+                    <div class="chart-legend absolute top-2 left-2.5 z-20 pointer-events-none flex flex-col gap-0.5 terminal-font text-[10px] sm:text-[11px] bg-yog-950/80 px-2.5 py-1 rounded-lg border border-yog-800/80 backdrop-blur-sm">
                         <div class="flex items-center gap-2">
                             <span id="chartTitleSymbol" class="font-extrabold text-white text-xs">XRPUSDT</span>
                             <span id="mobileLivePriceBadge" class="font-bold text-emerald-400 xl:hidden">--</span>
@@ -383,7 +525,7 @@
                             <span id="legBOLL" class="text-emerald-400 hidden">BOLL(20,2)</span>
                         </div>
                     </div>
-                    <div id="drawingBanner" class="hidden absolute top-2 right-3 z-20 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-lg">TAP CHART TO ANCHOR DRAWING</div>
+                    <div id="drawingBanner" class="hidden absolute top-2 right-11 z-20 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-lg">TAP CHART TO ANCHOR DRAWING</div>
                     <div id="chartContainer"><canvas id="drawingCanvas"></canvas></div>
                     <div id="rsiContainer"><div class="absolute top-1 left-3 z-10 text-[10px] font-bold text-cyan-400 terminal-font pointer-events-none">RSI (14) <span id="rsiValLabel">--</span></div></div>
                 </section>
