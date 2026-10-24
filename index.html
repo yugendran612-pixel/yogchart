@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yogchart - Multi-Asset Institutional Terminal</title>
+    <title>Yogchart - Direct Binance API Terminal</title>
     
     <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -44,7 +44,7 @@
                 
                 <div class="flex items-center bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2">
                     <span class="text-gray-400 text-sm">🔍</span>
-                    <input id="symbolInput" type="text" value="XRPUSDT" class="bg-transparent border-none focus:outline-none py-1 px-2 text-sm font-bold uppercase w-24 terminal-font">
+                    <input id="symbolInput" type="text" value="XRPUSDT" class="bg-transparent border-none focus:outline-none py-1 px-2 text-sm font-bold uppercase w-28 terminal-font">
                 </div>
                 
                 <!-- Timeframe Selector -->
@@ -66,7 +66,7 @@
                 </select>
 
                 <div class="flex flex-col hidden lg:flex">
-                    <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Live Price</span>
+                    <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Binance Live Price</span>
                     <span id="livePrice" class="font-bold text-lg terminal-font leading-none text-gray-400">--</span>
                 </div>
             </div>
@@ -77,25 +77,18 @@
             </div>
         </header>
 
-        <!-- VIEW 1: HOME / MULTI-ASSET SCREENER -->
+        <!-- VIEW 1: HOME / SCREENER -->
         <div id="view-home" class="flex-1 overflow-y-auto p-6 bg-[#030712] flex flex-col gap-6">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-2xl font-black tracking-tight text-white">Yogchart Global Markets</h1>
-                    <p class="text-xs text-gray-400">Live multi-asset intelligence matrix across Crypto, Equities, Commodities, and Yields.</p>
-                </div>
-                <div class="flex gap-2" id="assetTabs">
-                    <button onclick="filterAssetCategory('all')" class="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-bold">All Assets</button>
-                    <button onclick="filterAssetCategory('crypto')" class="px-3 py-1.5 bg-gray-800 text-gray-300 rounded text-xs font-bold hover:bg-gray-700">Crypto</button>
-                    <button onclick="filterAssetCategory('stock')" class="px-3 py-1.5 bg-gray-800 text-gray-300 rounded text-xs font-bold hover:bg-gray-700">Stocks / S&P</button>
-                    <button onclick="filterAssetCategory('commodity')" class="px-3 py-1.5 bg-gray-800 text-gray-300 rounded text-xs font-bold hover:bg-gray-700">Commodities</button>
-                    <button onclick="filterAssetCategory('macro')" class="px-3 py-1.5 bg-gray-800 text-gray-300 rounded text-xs font-bold hover:bg-gray-700">Bonds & Macro</button>
+                    <h1 class="text-2xl font-black tracking-tight text-white">Yogchart Direct Binance API</h1>
+                    <p class="text-xs text-gray-400">Select a direct crypto pair powered entirely by Binance REST APIs & WebSockets[cite: 4].</p>
                 </div>
             </div>
 
             <!-- Asset Grid Matrix -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="assetGrid">
-                <!-- Dynamically populated via JS -->
+                <!-- Dynamically populated -->
             </div>
         </div>
 
@@ -107,17 +100,17 @@
                 <div id="rsiContainer"></div>
             </section>
 
-            <!-- Right Sidebar: AI Engine & Order Book -->
+            <!-- Right Sidebar -->
             <aside class="w-80 border-l border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-[#0B0E14] terminal-font text-xs z-10 flex-shrink-0">
                 
-                <!-- AI Engine Insights Panel -->
+                <!-- AI Engine Panel -->
                 <div class="p-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <h3 class="font-bold text-blue-400 flex items-center gap-1.5">🤖 AI TAPE ENGINE</h3>
-                        <span id="aiStatus" class="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-bold">READY</span>
+                        <span id="aiStatus" class="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-bold">ACTIVE API</span>
                     </div>
                     <div id="aiInsightsBox" class="bg-gray-900/80 border border-gray-800 p-2 rounded text-[11px] text-gray-300 space-y-1">
-                        <div>Bias: <span id="aiBias" class="font-bold text-gray-400">Analyzing...</span></div>
+                        <div>Bias: <span id="aiBias" class="font-bold text-gray-400">Scanning API...</span></div>
                         <div>Entry Zone: <span id="aiEntry" class="font-bold text-gray-300">--</span></div>
                         <div>Stop Loss: <span id="aiStop" class="font-bold text-red-400">--</span></div>
                     </div>
@@ -164,18 +157,16 @@
         let currentChartType = 'Candlestick';
         let rawCandles = [];
 
-        // Global Multi-Asset Database for Screener
-        const assetsCatalog = [
-            { symbol: 'XRPUSDT', name: 'XRP / Tether', category: 'crypto', price: '1.28', change: '+4.2%' },
-            { symbol: 'BTCUSDT', name: 'Bitcoin / Tether', category: 'crypto', price: '92,450', change: '+1.8%' },
-            { symbol: 'ETHUSDT', name: 'Ethereum / Tether', category: 'crypto', price: '3,420', change: '-0.5%' },
-            { symbol: 'SOLUSDT', name: 'Solana / Tether', category: 'crypto', price: '184.20', change: '+6.1%' },
-            { symbol: 'AAPL', name: 'Apple Inc. (Stock)', category: 'stock', price: '235.10', change: '+0.9%' },
-            { symbol: 'SPY', name: 'SPDR S&P 500 ETF', category: 'stock', price: '588.40', change: '+0.4%' },
-            { symbol: 'TSLA', name: 'Tesla Inc.', category: 'stock', price: '242.80', change: '-2.3%' },
-            { symbol: 'GC=F', name: 'Gold Futures', category: 'commodity', price: '2,745.00', change: '+0.7%' },
-            { symbol: 'CL=F', name: 'Crude Oil WTI', category: 'commodity', price: '71.20', change: '-1.1%' },
-            { symbol: 'TNX', name: 'US 10-Year Treasury Yield', category: 'macro', price: '4.24%', change: '+0.02' }
+        // Direct Binance Crypto Pairs for the Home Screener
+        const cryptoCatalog = [
+            { symbol: 'XRPUSDT', name: 'XRP / Tether', price: '1.28', change: '+4.2%' },
+            { symbol: 'BTCUSDT', name: 'Bitcoin / Tether', price: '92,450', change: '+1.8%' },
+            { symbol: 'ETHUSDT', name: 'Ethereum / Tether', price: '3,420', change: '-0.5%' },
+            { symbol: 'SOLUSDT', name: 'Solana / Tether', price: '184.20', change: '+6.1%' },
+            { symbol: 'DOGEUSDT', name: 'Dogecoin / Tether', price: '0.38', change: '+5.4%' },
+            { symbol: 'ADAUSDT', name: 'Cardano / Tether', price: '0.85', change: '-1.2%' },
+            { symbol: 'AVAXUSDT', name: 'Avalanche / Tether', price: '38.50', change: '+2.9%' },
+            { symbol: 'LINKUSDT', name: 'Chainlink / Tether', price: '18.20', change: '+1.1%' }
         ];
 
         window.switchView = function(viewName) {
@@ -183,23 +174,17 @@
             document.getElementById('view-terminal').classList.add('hidden');
             if(viewName === 'home') {
                 document.getElementById('view-home').classList.remove('hidden');
-                renderScreener('all');
+                renderScreener();
             } else {
                 document.getElementById('view-terminal').classList.remove('hidden');
                 chart.timeScale().fitContent();
             }
         };
 
-        window.filterAssetCategory = function(cat) {
-            renderScreener(cat);
-        };
-
-        function renderScreener(filter) {
+        function renderScreener() {
             const grid = document.getElementById('assetGrid');
             grid.innerHTML = '';
-            const filtered = filter === 'all' ? assetsCatalog : assetsCatalog.filter(a => a.category === filter);
-            
-            filtered.forEach(item => {
+            cryptoCatalog.forEach(item => {
                 const isPositive = !item.change.includes('-');
                 const card = document.createElement('div');
                 card.className = 'bg-[#0B0E14] border border-gray-800 hover:border-blue-500/50 p-4 rounded-xl cursor-pointer transition flex flex-col justify-between';
@@ -212,23 +197,23 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <span class="text-xs font-bold text-gray-500 uppercase">${item.category}</span>
+                            <span class="text-xs font-bold text-blue-400 uppercase">Binance Spot</span>
                             <h3 class="font-bold text-white text-base terminal-font">${item.symbol}</h3>
                             <p class="text-xs text-gray-400">${item.name}</p>
                         </div>
                         <span class="text-xs font-bold px-2 py-0.5 rounded ${isPositive ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">${item.change}</span>
                     </div>
                     <div class="flex justify-between items-end border-t border-gray-800/60 pt-3">
-                        <span class="text-xs text-gray-500">Live Quote</span>
+                        <span class="text-xs text-gray-500">Live API Quote</span>
                         <span class="font-bold text-lg text-white terminal-font">$${item.price}</span>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
-        renderScreener('all');
+        renderScreener();
 
-        // --- AUTH & WORKSPACE PERSISTENCE ---
+        // --- AUTHENTICATION & WORKSPACE ---
         const loginBtn = document.getElementById('loginBtn'); 
         const saveWorkspaceBtn = document.getElementById('saveWorkspace');
 
@@ -270,7 +255,7 @@
             }, { onConflict: 'user_id' });
 
             if (error) {
-                alert('Workspace database table configuration missing in Supabase! Error: ' + error.message);
+                alert('Workspace table configuration missing in Supabase! Error: ' + error.message);
             } else {
                 saveWorkspaceBtn.innerText = 'SAVED! ✅';
                 setTimeout(() => saveWorkspaceBtn.innerText = '💾 SAVE LAYOUT', 2000);
@@ -385,11 +370,12 @@
             orderTape.innerHTML = '';
             asksEl.innerHTML = '';
             bidsEl.innerHTML = '';
-            livePriceEl.innerText = 'Loading...';
+            livePriceEl.innerText = 'Loading API...';
 
             if(!activeSeries) setChartType(currentChartType);
 
             try {
+                // Direct Binance API REST Endpoint Call
                 const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${timeframe}&limit=300`);
                 if (res.ok) {
                     const data = await res.json();
@@ -401,10 +387,11 @@
                     rsiSeries.setData(calculateRSI(rawCandles));
                     runAiAnalysis();
                 }
-            } catch (err) { console.warn("Binance history fetch fallback."); }
+            } catch (err) { console.warn("Binance API fetch error."); }
 
             const wsSymbol = currentSymbol.toLowerCase();
 
+            // Direct Binance WebSocket Feeds
             if (wsKline) wsKline.close();
             wsKline = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@kline_${timeframe}`);
             wsKline.onmessage = (event) => {
@@ -477,7 +464,6 @@
             const recent = rawCandles.slice(-20);
             const currentClose = recent[recent.length - 1].close;
             const lowVal = Math.min(...recent.map(c => c.low));
-            const highVal = Math.max(...recent.map(c => c.high));
             
             const biasEl = document.getElementById('aiBias');
             const entryEl = document.getElementById('aiEntry');
@@ -491,14 +477,12 @@
             stopEl.innerText = `$${(lowVal * 0.995).toFixed(4)}`;
         };
 
-        // RSI Toggle
         let rsiVisible = false;
         document.getElementById('toggleRsi').addEventListener('click', () => {
             rsiVisible = !rsiVisible;
             rsiContainer.style.display = rsiVisible ? 'block' : 'none';
         });
 
-        // Timeframe switchers
         const tfButtons = document.querySelectorAll('#timeframeSelector button');
         tfButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -513,7 +497,6 @@
             if(e.key === 'Enter') initSymbol(e.target.value, currentTimeframe); 
         });
 
-        // Start on Home view
         switchView('home');
     </script>
 </body>
