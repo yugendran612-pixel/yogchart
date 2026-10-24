@@ -1,12 +1,104 @@
-<script>
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yogchart - Terminal</title>
+    
+    <!-- CDNs -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
+    
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap');
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+        .terminal-font { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        #chart-wrapper { position: relative; width: 100%; height: 100%; }
+        #chartContainer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-[#030712] text-gray-900 dark:text-gray-100 h-screen flex">
+    
+    <!-- Global Navigation Rail -->
+    <nav class="w-16 flex flex-col items-center py-4 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-30 flex-shrink-0">
+        <div class="font-bold text-xl mb-8 tracking-tighter text-blue-500">Y.</div>
+        <a href="index.html" class="p-3 mb-2 bg-blue-500/10 text-blue-500 rounded-xl" title="Terminal">📈</a>
+        <a href="portfolio.html" class="p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500 transition" title="Portfolio">💼</a>
+        <div class="mt-auto">
+            <button id="themeToggle" class="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500">🌓</button>
+        </div>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header class="h-14 flex justify-between items-center px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-20">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2">
+                    <span class="text-gray-400 text-sm">🔍</span>
+                    <input id="symbolInput" type="text" value="XRPUSDT" class="bg-transparent border-none focus:outline-none py-1 px-2 text-sm font-bold uppercase w-24 terminal-font">
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Live Price</span>
+                    <span id="livePrice" class="font-bold text-lg terminal-font leading-none text-gray-400">--</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-gray-500 font-bold hidden md:block">HOTKEY: <span class="bg-gray-800 px-1.5 py-0.5 rounded text-white">Shift+B</span> Buy</span>
+                <button id="loginBtn" class="bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded hover:bg-blue-700 transition">LOGIN</button>
+            </div>
+        </header>
+
+        <!-- Workspace -->
+        <main class="flex-1 flex overflow-hidden">
+            <!-- Chart Section -->
+            <section class="flex-1 relative" id="chart-wrapper">
+                <div id="chartContainer"></div>
+            </section>
+
+            <!-- Sidebar -->
+            <aside class="w-80 border-l border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-[#0B0E14] terminal-font text-xs z-10 flex-shrink-0">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/30">
+                    <h3 class="font-bold text-gray-500 mb-2">AI ENGINE</h3>
+                    <button class="w-full bg-blue-600 text-white py-1.5 rounded font-bold hover:bg-blue-700">ANALYZE TAPE</button>
+                </div>
+                
+                <div class="flex-1 overflow-hidden flex flex-col min-h-0">
+                    <div class="flex justify-between text-gray-400 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0E14]">
+                        <span class="w-1/3">PRICE</span><span class="w-1/3 text-right">SIZE</span><span class="w-1/3 text-right">TIME</span>
+                    </div>
+                    <div id="orderTape" class="flex-1 overflow-y-auto p-1"></div>
+                </div>
+
+                <div class="h-64 flex flex-col border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14]">
+                    <div class="bg-gray-100 dark:bg-gray-900 px-4 py-1.5 border-b border-gray-200 dark:border-gray-800">
+                        <h3 class="font-bold text-gray-500 flex items-center gap-2">📊 LEVEL 2 DEPTH</h3>
+                    </div>
+                    <div class="flex justify-between text-gray-400 px-3 py-1 bg-gray-50 dark:bg-[#0B0E14] text-[10px]">
+                        <span>BID SIZE</span><span>PRICE</span><span>ASK SIZE</span>
+                    </div>
+                    <div id="orderBookAsks" class="flex-1 flex flex-col-reverse p-1 space-y-reverse space-y-0.5 overflow-hidden"></div>
+                    <div id="orderBookSpread" class="text-center font-bold py-1 bg-gray-100 dark:bg-gray-800 text-[10px] text-gray-500">SPREAD: --</div>
+                    <div id="orderBookBids" class="flex-1 flex flex-col p-1 space-y-0.5 overflow-hidden"></div>
+                </div>
+            </aside>
+        </main>
+    </div>
+    
+    <!-- Changed to type="module" -->
+    <script type="module">
         // ==========================================
-        // 1. SUPABASE AUTHENTICATION
+        // 1. SUPABASE AUTHENTICATION (ES Module)
         // ==========================================
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
         const supabaseUrl = 'https://gqdirctfbzlnnfctcdcy.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxZGlyY3RmYnpsbm5mY3RjZGN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4MzIxMjMsImV4cCI6MjEwODQwODEyM30.D12kInUr6jHHxCNTWLuoNGXUrxFPWFYdKHxw0cAfaWA';
-        
-        // RENAMED to supabaseClient to fix the syntax error
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
         const loginBtn = document.getElementById('loginBtn'); 
         if (loginBtn) {
@@ -102,7 +194,6 @@
 
             const wsSymbol = symbol.toLowerCase();
 
-            // K-Line WebSocket
             if (wsKline) wsKline.close();
             wsKline = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@kline_1m`);
             wsKline.onmessage = (event) => {
@@ -113,7 +204,6 @@
                 livePriceEl.className = closePrice >= parseFloat(msg.k.o) ? 'font-bold text-lg terminal-font leading-none text-green-500' : 'font-bold text-lg terminal-font leading-none text-red-500';
             };
 
-            // Trade WebSocket
             if (wsTrade) wsTrade.close();
             wsTrade = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@trade`);
             wsTrade.onmessage = (event) => {
@@ -133,7 +223,6 @@
                 if (orderTape.children.length > 50) orderTape.lastChild.remove();
             };
 
-            // Depth WebSocket
             if (wsDepth) wsDepth.close();
             wsDepth = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@depth10@100ms`);
             wsDepth.onmessage = (event) => {
@@ -164,6 +253,11 @@
             };
         }
 
+        document.getElementById('symbolInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') initSymbol(e.target.value); });
+        initSymbol('XRPUSDT');
+    </script>
+</body>
+</html>
         document.getElementById('symbolInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') initSymbol(e.target.value); });
         initSymbol('XRPUSDT');
     </script>
