@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#040711">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Yogchart — Institutional Market Intelligence & Charting</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
@@ -25,535 +22,232 @@
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
         body { margin: 0; font-family: 'Inter', sans-serif; background-color: #040711; color: #e2e8f0; user-select: none; -webkit-tap-highlight-color: transparent; }
         .terminal-font { font-family: 'Fira Code', monospace; }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #040711; }
         ::-webkit-scrollbar-thumb { background: #16223B; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #2563EB; }
 
         .tv-lightweight-charts__watermark, .tv-chart-watermark, a[href*="tradingview.com"] {
             display: none !important; opacity: 0 !important; pointer-events: none !important; visibility: hidden !important;
         }
 
-        /* Multi-Screen Responsive Chart Container (Phone, Tablet, Desktop, 4K TV) */
-        #chart-wrapper { position: relative; width: 100%; height: 100%; min-height: 340px; min-width: 0; display: flex; flex-direction: column; }
-        #chartContainer { flex: 1; width: 100%; min-height: 300px; position: relative; }
+        #chart-wrapper { position: relative; width: 100%; height: 100%; min-height: 320px; display: flex; flex-direction: column; }
+        #chartContainer { flex: 1; width: 100%; min-height: 280px; position: relative; }
         #drawingCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; touch-action: none; }
-        #rsiContainer { height: 95px; width: 100%; position: relative; display: none; border-top: 1px solid #16223B; }
+        #rsiContainer { height: 90px; width: 100%; position: relative; display: none; border-top: 1px solid #16223B; }
 
         .tool-active { background-color: #2563EB !important; color: #fff !important; border-color: #38BDF8 !important; box-shadow: 0 0 10px rgba(37,99,235,0.5); }
         .nav-active { background-color: rgba(37,99,235,0.15); color: #38BDF8; border-color: rgba(56,189,248,0.4); }
 
-        /* Intro Splash Animations */
-        @keyframes pulseGlow {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(56,189,248,0.4)); }
-            50% { transform: scale(1.06); filter: drop-shadow(0 0 30px rgba(37,99,235,0.8)); }
-        }
-        @keyframes loadProgress {
-            0% { width: 0%; }
-            100% { width: 100%; }
-        }
-        .splash-logo { animation: pulseGlow 2s infinite ease-in-out; }
-        .splash-bar { animation: loadProgress 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-
-        /* 4K TV Scaling */
-        @media (min-width: 2200px) {
-            html { font-size: 18px; }
-        }
+        /* Fullscreen Mode Class */
+        body.fullscreen-mode header,
+        body.fullscreen-mode aside:not(.floating-tool-tray),
+        body.fullscreen-mode section#mobilePositionsPane,
+        body.fullscreen-mode div.mobile-drawer-bar { display: none !important; }
+        body.fullscreen-mode #view-terminal { height: 100vh !important; width: 100vw !important; position: fixed; top: 0; left: 0; z-index: 9999; }
     </style>
 </head>
 <body class="h-[100dvh] w-screen flex flex-col bg-yog-950 text-slate-200 overflow-hidden">
 
-    <!-- ========================================================= -->
-    <!-- ANIMATED YOGCHART INTRO SPLASH SCREEN                     -->
-    <!-- ========================================================= -->
-    <div id="introSplash" class="fixed inset-0 z-[100] bg-yog-950 flex flex-col items-center justify-center p-6 transition-opacity duration-500">
-        <div class="splash-logo w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[2px] shadow-2xl mb-6">
-            <div class="w-full h-full bg-yog-950 rounded-[22px] flex items-center justify-center">
-                <svg class="w-12 h-12 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M17 7h4v4" />
-                </svg>
-            </div>
-        </div>
-        <div class="font-black text-3xl tracking-tight text-white">YOG<span class="text-cyan-400">CHART</span></div>
-        <div class="text-xs font-bold tracking-[0.25em] text-blue-400 uppercase mt-1 mb-8">INSTITUTIONAL QUANT TERMINAL</div>
-        <div class="w-56 h-1.5 bg-yog-800 rounded-full overflow-hidden border border-yog-700">
-            <div class="splash-bar h-full bg-gradient-to-r from-blue-600 to-cyan-400"></div>
-        </div>
-        <div class="text-[11px] text-slate-500 terminal-font mt-3">Initializing Real-Time Market Streams...</div>
-    </div>
-
-    <!-- ========================================================= -->
-    <!-- TOP GLOBAL RESPONSIVE NAVIGATION BAR                      -->
-    <!-- ========================================================= -->
-    <header class="h-14 bg-yog-900 border-b border-yog-700 px-2.5 sm:px-4 flex items-center justify-between gap-2 z-40 flex-shrink-0">
+    <!-- TOP RESPONSIVE HEADER -->
+    <header class="h-13 bg-yog-900 border-b border-yog-700 px-2 sm:px-4 flex items-center justify-between gap-2 z-40 flex-shrink-0">
         <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div onclick="switchView('home')" class="flex items-center gap-2 cursor-pointer pr-2 sm:pr-3 border-r border-yog-700 group flex-shrink-0">
-                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[1.5px] shadow-lg shadow-blue-500/20">
+            <div onclick="switchView('home')" class="flex items-center gap-2 cursor-pointer pr-2 border-r border-yog-700 group flex-shrink-0">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[1.5px] shadow-lg">
                     <div class="w-full h-full bg-yog-950 rounded-[7px] flex items-center justify-center">
-                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M17 7h4v4" />
-                        </svg>
+                        <svg class="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M17 7h4v4" /></svg>
                     </div>
                 </div>
-                <div class="hidden xs:block">
-                    <div class="font-black text-sm sm:text-base tracking-tight text-white leading-none">YOG<span class="text-cyan-400">CHART</span></div>
-                    <div class="text-[8px] sm:text-[9px] font-bold tracking-widest text-blue-400 uppercase mt-0.5">QUANT TERMINAL</div>
+                <div class="hidden xs:block leading-tight">
+                    <div class="font-black text-sm tracking-tight text-white">YOG<span class="text-cyan-400">CHART</span></div>
                 </div>
             </div>
 
-            <!-- Main View Switcher -->
             <div class="flex items-center gap-1 flex-shrink-0">
-                <button id="navHomeBtn" onclick="switchView('home')" class="nav-active text-[11px] sm:text-xs px-2 sm:px-3 py-1.5 rounded-lg font-bold border border-transparent transition flex items-center gap-1">
-                    <span>🌐</span> <span class="hidden md:inline">Markets & News</span><span class="md:hidden">Hub</span>
-                </button>
-                <button id="navTermBtn" onclick="switchView('terminal')" class="text-[11px] sm:text-xs text-slate-400 hover:text-white px-2 sm:px-3 py-1.5 rounded-lg font-bold border border-transparent transition flex items-center gap-1">
-                    <span>📈</span> <span class="hidden md:inline">Superchart</span><span class="md:hidden">Chart</span>
-                </button>
+                <button id="navHomeBtn" onclick="switchView('home')" class="nav-active text-[11px] px-2.5 py-1 rounded-lg font-bold transition">Hub</button>
+                <button id="navTermBtn" onclick="switchView('terminal')" class="text-[11px] text-slate-400 hover:text-white px-2.5 py-1 rounded-lg font-bold transition">Chart</button>
             </div>
 
-            <!-- Header Search with Closest-Match Dropdown (Visible on all devices) -->
+            <!-- Search Bar with Autocomplete -->
             <div class="relative flex-shrink-0" id="headerSearchWrap">
                 <div class="flex items-center bg-yog-950 border border-yog-700 focus-within:border-cyan-400 rounded-lg px-2 py-1">
                     <span class="text-slate-500 text-xs mr-1">🔍</span>
-                    <input id="symbolInput" type="text" value="XRPUSDT" placeholder="Ticker..." autocomplete="off" class="bg-transparent border-none focus:outline-none text-xs font-bold uppercase w-16 sm:w-24 text-white terminal-font">
-                    <span id="assetBadge" class="hidden sm:inline text-[9px] bg-blue-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded font-bold">LIVE</span>
+                    <input id="symbolInput" type="text" value="XRPUSDT" placeholder="Search..." autocomplete="off" class="bg-transparent border-none focus:outline-none text-xs font-bold uppercase w-16 sm:w-24 text-white terminal-font">
                 </div>
-                <div id="headerSearchDropdown" class="hidden absolute left-0 mt-1.5 w-64 sm:w-72 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-yog-800"></div>
-            </div>
-
-            <!-- Live Price Ribbon -->
-            <div id="topTickerRibbon" class="hidden xl:flex items-center gap-5 pl-3 border-l border-yog-700 terminal-font text-xs">
-                <div>
-                    <div id="livePrice" class="font-bold text-base leading-none text-emerald-400">--</div>
-                    <div class="text-[10px] text-slate-500">Real-Time Feed</div>
-                </div>
-                <div>
-                    <div class="text-[10px] text-slate-500">24h Change</div>
-                    <div id="stat24hChange" class="font-semibold text-slate-300">--%</div>
-                </div>
-                <div>
-                    <div class="text-[10px] text-slate-500">24h High</div>
-                    <div id="stat24hHigh" class="font-semibold text-slate-300">--</div>
-                </div>
-                <div>
-                    <div class="text-[10px] text-slate-500">24h Low</div>
-                    <div id="stat24hLow" class="font-semibold text-slate-300">--</div>
-                </div>
-                <div>
-                    <div class="text-[10px] text-slate-500">24h Volume</div>
-                    <div id="stat24hVol" class="font-semibold text-cyan-400">--</div>
-                </div>
+                <div id="headerSearchDropdown" class="hidden absolute left-0 mt-1 w-60 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto divide-y divide-yog-800"></div>
             </div>
         </div>
 
-        <!-- Right Controls -->
-        <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-            <div class="hidden lg:flex items-center gap-2 bg-yog-950 border border-yog-700 px-2.5 py-1 rounded-lg">
-                <div class="text-[10px] text-slate-400 uppercase font-bold">Equity</div>
-                <div id="headerPaperBalance" class="terminal-font text-xs font-extrabold text-cyan-400">$100,000.00</div>
-                <button onclick="openWalletModal()" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white font-bold px-1.5 py-0.5 rounded transition">+</button>
-            </div>
-
-            <button id="installAppBtn" onclick="installPWAOrShowGuide()" class="bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-emerald-500/30 transition flex items-center gap-1" title="Download / Install Yogchart Android App">
-                <span>📲</span> <span class="hidden sm:inline">Android App</span>
-            </button>
-
-            <button id="saveWorkspace" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-cyan-500/30 transition hidden sm:inline-flex">
-                💾 Sync
-            </button>
-
-            <button onclick="openProfileEditorModal()" class="bg-yog-800 hover:bg-yog-700 text-slate-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-yog-600 transition" title="Edit Account Profile">
-                ⚙️ <span class="hidden md:inline">Profile</span>
-            </button>
-
-            <button id="loginBtn" onclick="handleAuthClick()" class="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-[11px] font-extrabold px-2.5 sm:px-3.5 py-1.5 rounded-lg shadow-md transition whitespace-nowrap">
-                LOGIN
-            </button>
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button onclick="openProfileEditorModal()" class="bg-yog-800 hover:bg-yog-700 text-slate-200 text-[11px] font-bold px-2 py-1 rounded-lg border border-yog-600">⚙️ Profile</button>
+            <button id="loginBtn" onclick="handleAuthClick()" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-extrabold px-3 py-1 rounded-lg shadow whitespace-nowrap">LOGIN</button>
         </div>
     </header>
 
-    <!-- ========================================================= -->
-    <!-- VIEW 1: MAIN HUB (PROFILE, SCREENER & BLOOMBERG WIRE)     -->
-    <!-- ========================================================= -->
+    <!-- VIEW 1: MAIN HUB -->
     <div id="view-home" class="flex-1 overflow-y-auto p-3 sm:p-5 bg-yog-950 flex flex-col gap-5 z-20">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <!-- Dedicated Account & Custom Profile Card -->
             <div class="lg:col-span-4 bg-gradient-to-br from-yog-900 to-yog-800 border border-yog-700 rounded-xl p-4 flex flex-col justify-between shadow-lg">
                 <div class="flex items-start justify-between gap-2">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div id="profileAvatar" class="w-11 h-11 rounded-full bg-blue-600 border-2 border-cyan-400/60 flex items-center justify-center font-black text-white text-sm flex-shrink-0 shadow-md">YG</div>
+                        <div id="profileAvatar" class="w-10 h-10 rounded-full bg-blue-600 border border-cyan-400/50 flex items-center justify-center font-black text-white text-sm flex-shrink-0">YG</div>
                         <div class="min-w-0">
-                            <div class="flex items-center gap-1.5">
-                                <div id="profileName" class="font-extrabold text-sm text-white truncate">Yogchart Guest Trader</div>
-                                <span id="profileRiskBadge" class="text-[9px] bg-blue-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded font-bold">Moderate</span>
-                            </div>
-                            <div id="profileUsername" class="text-[11px] text-slate-400 terminal-font truncate">@guest_quant</div>
-                            <div id="profileBio" class="text-[11px] text-slate-300 line-clamp-1 mt-0.5">Multi-Asset Quant & Technical Analyst</div>
+                            <div id="profileName" class="font-extrabold text-sm text-white truncate">Guest Trader</div>
+                            <div id="profileUsername" class="text-[11px] text-slate-400 terminal-font truncate">@guest</div>
                         </div>
                     </div>
-                    <div class="flex flex-col sm:flex-row gap-1.5 flex-shrink-0">
-                        <button onclick="openProfileEditorModal()" class="text-[11px] bg-yog-700 hover:bg-yog-600 text-cyan-300 font-bold px-2.5 py-1 rounded-lg border border-yog-600 transition">✏️ Edit Profile</button>
-                        <button onclick="openWalletModal()" class="text-[11px] bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1 rounded-lg shadow transition">💰 Funds</button>
-                    </div>
+                    <button onclick="openProfileEditorModal()" class="text-[11px] bg-yog-700 text-cyan-300 font-bold px-2.5 py-1 rounded-lg">Edit</button>
                 </div>
-
-                <div class="grid grid-cols-3 gap-2 my-3.5 pt-3 border-t border-yog-700/80 terminal-font">
-                    <div>
-                        <div class="text-[10px] text-slate-400">Available Margin</div>
-                        <div id="homePaperBalance" class="text-xs sm:text-sm font-bold text-white">$100,000.00</div>
-                    </div>
-                    <div>
-                        <div class="text-[10px] text-slate-400">Realized PnL</div>
-                        <div id="homeRealizedPnl" class="text-xs sm:text-sm font-bold text-emerald-400">$0.00</div>
-                    </div>
-                    <div>
-                        <div class="text-[10px] text-slate-400">Open Positions</div>
-                        <div id="homeOpenPosCount" class="text-xs sm:text-sm font-bold text-cyan-400">0 Active</div>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between text-[11px] text-slate-400 bg-yog-950/60 px-3 py-2 rounded-lg border border-yog-700/50">
-                    <span id="profileStatus" class="flex items-center gap-1.5 truncate">
-                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> Sandbox Active · <strong id="savedSymbolsCount" class="text-emerald-400">Ready</strong>
-                    </span>
-                    <button onclick="switchView('terminal')" class="text-cyan-400 hover:underline font-bold flex-shrink-0 ml-2">Superchart &rarr;</button>
+                <div class="grid grid-cols-3 gap-2 my-3.5 pt-3 border-t border-yog-700 terminal-font text-xs">
+                    <div><div class="text-[10px] text-slate-400">Equity</div><div id="homePaperBalance" class="font-bold text-white">$100k</div></div>
+                    <div><div class="text-[10px] text-slate-400">PnL</div><div id="homeRealizedPnl" class="font-bold text-emerald-400">$0.00</div></div>
+                    <div><div class="text-[10px] text-slate-400">Active</div><div id="homeOpenPosCount" class="font-bold text-cyan-400">0</div></div>
                 </div>
             </div>
-
-            <!-- Featured Major Assets Shelf -->
             <div class="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-3" id="featuredCardsGrid"></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-            <!-- MULTI-ASSET SCREENER -->
             <div class="lg:col-span-8 bg-yog-900 border border-yog-700 rounded-xl overflow-hidden shadow-xl flex flex-col">
-                <div class="p-3.5 sm:p-4 border-b border-yog-700 flex flex-col gap-3 bg-yog-800/50">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                            <h2 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
-                                Global Multi-Asset Screener
-                                <span class="text-[10px] bg-blue-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded font-mono">REAL-TIME DATA</span>
-                            </h2>
-                            <p class="text-xs text-slate-400">Tap any row to open its interactive Superchart on Phone, Tablet, PC, or Smart TV.</p>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <div class="relative flex-1 sm:flex-initial" id="screenerSearchWrap">
-                                <div class="flex items-center bg-yog-950 border border-yog-700 focus-within:border-cyan-400 rounded-lg px-2.5 py-1.5">
-                                    <span class="text-slate-500 text-xs mr-1.5">🔎</span>
-                                    <input id="screenerSearch" type="text" placeholder="Search symbol, stock, bond..." autocomplete="off" class="bg-transparent border-none focus:outline-none text-xs text-white w-full sm:w-44">
-                                </div>
-                                <div id="screenerSearchDropdown" class="hidden absolute right-0 mt-1.5 w-72 sm:w-80 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-yog-800"></div>
-                            </div>
-                            <button id="expandScreenerBtn" onclick="toggleExpandScreener()" class="bg-yog-700 hover:bg-blue-600 text-xs font-bold text-white px-3 py-1.5 rounded-lg border border-yog-600 transition whitespace-nowrap">
-                                ➕ Expand All (20)
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-                        <div class="flex flex-wrap gap-1.5" id="screenerTabs">
-                            <button onclick="filterScreener('all', this)" class="px-2.5 py-1 bg-blue-600 text-white rounded-md text-xs font-bold">All</button>
-                            <button onclick="filterScreener('crypto', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Crypto</button>
-                            <button onclick="filterScreener('stock', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Stocks & S&P</button>
-                            <button onclick="filterScreener('commodity', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Commodities</button>
-                            <button onclick="filterScreener('bond', this)" class="px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700">Bonds</button>
-                        </div>
-
-                        <div class="flex items-center gap-1.5 text-xs">
-                            <span class="text-slate-400 text-[11px]">Sort:</span>
-                            <select id="sortFieldSelect" onchange="handleSortSelectChange()" class="bg-yog-950 border border-yog-700 rounded px-2 py-1 text-xs text-cyan-300 font-semibold focus:outline-none">
-                                <option value="vol">24h Volume</option>
-                                <option value="price">Last Price</option>
-                                <option value="change">24h % Change</option>
-                                <option value="symbol">Alphabetical</option>
-                            </select>
-                            <button id="sortDirBtn" onclick="toggleSortDirection()" class="bg-yog-950 border border-yog-700 hover:border-cyan-400 px-2 py-1 rounded text-xs font-bold text-white">DESC ▼</button>
-                        </div>
+                <div class="p-3.5 border-b border-yog-700 flex flex-col gap-3 bg-yog-800/50">
+                    <div class="flex items-center justify-between gap-2">
+                        <h2 class="text-sm font-extrabold text-white">Global Markets Screener</h2>
+                        <input id="screenerSearch" type="text" placeholder="Search..." autocomplete="off" class="bg-yog-950 border border-yog-700 rounded-lg px-2.5 py-1 text-xs text-white w-36">
                     </div>
                 </div>
-
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse terminal-font text-xs">
+                    <table class="w-full text-left terminal-font text-xs">
                         <thead>
-                            <tr class="border-b border-yog-700 text-slate-400 text-[11px] bg-yog-950/90 select-none">
-                                <th onclick="setSortColumn('symbol')" class="py-3 px-3 sm:px-4 cursor-pointer hover:text-cyan-400">INSTRUMENT <span id="sortIcon-symbol"></span></th>
-                                <th class="py-3 px-2 hidden sm:table-cell">CLASS</th>
-                                <th onclick="setSortColumn('price')" class="py-3 px-3 sm:px-4 text-right cursor-pointer hover:text-cyan-400">PRICE <span id="sortIcon-price"></span></th>
-                                <th onclick="setSortColumn('change')" class="py-3 px-3 sm:px-4 text-right cursor-pointer hover:text-cyan-400">24H % <span id="sortIcon-change"></span></th>
-                                <th class="py-3 px-4 text-right hidden md:table-cell">24H HIGH / LOW</th>
-                                <th onclick="setSortColumn('vol')" class="py-3 px-4 text-right cursor-pointer hover:text-cyan-400 hidden sm:table-cell">VOLUME <span id="sortIcon-vol">▼</span></th>
-                                <th class="py-3 px-3 sm:px-4 text-right">CHART</th>
+                            <tr class="border-b border-yog-700 text-slate-400 text-[11px] bg-yog-950">
+                                <th class="py-3 px-3">INSTRUMENT</th>
+                                <th class="py-3 px-3 text-right">PRICE</th>
+                                <th class="py-3 px-3 text-right">24H %</th>
+                                <th class="py-3 px-3 text-right">ACTION</th>
                             </tr>
                         </thead>
                         <tbody id="screenerBody" class="divide-y divide-yog-800"></tbody>
                     </table>
                 </div>
-
-                <div class="p-3 bg-yog-950/70 border-t border-yog-700 text-center">
-                    <button id="footerExpandBtn" onclick="toggleExpandScreener()" class="text-xs font-bold text-cyan-400 hover:text-cyan-300">
-                        Show All 20 Global Instruments &darr;
-                    </button>
-                </div>
             </div>
 
-            <!-- LIVE BLOOMBERG NEWS WIRE -->
-            <div class="lg:col-span-4 bg-yog-900 border border-yog-700 rounded-xl overflow-hidden shadow-xl flex flex-col max-h-[600px]">
-                <div class="p-4 border-b border-yog-700 bg-yog-800/50 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-sm font-extrabold text-white flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                            Bloomberg Live Market Wire
-                        </h2>
-                        <p id="newsSyncStatus" class="text-[11px] text-cyan-400">Streaming Bloomberg Markets & Macro RSS</p>
-                    </div>
-                    <button onclick="fetchBloombergNews(true)" class="text-[11px] bg-yog-950 hover:bg-yog-700 text-cyan-400 border border-yog-700 px-2.5 py-1 rounded font-bold transition">↻ Sync</button>
+            <div class="lg:col-span-4 bg-yog-900 border border-yog-700 rounded-xl overflow-hidden shadow-xl flex flex-col max-h-[500px]">
+                <div class="p-3.5 border-b border-yog-700 bg-yog-800/50 flex items-center justify-between">
+                    <h2 class="text-xs font-extrabold text-white">Bloomberg Live Wire</h2>
+                    <button onclick="fetchBloombergNews(true)" class="text-[10px] bg-yog-950 text-cyan-400 px-2 py-0.5 rounded">Sync</button>
                 </div>
-                <div id="newsFeedContainer" class="flex-1 overflow-y-auto divide-y divide-yog-800 p-2 space-y-1"></div>
+                <div id="newsFeedContainer" class="flex-1 overflow-y-auto divide-y divide-yog-800 p-2 space-y-1 text-xs"></div>
             </div>
         </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- VIEW 2: MULTI-DEVICE SUPERCHART WORKSPACE                 -->
-    <!-- ========================================================= -->
+    <!-- VIEW 2: SUPERCHART WORKSPACE -->
     <div id="view-terminal" class="flex-1 flex flex-col overflow-hidden hidden">
-        
-        <!-- Top Chart Control Bar (Scrollable horizontally on mobile phones) -->
-        <div class="h-10 bg-yog-900/90 border-b border-yog-700 px-2 sm:px-3 flex items-center justify-between gap-2 text-xs z-20 flex-shrink-0 overflow-x-auto">
-            <div class="flex items-center gap-2 flex-shrink-0">
+        <div class="h-10 bg-yog-900 border-b border-yog-700 px-2 flex items-center justify-between gap-2 text-xs z-20 flex-shrink-0 overflow-x-auto">
+            <div class="flex items-center gap-1.5 flex-shrink-0">
                 <div id="timeframeSelector" class="flex bg-yog-950 border border-yog-700 rounded-md p-0.5 text-[11px] font-bold terminal-font">
                     <button data-tf="1m" class="px-2 py-0.5 rounded bg-blue-600 text-white">1m</button>
-                    <button data-tf="5m" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">5m</button>
-                    <button data-tf="15m" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">15m</button>
-                    <button data-tf="1h" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">1h</button>
-                    <button data-tf="4h" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">4h</button>
-                    <button data-tf="1d" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">1D</button>
+                    <button data-tf="5m" class="px-2 py-0.5 rounded text-slate-400">5m</button>
+                    <button data-tf="15m" class="px-2 py-0.5 rounded text-slate-400">15m</button>
+                    <button data-tf="1h" class="px-2 py-0.5 rounded text-slate-400">1h</button>
+                    <button data-tf="1d" class="px-2 py-0.5 rounded text-slate-400">1D</button>
                 </div>
-
-                <select id="chartTypeSelect" class="bg-yog-950 border border-yog-700 text-[11px] font-bold rounded-md px-2 py-1 text-slate-200 terminal-font focus:outline-none">
-                    <option value="Candlestick">🕯️ Candles</option>
-                    <option value="Bar">📊 Bars</option>
-                    <option value="Line">📈 Line</option>
-                    <option value="Area">⛰️ Area</option>
-                    <option value="Baseline">⚖️ Baseline</option>
-                </select>
-
-                <button onclick="toggleIndicatorModal()" class="bg-yog-800 hover:bg-yog-700 text-cyan-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap">ƒx Indicators</button>
-                <button onclick="toggleRsiSubchart()" class="bg-yog-800 hover:bg-yog-700 text-slate-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap">📊 RSI</button>
+                <button onclick="toggleIndicatorModal()" class="bg-yog-800 text-cyan-300 text-[11px] font-bold px-2 py-1 rounded">ƒx</button>
+                <button onclick="toggleFullscreen()" class="bg-blue-600/30 hover:bg-blue-600 text-cyan-300 text-[11px] font-bold px-2 py-1 rounded border border-blue-500/40" title="Toggle Fullscreen Chart Mode">⛶ Fullscreen</button>
             </div>
-
-            <div class="flex items-center gap-1.5 flex-shrink-0">
-                <span id="activeToolLabel" class="text-[11px] text-cyan-400 font-mono hidden md:inline">Tool: Crosshair</span>
-                <button onclick="undoLastDrawing()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-slate-300 px-2 py-0.5 rounded border border-yog-700">↩ Undo</button>
-                <button onclick="clearAllDrawings()" class="text-[11px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded border border-rose-500/30">🗑️ Clear</button>
+            <div class="flex items-center gap-1 flex-shrink-0">
+                <button onclick="clearAllDrawings()" class="text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded">Clear Drawings</button>
             </div>
         </div>
 
-        <!-- Responsive Workspace Body -->
-        <div class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden min-h-0">
+        <div class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden min-h-0 relative">
             
-            <!-- Chart + Drawing Rail Wrapper (Always Visible & High Priority on Phone/Tablet/Desktop/TV) -->
-            <div id="mobileChartPane" class="flex-1 flex min-h-[360px] sm:min-h-[450px] lg:min-h-0 min-w-0">
-                <!-- Left Drawing Suite Toolbar -->
-                <aside class="w-10 sm:w-12 bg-yog-900 border-r border-yog-700 flex flex-col items-center py-2 gap-1 z-20 flex-shrink-0 overflow-y-auto">
-                    <button onclick="setDrawingTool('cursor')" id="draw-cursor" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent tool-active" title="Crosshair">➕</button>
-                    <button onclick="setDrawingTool('trendline')" id="draw-trendline" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Trendline">📏</button>
-                    <button onclick="setDrawingTool('ray')" id="draw-ray" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Extended Ray">↗️</button>
-                    <button onclick="setDrawingTool('hline')" id="draw-hline" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Horizontal S/R">➖</button>
-                    <button onclick="setDrawingTool('vline')" id="draw-vline" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Vertical Line">┃</button>
-                    <button onclick="setDrawingTool('fib')" id="draw-fib" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Fibonacci">📐</button>
-                    <button onclick="setDrawingTool('rect')" id="draw-rect" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Zone Box">🔲</button>
-                    <button onclick="setDrawingTool('brush')" id="draw-brush" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Brush">✏️</button>
-                    <button onclick="setDrawingTool('text')" id="draw-text" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Text Callout">🔤</button>
-                </aside>
-
-                <!-- Center Interactive Chart -->
-                <section class="flex-1 flex flex-col min-w-0 bg-yog-950 relative" id="chart-wrapper">
-                    <div class="absolute top-2 left-2.5 z-20 pointer-events-none flex flex-col gap-0.5 terminal-font text-[10px] sm:text-[11px] bg-yog-950/80 px-2.5 py-1 rounded-lg border border-yog-800/80 backdrop-blur-sm">
-                        <div class="flex items-center gap-2">
-                            <span id="chartTitleSymbol" class="font-extrabold text-white text-xs">XRPUSDT</span>
-                            <span id="mobileLivePriceBadge" class="font-bold text-emerald-400 xl:hidden">--</span>
-                            <span id="ohlcLegend" class="text-slate-300 hidden sm:inline">O: -- H: -- L: -- C: --</span>
-                        </div>
-                        <div class="flex flex-wrap gap-2 text-[9px] sm:text-[10px]">
-                            <span id="legMA1" class="text-cyan-400">MA(7): --</span>
-                            <span id="legMA2" class="text-indigo-400">MA(25): --</span>
-                            <span id="legMA3" class="text-purple-400">MA(99): --</span>
-                            <span id="legBOLL" class="text-emerald-400 hidden">BOLL(20,2)</span>
-                        </div>
-                    </div>
-                    <div id="drawingBanner" class="hidden absolute top-2 right-3 z-20 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded shadow-lg">TAP CHART TO ANCHOR DRAWING</div>
-                    <div id="chartContainer"><canvas id="drawingCanvas"></canvas></div>
-                    <div id="rsiContainer"><div class="absolute top-1 left-3 z-10 text-[10px] font-bold text-cyan-400 terminal-font pointer-events-none">RSI (14) <span id="rsiValLabel">--</span></div></div>
-                </section>
+            <!-- FLOATING / COLLAPSIBLE MOBILE DRAWING TRAY -->
+            <div class="absolute top-3 left-3 z-30 lg:hidden">
+                <button onclick="toggleMobileToolbox()" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
+                    <span>✏️</span> Drawing Tools <span id="toolTrayArrow">▼</span>
+                </button>
+                <div id="mobileToolboxTray" class="hidden mt-2 bg-yog-900 border border-yog-600 rounded-xl p-2 shadow-2xl grid grid-cols-4 gap-1.5 w-48">
+                    <button onclick="setDrawingTool('cursor'); toggleMobileToolbox();" id="m-cursor" class="p-2 rounded bg-yog-800 text-xs text-center tool-active">➕ Pointer</button>
+                    <button onclick="setDrawingTool('trendline'); toggleMobileToolbox();" id="m-trendline" class="p-2 rounded bg-yog-800 text-xs text-center">📏 Trend</button>
+                    <button onclick="setDrawingTool('hline'); toggleMobileToolbox();" id="m-hline" class="p-2 rounded bg-yog-800 text-xs text-center">➖ S/R</button>
+                    <button onclick="setDrawingTool('fib'); toggleMobileToolbox();" id="m-fib" class="p-2 rounded bg-yog-800 text-xs text-center">📐 Fib</button>
+                    <button onclick="setDrawingTool('rect'); toggleMobileToolbox();" id="m-rect" class="p-2 rounded bg-yog-800 text-xs text-center">🔲 Box</button>
+                    <button onclick="setDrawingTool('brush'); toggleMobileToolbox();" id="m-brush" class="p-2 rounded bg-yog-800 text-xs text-center">✏️ Brush</button>
+                </div>
             </div>
 
-            <!-- Orderbook & Tape (Visible on XL Desktop/TV, or via Mobile Tab Switcher) -->
-            <aside id="mobileBookPane" class="w-full lg:w-60 bg-yog-900 border-t lg:border-t-0 lg:border-l border-yog-700 flex-col terminal-font text-[11px] z-10 flex-shrink-0 hidden xl:flex">
-                <div class="h-8 px-3 border-b border-yog-700 flex items-center justify-between bg-yog-950/40">
-                    <span class="font-bold text-slate-300">Liquidity Book</span>
-                    <select id="tickGrouping" class="bg-yog-950 border border-yog-700 rounded text-[10px] px-1.5 py-0.5 text-cyan-400">
-                        <option value="0.0001">0.0001</option><option value="0.001">0.001</option><option value="0.01">0.01</option><option value="0.1">0.1</option><option value="1">1.0</option>
-                    </select>
-                </div>
-                <div class="flex justify-between text-[10px] text-slate-500 px-3 py-1 bg-yog-950"><span>Price</span><span>Size</span><span>Sum</span></div>
-                <div id="orderBookAsks" class="h-36 flex flex-col-reverse justify-start overflow-hidden px-1 space-y-reverse space-y-0.5"></div>
-                <div class="py-1.5 px-3 bg-yog-950 border-y border-yog-700 flex items-center justify-between">
-                    <span id="obMidPrice" class="font-bold text-sm text-emerald-400">--</span>
-                    <span id="orderBookSpread" class="text-[10px] text-slate-400">Spread: --</span>
-                </div>
-                <div id="orderBookBids" class="h-36 flex flex-col justify-start overflow-hidden px-1 space-y-0.5"></div>
-                <div class="flex-1 flex flex-col border-t border-yog-700 min-h-[120px]">
-                    <div class="px-3 py-1.5 bg-yog-950/60 border-b border-yog-700 flex justify-between items-center">
-                        <span class="font-bold text-slate-300">Live Time & Sales</span><span class="text-[9px] text-cyan-400">⚡ STREAM</span>
-                    </div>
-                    <div id="orderTape" class="flex-1 overflow-y-auto px-1 space-y-0.5 py-1 max-h-40 lg:max-h-none"></div>
-                </div>
+            <!-- Desktop Left Drawing Rail -->
+            <aside class="w-12 bg-yog-900 border-r border-yog-700 hidden lg:flex flex-col items-center py-2.5 gap-1.5 z-20 flex-shrink-0">
+                <button onclick="setDrawingTool('cursor')" id="draw-cursor" class="w-9 h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 tool-active" title="Pointer">➕</button>
+                <button onclick="setDrawingTool('trendline')" id="draw-trendline" class="w-9 h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700" title="Trendline">📏</button>
+                <button onclick="setDrawingTool('hline')" id="draw-hline" class="w-9 h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700" title="Horizontal S/R">➖</button>
+                <button onclick="setDrawingTool('fib')" id="draw-fib" class="w-9 h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700" title="Fibonacci">📐</button>
+                <button onclick="setDrawingTool('rect')" id="draw-rect" class="w-9 h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700" title="Box">🔲</button>
+                <button onclick="setDrawingTool('brush')" id="draw-brush" class="w-9 h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700" title="Brush">✏️</button>
             </aside>
 
-            <!-- Paper Execution & AI Quant Panel -->
-            <aside id="mobileTradePane" class="w-full lg:w-72 bg-yog-900 border-t lg:border-t-0 lg:border-l border-yog-700 flex flex-col text-xs z-10 flex-shrink-0">
-                <div class="p-3 border-b border-yog-700 flex flex-col gap-2">
-                    <div class="flex items-center justify-between">
-                        <span class="font-extrabold text-white flex items-center gap-1.5">⚡ Paper Perpetual <span class="text-cyan-400 bg-blue-500/20 border border-cyan-500/30 px-1.5 py-0.5 rounded text-[10px]" id="levBadge">20x</span></span>
-                        <button onclick="openWalletModal()" class="text-[10px] text-cyan-400 hover:underline font-bold">+ Funds</button>
-                    </div>
-                    <div class="flex justify-between text-[11px] bg-yog-950 px-2.5 py-1.5 rounded border border-yog-700 terminal-font">
-                        <span class="text-slate-400">Available Equity:</span><strong id="userBalance" class="text-white">$100,000.00</strong>
-                    </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[10px] text-slate-400"><span>Leverage Multiplier</span><span class="text-cyan-400 font-mono">1x — 100x</span></div>
-                        <input id="leverageSlider" type="range" min="1" max="100" value="20" class="w-full accent-blue-500 h-1.5 bg-yog-950 rounded cursor-pointer">
-                    </div>
-                    <div class="flex bg-yog-950 p-0.5 rounded-lg border border-yog-700 text-[11px] font-bold">
-                        <button onclick="setOrderType('Market')" id="tabMarket" class="flex-1 py-1 rounded-md bg-blue-600 text-white">Market</button>
-                        <button onclick="setOrderType('Limit')" id="tabLimit" class="flex-1 py-1 rounded-md text-slate-400">Limit</button>
-                    </div>
-                    <div id="limitPriceBox" class="hidden">
-                        <label class="text-[10px] text-slate-400">Limit Price ($)</label>
-                        <input id="orderPriceInput" type="number" step="any" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2.5 py-1 text-white terminal-font font-bold mt-0.5">
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-[10px] text-slate-400 mb-1">
-                            <span>Margin (USD)</span>
-                            <div class="space-x-1">
-                                <button onclick="setMarginPercent(0.1)" class="bg-yog-800 hover:bg-yog-700 px-1.5 rounded text-cyan-300">10%</button>
-                                <button onclick="setMarginPercent(0.25)" class="bg-yog-800 hover:bg-yog-700 px-1.5 rounded text-cyan-300">25%</button>
-                                <button onclick="setMarginPercent(0.5)" class="bg-yog-800 hover:bg-yog-700 px-1.5 rounded text-cyan-300">50%</button>
-                            </div>
-                        </div>
-                        <input id="orderMarginInput" type="number" value="1000" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2.5 py-1 text-white terminal-font font-bold">
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-[10px] text-slate-400">Take Profit ($)</label><input id="orderTpInput" type="number" step="any" placeholder="Optional" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-1 text-emerald-400 terminal-font text-[11px]"></div>
-                        <div><label class="text-[10px] text-slate-400">Stop Loss ($)</label><input id="orderSlInput" type="number" step="any" placeholder="Optional" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-1 text-rose-400 terminal-font text-[11px]"></div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        <button onclick="placePaperOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-2 rounded-lg transition">Buy / Long</button>
-                        <button onclick="placePaperOrder('SHORT')" class="bg-rose-500 hover:bg-rose-400 text-white font-black py-2 rounded-lg transition">Sell / Short</button>
+            <!-- Center Chart Canvas -->
+            <section class="flex-1 flex flex-col min-w-0 bg-yog-950 relative" id="chart-wrapper">
+                <div class="absolute top-2 left-14 lg:left-3 z-20 pointer-events-none flex flex-col gap-0.5 terminal-font text-[10px] bg-yog-950/80 px-2 py-1 rounded border border-yog-800 backdrop-blur-sm">
+                    <div class="flex items-center gap-2">
+                        <span id="chartTitleSymbol" class="font-bold text-white text-xs">XRPUSDT</span>
+                        <span id="mobileLivePriceBadge" class="font-bold text-emerald-400">--</span>
                     </div>
                 </div>
+                <div id="drawingBanner" class="hidden absolute top-2 right-3 z-20 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow">TAP TO ANCHOR</div>
+                <div id="chartContainer"><canvas id="drawingCanvas"></canvas></div>
+                <div id="rsiContainer"><div class="absolute top-1 left-3 z-10 text-[10px] font-bold text-cyan-400 terminal-font pointer-events-none">RSI (14) <span id="rsiValLabel">--</span></div></div>
+            </section>
 
-                <div class="p-3 flex-1 flex flex-col gap-2 bg-yog-950/50 overflow-y-auto">
-                    <div class="flex items-center justify-between">
-                        <span class="font-extrabold text-cyan-400 text-[11px]">🧠 YOGCHART AI QUANT</span>
-                        <button onclick="runAiAnalysis()" class="text-[10px] bg-blue-600/20 hover:bg-blue-600/30 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded font-bold">SCAN CHART</button>
-                    </div>
-                    <div class="bg-yog-950 border border-yog-700 rounded-lg p-2.5 space-y-1 terminal-font text-[11px]">
-                        <div class="flex justify-between"><span class="text-slate-500">Structure:</span><span id="aiPattern" class="font-bold text-cyan-400">Scanning...</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Bias:</span><span id="aiBias" class="font-bold text-slate-300">--</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Entry Zone:</span><span id="aiEntry" class="font-bold text-emerald-400">--</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Target (TP):</span><span id="aiTarget" class="font-bold text-cyan-300">--</span></div>
-                        <div class="flex justify-between"><span class="text-slate-500">Stop (SL):</span><span id="aiStop" class="font-bold text-rose-400">--</span></div>
-                        <button onclick="applyAiSetupToOrder()" class="w-full mt-1 bg-yog-800 hover:bg-blue-600 text-white text-[10px] py-1 rounded font-bold transition">Auto-Fill TP/SL Into Ticket</button>
-                    </div>
+            <!-- Orderbook -->
+            <aside class="w-full lg:w-56 bg-yog-900 border-t lg:border-t-0 lg:border-l border-yog-700 flex flex-col terminal-font text-[11px] z-10 flex-shrink-0 hidden xl:flex">
+                <div class="h-7 px-3 border-b border-yog-700 flex items-center justify-between bg-yog-950">
+                    <span class="font-bold text-slate-300">Order Book</span>
+                </div>
+                <div id="orderBookAsks" class="h-32 flex flex-col-reverse justify-start overflow-hidden px-1 space-y-reverse space-y-0.5"></div>
+                <div id="obMidPrice" class="py-1 px-3 bg-yog-950 border-y border-yog-700 font-bold text-sm text-emerald-400 text-center">--</div>
+                <div id="orderBookBids" class="h-32 flex flex-col justify-start overflow-hidden px-1 space-y-0.5"></div>
+            </aside>
+
+            <!-- Paper Trade Panel -->
+            <aside class="w-full lg:w-72 bg-yog-900 border-t lg:border-t-0 lg:border-l border-yog-700 flex flex-col text-xs z-10 flex-shrink-0 p-3 gap-2.5">
+                <div class="flex items-center justify-between font-extrabold text-white">
+                    <span>⚡ Perpetual Sandbox</span>
+                    <span class="text-cyan-400 text-[10px]" id="levBadge">20x</span>
+                </div>
+                <div class="flex justify-between text-[11px] bg-yog-950 px-2 py-1.5 rounded border border-yog-700 terminal-font">
+                    <span class="text-slate-400">Equity:</span><strong id="userBalance" class="text-white">$100k</strong>
+                </div>
+                <input id="leverageSlider" type="range" min="1" max="100" value="20" class="w-full accent-blue-500 h-1 bg-yog-950 rounded">
+                <input id="orderMarginInput" type="number" value="1000" class="w-full bg-yog-950 border border-yog-700 rounded px-2.5 py-1.5 text-white terminal-font font-bold">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="placePaperOrder('LONG')" class="bg-emerald-500 text-slate-950 font-black py-2 rounded">Buy / Long</button>
+                    <button onclick="placePaperOrder('SHORT')" class="bg-rose-500 text-white font-black py-2 rounded">Sell / Short</button>
                 </div>
             </aside>
         </div>
 
         <!-- Bottom Positions Dock -->
-        <section id="mobilePositionsPane" class="h-36 sm:h-40 bg-yog-900 border-t border-yog-700 flex flex-col flex-shrink-0 z-20">
-            <div class="h-8 px-4 border-b border-yog-700 flex items-center justify-between text-xs font-bold bg-yog-950/60">
-                <span class="text-cyan-400 border-b-2 border-cyan-400 py-1.5">Active Paper Positions (<span id="posCount">0</span>)</span>
-                <span class="terminal-font text-[11px]">Unrealized PnL: <strong id="totalUnrealizedPnl" class="text-slate-300">$0.00</strong></span>
+        <section id="mobilePositionsPane" class="h-32 bg-yog-900 border-t border-yog-700 flex flex-col flex-shrink-0 z-20">
+            <div class="h-7 px-3 border-b border-yog-700 flex items-center justify-between text-xs font-bold bg-yog-950">
+                <span class="text-cyan-400">Positions (<span id="posCount">0</span>)</span>
+                <span class="terminal-font text-[11px]">PnL: <strong id="totalUnrealizedPnl" class="text-slate-300">$0.00</strong></span>
             </div>
-            <div class="flex-1 overflow-x-auto overflow-y-auto">
-                <table class="w-full text-left border-collapse terminal-font text-[11px]">
-                    <thead>
-                        <tr class="text-slate-500 border-b border-yog-700 bg-yog-950">
-                            <th class="py-1.5 px-3">Instrument</th><th class="py-1.5 px-3">Side</th><th class="py-1.5 px-3">Notional</th>
-                            <th class="py-1.5 px-3">Entry</th><th class="py-1.5 px-3">Mark</th><th class="py-1.5 px-3 hidden sm:table-cell">Est. Liq</th>
-                            <th class="py-1.5 px-3 hidden md:table-cell">TP / SL</th><th class="py-1.5 px-3">PnL (ROE%)</th><th class="py-1.5 px-3 text-right">Settle</th>
-                        </tr>
-                    </thead>
+            <div class="flex-1 overflow-auto">
+                <table class="w-full text-left terminal-font text-[11px]">
                     <tbody id="positionsTableBody" class="divide-y divide-yog-800"></tbody>
                 </table>
             </div>
         </section>
 
-        <!-- Mobile / Tablet Quick Drawer Toggle Bar -->
-        <div class="lg:hidden h-11 bg-yog-900 border-t border-yog-700 grid grid-cols-4 text-[11px] font-bold text-slate-300 flex-shrink-0 z-30">
-            <button onclick="switchMobileTerminalSection('chart')" class="hover:text-cyan-400 flex items-center justify-center gap-1 border-r border-yog-800">📈 Chart</button>
-            <button onclick="switchMobileTerminalSection('trade')" class="hover:text-cyan-400 flex items-center justify-center gap-1 border-r border-yog-800">⚡ Trade</button>
-            <button onclick="switchMobileTerminalSection('book')" class="hover:text-cyan-400 flex items-center justify-center gap-1 border-r border-yog-800">📊 Book</button>
-            <button onclick="switchMobileTerminalSection('pos')" class="hover:text-cyan-400 flex items-center justify-center gap-1">💼 Positions</button>
+        <!-- Mobile Drawer Switcher Bar -->
+        <div class="lg:hidden h-11 bg-yog-900 border-t border-yog-700 grid grid-cols-3 text-[11px] font-bold text-slate-300 flex-shrink-0 z-30">
+            <button onclick="switchMobileTerminalSection('chart')" class="flex items-center justify-center border-r border-yog-800">📈 Chart</button>
+            <button onclick="switchMobileTerminalSection('trade')" class="flex items-center justify-center border-r border-yog-800">⚡ Trade</button>
+            <button onclick="switchMobileTerminalSection('pos')" class="flex items-center justify-center">💼 Positions</button>
         </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- MODAL 1: CUSTOM ACCOUNT PROFILE EDITOR                    -->
-    <!-- ========================================================= -->
-    <div id="profileEditorModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
-                <h3 class="font-extrabold text-white text-sm">⚙️ Edit Individual Account & Profile</h3>
-                <button onclick="closeProfileEditorModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
-            </div>
-            <div class="p-5 space-y-3.5 text-xs">
-                <div>
-                    <label class="text-slate-400 font-bold block mb-1">Display Name</label>
-                    <input id="editDisplayName" type="text" placeholder="Yogi Quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white font-semibold focus:border-cyan-400 focus:outline-none">
-                </div>
-                <div>
-                    <label class="text-slate-400 font-bold block mb-1">Unique Trader Handle (@username)</label>
-                    <input id="editUsername" type="text" placeholder="yogi_quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-cyan-300 terminal-font font-semibold focus:border-cyan-400 focus:outline-none">
-                </div>
-                <div>
-                    <label class="text-slate-400 font-bold block mb-1">Trader Bio / Strategy Notes</label>
-                    <input id="editBio" type="text" placeholder="Multi-Asset Institutional Quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none">
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div>
-                        <label class="text-slate-400 font-bold block mb-1">Avatar Badge</label>
-                        <input id="editAvatarColor" type="color" value="#2563EB" class="w-full h-9 rounded-lg bg-yog-950 border border-yog-700 cursor-pointer p-1">
-                    </div>
-                    <div>
-                        <label class="text-slate-400 font-bold block mb-1">Default Lev</label>
-                        <input id="editDefaultLev" type="number" min="1" max="100" value="20" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2.5 py-2 text-white terminal-font font-bold">
-                    </div>
-                    <div>
-                        <label class="text-slate-400 font-bold block mb-1">Risk Profile</label>
-                        <select id="editRiskTolerance" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
-                            <option value="Conservative">Conservative</option>
-                            <option value="Moderate" selected>Moderate</option>
-                            <option value="Aggressive">Aggressive</option>
-                            <option value="Institutional">Institutional</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="profileSaveMsg" class="text-[11px] font-bold text-emerald-400 hidden">Profile synced to Supabase Cloud!</div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button onclick="closeProfileEditorModal()" class="bg-yog-800 hover:bg-yog-700 text-slate-300 font-bold px-4 py-2 rounded-lg">Cancel</button>
-                    <button onclick="saveCustomProfileDetails()" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-4 py-2 rounded-lg shadow">💾 Save Account Details</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================================= -->
-    <!-- MODAL 2: DEDICATED ACCOUNT LOGIN / SIGNUP                 -->
-    <!-- ========================================================= -->
+    <!-- MODAL: DEDICATED ACCOUNT AUTH (EMAIL + PASSWORD / NO GOOGLE SSO) -->
     <div id="authModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
             <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
@@ -561,24 +255,18 @@
                 <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
             </div>
             <div class="p-5 space-y-4 text-xs">
-                <button onclick="triggerGoogleOAuth()" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-extrabold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow transition">
-                    <span>🌐</span> Continue with Google SSO
-                </button>
-                <div class="flex items-center gap-2 text-slate-500 text-[10px] uppercase font-bold">
-                    <div class="h-px flex-1 bg-yog-700"></div><span>Or Individual Email Account</span><div class="h-px flex-1 bg-yog-700"></div>
-                </div>
                 <div class="space-y-2.5">
                     <div>
-                        <label class="text-slate-400 font-bold block mb-1">Trader Display Name</label>
-                        <input id="authNameInput" type="text" placeholder="e.g. Yogi Quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white font-semibold focus:border-cyan-400 focus:outline-none">
+                        <label class="text-slate-400 font-bold block mb-1">Display Name</label>
+                        <input id="authNameInput" type="text" placeholder="Yogi Quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white">
                     </div>
                     <div>
                         <label class="text-slate-400 font-bold block mb-1">Email Address</label>
-                        <input id="authEmailInput" type="email" placeholder="trader@yogchart.com" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white font-semibold focus:border-cyan-400 focus:outline-none">
+                        <input id="authEmailInput" type="email" placeholder="trader@yogchart.com" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white">
                     </div>
                     <div>
                         <label class="text-slate-400 font-bold block mb-1">Password</label>
-                        <input id="authPassInput" type="password" placeholder="••••••••" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white font-semibold focus:border-cyan-400 focus:outline-none">
+                        <input id="authPassInput" type="password" placeholder="••••••••" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white">
                     </div>
                 </div>
                 <div id="authMsg" class="text-[11px] font-bold text-cyan-400 hidden"></div>
@@ -590,73 +278,66 @@
         </div>
     </div>
 
-    <!-- MODAL 3: PAPER WALLET FUNDS MANAGER -->
-    <div id="walletModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <!-- MODAL: PROFILE EDITOR -->
+    <div id="profileEditorModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
             <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
-                <h3 class="font-extrabold text-white text-sm">💰 Yogchart Paper Portfolio Wallet</h3>
-                <button onclick="closeWalletModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+                <h3 class="font-extrabold text-white text-sm">⚙️ Account Profile Settings</h3>
+                <button onclick="closeProfileEditorModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
             </div>
-            <div class="p-5 space-y-4 text-xs">
-                <div class="bg-yog-950 border border-yog-700 p-3.5 rounded-lg flex justify-between items-center">
-                    <span class="text-slate-400">Current Paper Balance:</span>
-                    <span id="modalPaperBalance" class="terminal-font text-lg font-extrabold text-cyan-400">$100,000.00</span>
+            <div class="p-5 space-y-3.5 text-xs">
+                <div>
+                    <label class="text-slate-400 font-bold block mb-1">Display Name</label>
+                    <input id="editDisplayName" type="text" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white">
                 </div>
                 <div>
-                    <label class="text-slate-400 font-bold block mb-1.5">Quick Top-Up Virtual Funds</label>
-                    <div class="grid grid-cols-3 gap-2 terminal-font font-bold">
-                        <button onclick="modifyPaperBalance(10000)" class="bg-yog-800 hover:bg-blue-600 text-white py-2 rounded-lg border border-yog-600 transition">+$10,000</button>
-                        <button onclick="modifyPaperBalance(50000)" class="bg-yog-800 hover:bg-blue-600 text-white py-2 rounded-lg border border-yog-600 transition">+$50,000</button>
-                        <button onclick="modifyPaperBalance(100000)" class="bg-yog-800 hover:bg-blue-600 text-white py-2 rounded-lg border border-yog-600 transition">+$100,000</button>
-                    </div>
+                    <label class="text-slate-400 font-bold block mb-1">Username Handle</label>
+                    <input id="editUsername" type="text" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-cyan-300 terminal-font">
                 </div>
-                <div>
-                    <label class="text-slate-400 font-bold block mb-1.5">Or Set Exact Balance ($)</label>
-                    <div class="flex gap-2">
-                        <input id="customBalanceInput" type="number" value="100000" class="flex-1 bg-yog-950 border border-yog-700 rounded-lg px-3 py-1.5 text-white terminal-font font-bold">
-                        <button onclick="setExactPaperBalance()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold px-4 py-1.5 rounded-lg">Set</button>
-                    </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="closeProfileEditorModal()" class="bg-yog-800 text-slate-300 font-bold px-4 py-2 rounded-lg">Cancel</button>
+                    <button onclick="saveCustomProfileDetails()" class="bg-blue-600 text-white font-extrabold px-4 py-2 rounded-lg">Save Changes</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 4: TECHNICAL INDICATORS -->
+    <!-- MODAL: WALLET FUNDS -->
+    <div id="walletModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
+                <h3 class="font-extrabold text-white text-sm">💰 Paper Portfolio Wallet</h3>
+                <button onclick="closeWalletModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+            </div>
+            <div class="p-5 space-y-4 text-xs">
+                <div class="bg-yog-950 border border-yog-700 p-3.5 rounded-lg flex justify-between items-center">
+                    <span class="text-slate-400">Balance:</span>
+                    <span id="modalPaperBalance" class="terminal-font text-lg font-extrabold text-cyan-400">$100k</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 terminal-font font-bold">
+                    <button onclick="modifyPaperBalance(10000)" class="bg-yog-800 hover:bg-blue-600 text-white py-2 rounded">+$10k</button>
+                    <button onclick="modifyPaperBalance(50000)" class="bg-yog-800 hover:bg-blue-600 text-white py-2 rounded">+$50k</button>
+                    <button onclick="modifyPaperBalance(100000)" class="bg-yog-800 hover:bg-blue-600 text-white py-2 rounded">+$100k</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: INDICATORS -->
     <div id="indicatorModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-lg overflow-hidden shadow-2xl">
             <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
-                <h3 class="font-extrabold text-white text-sm">ƒx Technical Indicators & Overlays</h3>
+                <h3 class="font-extrabold text-white text-sm">ƒx Technical Indicators</h3>
                 <button onclick="toggleIndicatorModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
             </div>
             <div class="p-5 space-y-3.5 text-xs">
                 <div class="flex items-center justify-between bg-yog-950 p-2.5 rounded-lg border border-yog-700">
-                    <label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkMA1" checked class="accent-blue-500"> Moving Average 1</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" id="lenMA1" value="7" min="2" max="500" class="w-16 bg-yog-800 border border-yog-600 rounded px-2 py-1 text-white terminal-font">
-                        <input type="color" id="colMA1" value="#38bdf8" class="w-7 h-7 rounded bg-transparent cursor-pointer">
-                    </div>
-                </div>
-                <div class="flex items-center justify-between bg-yog-950 p-2.5 rounded-lg border border-yog-700">
-                    <label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkMA2" checked class="accent-blue-500"> Moving Average 2</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" id="lenMA2" value="25" min="2" max="500" class="w-16 bg-yog-800 border border-yog-600 rounded px-2 py-1 text-white terminal-font">
-                        <input type="color" id="colMA2" value="#818cf8" class="w-7 h-7 rounded bg-transparent cursor-pointer">
-                    </div>
-                </div>
-                <div class="flex items-center justify-between bg-yog-950 p-2.5 rounded-lg border border-yog-700">
-                    <label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkMA3" checked class="accent-blue-500"> Moving Average 3</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" id="lenMA3" value="99" min="2" max="500" class="w-16 bg-yog-800 border border-yog-600 rounded px-2 py-1 text-white terminal-font">
-                        <input type="color" id="colMA3" value="#c084fc" class="w-7 h-7 rounded bg-transparent cursor-pointer">
-                    </div>
-                </div>
-                <div class="flex items-center justify-between bg-yog-950 p-2.5 rounded-lg border border-yog-700">
-                    <label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkBOLL" class="accent-blue-500"> Bollinger Bands (20, 2)</label>
-                    <span class="text-[10px] text-emerald-400 font-mono">Upper & Lower Volatility Envelope</span>
+                    <label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkMA1" checked class="accent-blue-500"> Moving Average 1 (7)</label>
+                    <input type="color" id="colMA1" value="#38bdf8" class="w-7 h-7 rounded bg-transparent cursor-pointer">
                 </div>
             </div>
             <div class="px-5 py-3 bg-yog-800 border-t border-yog-700 flex justify-end">
-                <button onclick="applyIndicatorSettings()" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-4 py-1.5 rounded-lg text-xs">Apply to Chart</button>
+                <button onclick="toggleIndicatorModal()" class="bg-blue-600 text-white font-extrabold px-4 py-1.5 rounded-lg text-xs">Close</button>
             </div>
         </div>
     </div>
@@ -664,551 +345,89 @@
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-        // 0. INTRO SPLASH SCREEN TRANSITION & DYNAMIC PWA ANDROID MANIFEST
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                const splash = document.getElementById('introSplash');
-                if (splash) {
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.remove(), 500);
-                }
-            }, 1850);
-
-            // Inject Dynamic PWA Manifest for Standalone Android Installation
-            const manifest = {
-                name: "Yogchart Quant Terminal",
-                short_name: "Yogchart",
-                start_url: window.location.href,
-                display: "standalone",
-                background_color: "#040711",
-                theme_color: "#040711",
-                orientation: "any",
-                icons: [{
-                    src: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23040711'/><path d='M18 70 L42 46 L58 62 L82 30 M66 30 H82 V46' stroke='%2338BDF8' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>",
-                    sizes: "192x192 512x512",
-                    type: "image/svg+xml",
-                    purpose: "any maskable"
-                }]
-            };
-            const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-            const link = document.createElement('link');
-            link.rel = 'manifest';
-            link.href = URL.createObjectURL(blob);
-            document.head.appendChild(link);
-        });
-
-        let deferredPrompt = null;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-        });
-
-        window.installPWAOrShowGuide = async function() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                await deferredPrompt.userChoice;
-                deferredPrompt = null;
-            } else {
-                alert("📲 To install Yogchart as a native full-screen Android App:\n\n1. Tap your browser's top-right menu (⋮) in Chrome on Android and select 'Add to Home screen' / 'Install App'.\n2. Or compile the native Android Studio WebView APK provided in your project package.");
-            }
-        };
-
-        // 1. SUPABASE CLIENT & STATE
         const supabaseUrl = 'https://gqdirctfbzlnnfctcdcy.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxZGlyY3RmYnpsbm5mY3RjZGN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4MzIxMjMsImV4cCI6MjEwODQwODEyM30.D12kInUr6jHHxCNTWLuoNGXUrxFPWFYdKHxw0cAfaWA';
         const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
         let currentUser = null;
-        let userProfileData = JSON.parse(localStorage.getItem('yog_profile_meta') || '{"display_name":"Yogchart Guest Trader","username":"guest_quant","bio":"Multi-Asset Quant & Technical Analyst","avatar_color":"#2563EB","preferred_leverage":20,"risk_tolerance":"Moderate"}');
+        let userProfileData = JSON.parse(localStorage.getItem('yog_profile_meta') || '{"display_name":"Guest Trader","username":"guest","bio":"Quant Analyst"}');
         let paperBalance = parseFloat(localStorage.getItem('yog_paper_balance')) || 100000.00;
         let realizedPnl = parseFloat(localStorage.getItem('yog_realized_pnl')) || 0.00;
         let currentSymbol = 'XRPUSDT';
         let currentTimeframe = '1m';
         let currentChartType = 'Candlestick';
-        let rawCandles = [];
-        let userDrawings = [];
+        let rawCandles = [], userDrawings = [];
         let paperPositions = JSON.parse(localStorage.getItem('yog_positions') || '[]');
-        let currentOrderType = 'Market';
         let lastKnownPrice = 0;
-
-        let activeScreenerCategory = 'all';
-        let isScreenerExpanded = false;
-        let sortColumn = 'vol';
-        let sortDirection = 'desc';
 
         const multiAssetCatalog = [
             { symbol: 'BTCUSDT', name: 'Bitcoin Spot / Perp', category: 'crypto', isLiveCrypto: true, featured: true, price: 92450.00, change: 2.15, high: 93200.00, low: 90100.00, vol: 3820000000 },
             { symbol: 'ETHUSDT', name: 'Ethereum Spot / Perp', category: 'crypto', isLiveCrypto: true, featured: true, price: 3420.50, change: -0.65, high: 3490.00, low: 3380.00, vol: 1940000000 },
             { symbol: 'XRPUSDT', name: 'XRP Ledger Spot / Perp', category: 'crypto', isLiveCrypto: true, featured: true, price: 1.2853, change: -2.56, high: 1.3283, low: 1.2734, vol: 682500000 },
-            { symbol: 'SPX500', name: 'S&P 500 Institutional Index', category: 'stock', isLiveCrypto: false, featured: true, price: 5886.08, change: 0.54, high: 5902.00, low: 5850.00, vol: 1420000000 },
-            { symbol: 'SOLUSDT', name: 'Solana High-Speed L1', category: 'crypto', isLiveCrypto: true, featured: false, price: 184.20, change: 6.40, high: 188.00, low: 171.50, vol: 890100000 },
-            { symbol: 'PAXGUSDT', name: 'Gold Spot (XAU/USD Tokenized)', category: 'commodity', isLiveCrypto: true, featured: false, price: 2748.00, change: 0.82, high: 2755.00, low: 2720.00, vol: 168400000 },
-            { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'stock', isLiveCrypto: false, featured: false, price: 141.86, change: 3.10, high: 143.50, low: 138.20, vol: 945000000 },
-            { symbol: 'US10Y', name: 'US 10-Year Treasury Bond Yield', category: 'bond', isLiveCrypto: false, featured: false, price: 4.245, change: 0.48, high: 4.280, low: 4.210, vol: 210000000 },
-            { symbol: 'DOGEUSDT', name: 'Dogecoin Spot / Perp', category: 'crypto', isLiveCrypto: true, featured: false, price: 0.3840, change: 5.12, high: 0.3950, low: 0.3600, vol: 512000000 },
-            { symbol: 'ADAUSDT', name: 'Cardano Network', category: 'crypto', isLiveCrypto: true, featured: false, price: 0.8520, change: -1.20, high: 0.8750, low: 0.8310, vol: 245000000 },
-            { symbol: 'AVAXUSDT', name: 'Avalanche C-Chain', category: 'crypto', isLiveCrypto: true, featured: false, price: 38.50, change: 2.95, high: 39.40, low: 37.10, vol: 318000000 },
-            { symbol: 'LINKUSDT', name: 'Chainlink Oracle Network', category: 'crypto', isLiveCrypto: true, featured: false, price: 18.25, change: 1.45, high: 18.80, low: 17.60, vol: 195000000 },
-            { symbol: 'SUIUSDT', name: 'Sui Move Layer-1', category: 'crypto', isLiveCrypto: true, featured: false, price: 3.180, change: 8.40, high: 3.290, low: 2.890, vol: 610000000 },
-            { symbol: 'AAPL', name: 'Apple Inc. Global Equity', category: 'stock', isLiveCrypto: false, featured: false, price: 235.40, change: 0.95, high: 236.80, low: 233.10, vol: 510400000 },
-            { symbol: 'TSLA', name: 'Tesla Inc. Automotive', category: 'stock', isLiveCrypto: false, featured: false, price: 248.90, change: -1.85, high: 254.00, low: 245.10, vol: 720000000 },
-            { symbol: 'MSFT', name: 'Microsoft Corporation', category: 'stock', isLiveCrypto: false, featured: false, price: 428.50, change: 0.72, high: 431.00, low: 425.00, vol: 430000000 },
-            { symbol: 'NAS100', name: 'Nasdaq 100 Tech Index', category: 'stock', isLiveCrypto: false, featured: false, price: 20529.95, change: 0.88, high: 20610.00, low: 20390.00, vol: 980000000 },
-            { symbol: 'WTICOUSD', name: 'WTI Crude Oil Futures', category: 'commodity', isLiveCrypto: false, featured: false, price: 71.35, change: -1.15, high: 72.80, low: 70.60, vol: 395000000 },
-            { symbol: 'XAGUSD', name: 'Silver Spot Commodity', category: 'commodity', isLiveCrypto: false, featured: false, price: 33.85, change: 1.35, high: 34.20, low: 33.10, vol: 185000000 },
-            { symbol: 'US02Y', name: 'US 2-Year Treasury Note Yield', category: 'bond', isLiveCrypto: false, featured: false, price: 4.085, change: -0.22, high: 4.110, low: 4.050, vol: 145000000 }
+            { symbol: 'SPX500', name: 'S&P 500 Institutional Index', category: 'stock', isLiveCrypto: false, featured: true, price: 5886.08, change: 0.54, high: 5902.00, low: 5850.00, vol: 1420000000 }
         ];
 
-        function formatVol(num) {
-            if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
-            if (num >= 1e6) return '$' + (num / 1e6).toFixed(1) + 'M';
-            return '$' + num.toLocaleString();
-        }
+        window.toggleFullscreen = function() {
+            document.body.classList.toggle('fullscreen-mode');
+            setTimeout(() => resizeChartsAndCanvas(), 100);
+        };
 
-        // Mobile Responsive Drawer Switcher
+        window.toggleMobileToolbox = function() {
+            const tray = document.getElementById('mobileToolboxTray');
+            const arr = document.getElementById('toolTrayArrow');
+            tray.classList.toggle('hidden');
+            arr.innerText = tray.classList.contains('hidden') ? '▼' : '▲';
+        };
+
         window.switchMobileTerminalSection = function(sec) {
             const chartPane = document.getElementById('mobileChartPane');
             const tradePane = document.getElementById('mobileTradePane');
-            const bookPane = document.getElementById('mobileBookPane');
             const posPane = document.getElementById('mobilePositionsPane');
-
-            if (sec === 'chart') {
-                chartPane.scrollIntoView({ behavior: 'smooth' });
-            } else if (sec === 'trade') {
-                tradePane.scrollIntoView({ behavior: 'smooth' });
-            } else if (sec === 'book') {
-                bookPane.classList.toggle('hidden');
-                bookPane.classList.toggle('flex');
-                bookPane.scrollIntoView({ behavior: 'smooth' });
-            } else if (sec === 'pos') {
-                posPane.scrollIntoView({ behavior: 'smooth' });
-            }
+            if (sec === 'chart') chartPane.scrollIntoView({ behavior: 'smooth' });
+            else if (sec === 'trade') tradePane.scrollIntoView({ behavior: 'smooth' });
+            else if (sec === 'pos') posPane.scrollIntoView({ behavior: 'smooth' });
         };
 
-        // 2. CLOSEST-MATCH AUTOCOMPLETE DROPDOWNS
-        function getClosestMatches(query) {
-            const q = query.trim().toLowerCase();
-            if (!q) return multiAssetCatalog.slice(0, 7);
-            return [...multiAssetCatalog]
-                .map(item => {
-                    const sym = item.symbol.toLowerCase(), name = item.name.toLowerCase();
-                    let score = 0;
-                    if (sym === q) score = 100;
-                    else if (sym.startsWith(q)) score = 80;
-                    else if (sym.includes(q)) score = 60;
-                    else if (name.includes(q)) score = 40;
-                    else if (item.category.toLowerCase().includes(q)) score = 20;
-                    return { item, score };
-                })
-                .filter(x => x.score > 0)
-                .sort((a, b) => b.score - a.score)
-                .map(x => x.item);
-        }
-
-        function bindAutocomplete(inputEl, dropdownEl, onSelectCallback) {
-            const renderList = () => {
-                const matches = getClosestMatches(inputEl.value);
-                if (matches.length === 0) {
-                    dropdownEl.innerHTML = `<div class="p-3 text-xs text-slate-400">No matching instrument found</div>`;
-                } else {
-                    dropdownEl.innerHTML = matches.map(m => {
-                        const isUp = m.change >= 0;
-                        const pStr = m.price >= 10 ? m.price.toFixed(2) : m.price.toFixed(4);
-                        return `
-                            <div data-sym="${m.symbol}" class="p-2.5 hover:bg-yog-800 cursor-pointer flex items-center justify-between transition">
-                                <div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="font-extrabold text-xs text-white terminal-font">${m.symbol}</span>
-                                        <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-yog-800 text-cyan-400 font-bold">${m.category}</span>
-                                    </div>
-                                    <div class="text-[10px] text-slate-400">${m.name}</div>
-                                </div>
-                                <div class="text-right terminal-font">
-                                    <div class="text-xs font-bold text-white">$${pStr}</div>
-                                    <div class="text-[10px] font-bold ${isUp ? 'text-emerald-400' : 'text-rose-400'}">${isUp ? '+' : ''}${m.change.toFixed(2)}%</div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                    dropdownEl.querySelectorAll('[data-sym]').forEach(row => {
-                        row.addEventListener('mousedown', (e) => {
-                            e.preventDefault();
-                            const sym = row.getAttribute('data-sym');
-                            inputEl.value = sym;
-                            dropdownEl.classList.add('hidden');
-                            onSelectCallback(sym);
-                        });
-                    });
-                }
+        // Autocomplete
+        function bindAutocomplete(inputEl, dropdownEl, cb) {
+            inputEl.addEventListener('input', () => {
+                const q = inputEl.value.trim().toLowerCase();
+                const matches = multiAssetCatalog.filter(i => i.symbol.toLowerCase().includes(q) || i.name.toLowerCase().includes(q));
+                if (!matches.length) { dropdownEl.classList.add('hidden'); return; }
+                dropdownEl.innerHTML = matches.map(m => `<div data-sym="${m.symbol}" class="p-2.5 hover:bg-yog-800 cursor-pointer flex justify-between text-xs"><strong>${m.symbol}</strong><span class="text-cyan-400">$${m.price}</span></div>`).join('');
+                dropdownEl.querySelectorAll('[data-sym]').forEach(row => {
+                    row.addEventListener('mousedown', (e) => { e.preventDefault(); inputEl.value = row.dataset.sym; dropdownEl.classList.add('hidden'); cb(row.dataset.sym); });
+                });
                 dropdownEl.classList.remove('hidden');
-            };
-
-            inputEl.addEventListener('focus', renderList);
-            inputEl.addEventListener('input', () => { renderList(); if (inputEl.id === 'screenerSearch') renderScreenerTable(); });
-            inputEl.addEventListener('blur', () => setTimeout(() => dropdownEl.classList.add('hidden'), 150));
-            inputEl.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const matches = getClosestMatches(inputEl.value);
-                    const picked = matches.length > 0 ? matches[0].symbol : inputEl.value.trim().toUpperCase();
-                    dropdownEl.classList.add('hidden');
-                    onSelectCallback(picked);
-                }
             });
+            inputEl.addEventListener('blur', () => setTimeout(() => dropdownEl.classList.add('hidden'), 200));
         }
+        bindAutocomplete(document.getElementById('symbolInput'), document.getElementById('headerSearchDropdown'), (sym) => { switchView('terminal'); initSymbol(sym); });
 
-        bindAutocomplete(document.getElementById('symbolInput'), document.getElementById('headerSearchDropdown'), (sym) => { switchView('terminal'); initSymbol(sym, currentTimeframe); });
-        bindAutocomplete(document.getElementById('screenerSearch'), document.getElementById('screenerSearchDropdown'), (sym) => { switchView('terminal'); initSymbol(sym, currentTimeframe); });
-
-        // 3. LIVE BLOOMBERG MARKETS NEWS WIRE
-        const bloombergFallbackWire = [
-            { title: "Treasuries Mixed as Traders Weigh Fed Rate Path Against Global Macro Flows", pubDate: "Just now", source: "Bloomberg Markets", link: "https://www.bloomberg.com/markets" },
-            { title: "S&P 500 Tech Megacaps Lead Institutional Inflows Ahead of Earnings Bellwethers", pubDate: "4m ago", source: "Bloomberg Equities", link: "https://www.bloomberg.com/markets" },
-            { title: "Digital Asset Derivatives Volume Surges as Institutional Basis Trade Expands", pubDate: "11m ago", source: "Bloomberg Crypto", link: "https://www.bloomberg.com/crypto" },
-            { title: "Gold Holds Near Record Territory as Central Bank Reserve Diversification Continues", pubDate: "18m ago", source: "Bloomberg Commodities", link: "https://www.bloomberg.com/markets" },
-            { title: "Crude Oil Futures Fluctuate as Middle East Supply Risks Offset Demand Projections", pubDate: "26m ago", source: "Bloomberg Energy", link: "https://www.bloomberg.com/markets" }
-        ];
-
-        window.fetchBloombergNews = async function(manual = false) {
+        // Bloomberg News Wire
+        window.fetchBloombergNews = async function() {
             const container = document.getElementById('newsFeedContainer');
-            const statusEl = document.getElementById('newsSyncStatus');
-            if (manual) statusEl.innerText = "Syncing Bloomberg Markets RSS...";
-
-            const rssFeeds = [
-                'https://api.rss2json.com/v1/api.json?rss_url=https://www.bloomberg.com/feeds/markets/news.rss',
-                'https://api.rss2json.com/v1/api.json?rss_url=https://www.bloomberg.com/feeds/technology/news.rss'
-            ];
-
-            let articles = [];
-            for (const url of rssFeeds) {
-                try {
-                    const res = await fetch(url);
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && Array.isArray(data.items)) {
-                            articles = articles.concat(data.items.map(item => ({
-                                title: item.title, link: item.link, pubDate: item.pubDate,
-                                source: data.feed?.title?.includes('Tech') ? 'Bloomberg Tech' : 'Bloomberg Markets',
-                                desc: (item.description || '').replace(/<[^>]*>?/gm, '').slice(0, 130)
-                            })));
-                        }
-                    }
-                } catch (e) {}
-            }
-
-            if (articles.length > 0) {
-                statusEl.innerText = `Live Bloomberg Wire · ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
-                container.innerHTML = articles.slice(0, 16).map(art => {
-                    const dt = new Date(art.pubDate);
-                    const diffMin = isNaN(dt) ? 5 : Math.max(1, Math.floor((Date.now() - dt.getTime()) / 60000));
-                    const timeStr = diffMin < 60 ? `${diffMin}m ago` : `${Math.floor(diffMin / 60)}h ago`;
-                    return `
-                        <a href="${art.link}" target="_blank" rel="noopener" class="block p-3 hover:bg-yog-800/80 rounded-lg transition group">
-                            <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1">
-                                <span class="font-extrabold text-cyan-400 uppercase">${art.source}</span>
-                                <span class="terminal-font text-emerald-400">${timeStr}</span>
-                            </div>
-                            <h4 class="text-xs font-bold text-slate-100 group-hover:text-cyan-300 leading-snug">${art.title}</h4>
-                            ${art.desc ? `<p class="text-[11px] text-slate-400 line-clamp-2 mt-1">${art.desc}...</p>` : ''}
-                        </a>
-                    `;
-                }).join('');
-            } else {
-                statusEl.innerText = `Bloomberg Live Wire · Active Stream`;
-                container.innerHTML = bloombergFallbackWire.map(art => `
-                    <a href="${art.link}" target="_blank" rel="noopener" class="block p-3 hover:bg-yog-800/80 rounded-lg transition group">
-                        <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1">
-                            <span class="font-extrabold text-cyan-400 uppercase">${art.source}</span>
-                            <span class="terminal-font text-emerald-400">${art.pubDate}</span>
-                        </div>
-                        <h4 class="text-xs font-bold text-slate-100 group-hover:text-cyan-300 leading-snug">${art.title}</h4>
-                    </a>
-                `).join('');
-            }
+            try {
+                const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.bloomberg.com/feeds/markets/news.rss');
+                const data = await res.json();
+                if (data?.items) {
+                    container.innerHTML = data.items.slice(0, 10).map(i => `<a href="${i.link}" target="_blank" class="block p-2 hover:bg-yog-800 rounded"><strong>${i.title}</strong></a>`).join('');
+                    return;
+                }
+            } catch(e){}
+            container.innerHTML = `<div class="p-2 text-slate-400">Treasuries Mixed as Fed Rate Path Unfolds</div>`;
         };
         fetchBloombergNews();
-        setInterval(() => fetchBloombergNews(false), 30000);
 
-        // 4. SCREENER & QUOTES
-        async function syncLiveMarketQuotes() {
-            try {
-                const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
-                if (res.ok) {
-                    const tickers = await res.json();
-                    const map = {};
-                    tickers.forEach(t => map[t.symbol] = t);
-                    multiAssetCatalog.forEach(item => {
-                        if (item.isLiveCrypto && map[item.symbol]) {
-                            const d = map[item.symbol];
-                            item.price = parseFloat(d.lastPrice);
-                            item.change = parseFloat(d.priceChangePercent);
-                            item.high = parseFloat(d.highPrice);
-                            item.low = parseFloat(d.lowPrice);
-                            item.vol = parseFloat(d.quoteVolume);
-                        } else if (!item.isLiveCrypto) {
-                            const delta = (Math.random() - 0.495) * (item.price * 0.001);
-                            item.price = +(item.price + delta).toFixed(4);
-                        }
-                    });
-                }
-            } catch (e) {}
-            if (!document.getElementById('view-home').classList.contains('hidden')) {
-                renderFeaturedCards();
-                renderScreenerTable();
-            }
-        }
-        setInterval(syncLiveMarketQuotes, 6000);
-
-        function renderFeaturedCards() {
-            const container = document.getElementById('featuredCardsGrid');
-            if (!container) return;
-            container.innerHTML = multiAssetCatalog.filter(a => a.featured).map(item => {
-                const isUp = item.change >= 0;
-                const pStr = item.price >= 10 ? item.price.toFixed(2) : item.price.toFixed(4);
-                return `
-                    <div onclick="openSymbolFromScreener('${item.symbol}')" class="bg-yog-900 hover:bg-yog-800 border border-yog-700 hover:border-cyan-400/60 rounded-xl p-3 cursor-pointer transition flex flex-col justify-between shadow">
-                        <div class="flex items-center justify-between">
-                            <span class="font-extrabold text-xs sm:text-sm text-white terminal-font">${item.symbol}</span>
-                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${isUp ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}">${isUp ? '+' : ''}${item.change.toFixed(2)}%</span>
-                        </div>
-                        <div class="text-[11px] text-slate-400 truncate my-1">${item.name}</div>
-                        <div class="flex items-baseline justify-between pt-2 border-t border-yog-800 terminal-font">
-                            <span class="font-bold text-sm sm:text-base text-white">$${pStr}</span>
-                            <span class="text-[10px] text-cyan-400">${formatVol(item.vol)}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        window.openSymbolFromScreener = function(sym) {
-            switchView('terminal');
-            initSymbol(sym, currentTimeframe);
-        };
-
-        window.filterScreener = function(cat, btnEl) {
-            activeScreenerCategory = cat;
-            document.querySelectorAll('#screenerTabs button').forEach(b => b.className = 'px-2.5 py-1 bg-yog-950 text-slate-300 rounded-md text-xs font-semibold hover:bg-yog-700');
-            if (btnEl) btnEl.className = 'px-2.5 py-1 bg-blue-600 text-white rounded-md text-xs font-bold';
-            renderScreenerTable();
-        };
-
-        window.toggleExpandScreener = function() {
-            isScreenerExpanded = !isScreenerExpanded;
-            document.getElementById('expandScreenerBtn').innerText = isScreenerExpanded ? '➖ Show Main (8)' : `➕ Expand All (${multiAssetCatalog.length})`;
-            document.getElementById('footerExpandBtn').innerText = isScreenerExpanded ? 'Collapse to Main Markets ↑' : `Show All ${multiAssetCatalog.length} Global Instruments ↓`;
-            renderScreenerTable();
-        };
-
-        window.setSortColumn = function(col) {
-            if (sortColumn === col) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            else { sortColumn = col; sortDirection = col === 'symbol' ? 'asc' : 'desc'; }
-            document.getElementById('sortFieldSelect').value = sortColumn;
-            updateSortUI(); renderScreenerTable();
-        };
-        window.handleSortSelectChange = () => { sortColumn = document.getElementById('sortFieldSelect').value; updateSortUI(); renderScreenerTable(); };
-        window.toggleSortDirection = () => { sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; updateSortUI(); renderScreenerTable(); };
-
-        function updateSortUI() {
-            document.getElementById('sortDirBtn').innerText = sortDirection === 'asc' ? 'ASC ▲' : 'DESC ▼';
-            ['symbol', 'price', 'change', 'vol'].forEach(col => {
-                const el = document.getElementById('sortIcon-' + col);
-                if (el) el.innerText = sortColumn === col ? (sortDirection === 'asc' ? '▲' : '▼') : '';
-            });
-        }
-
-        function renderScreenerTable() {
-            const tbody = document.getElementById('screenerBody');
-            if (!tbody) return;
-            const query = document.getElementById('screenerSearch').value.trim().toLowerCase();
-
-            let filtered = multiAssetCatalog.filter(item => {
-                const matchesCat = activeScreenerCategory === 'all' || item.category === activeScreenerCategory;
-                const matchesQuery = !query || item.symbol.toLowerCase().includes(query) || item.name.toLowerCase().includes(query) || item.category.toLowerCase().includes(query);
-                return matchesCat && matchesQuery;
-            });
-
-            filtered.sort((a, b) => {
-                let valA = a[sortColumn], valB = b[sortColumn];
-                if (typeof valA === 'string') return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                return sortDirection === 'asc' ? valA - valB : valB - valA;
-            });
-
-            const displayList = (isScreenerExpanded || query.length > 0 || activeScreenerCategory !== 'all') ? filtered : filtered.slice(0, 8);
-
-            tbody.innerHTML = displayList.map(item => {
-                const isUp = item.change >= 0;
-                const pStr = item.price >= 10 ? item.price.toFixed(2) : item.price.toFixed(4);
-                const hStr = item.high >= 10 ? item.high.toFixed(2) : item.high.toFixed(4);
-                const lStr = item.low >= 10 ? item.low.toFixed(2) : item.low.toFixed(4);
-                return `
-                    <tr onclick="openSymbolFromScreener('${item.symbol}')" class="hover:bg-yog-800/80 cursor-pointer transition">
-                        <td class="py-3 px-3 sm:px-4"><div class="font-bold text-white">${item.symbol}</div><div class="text-[10px] text-slate-400 font-sans truncate max-w-[140px] sm:max-w-none">${item.name}</div></td>
-                        <td class="py-3 px-2 hidden sm:table-cell"><span class="text-[10px] uppercase px-2 py-0.5 rounded bg-yog-800 text-cyan-300 border border-yog-700 font-bold">${item.category}</span></td>
-                        <td class="py-3 px-3 sm:px-4 text-right font-bold text-white">$${pStr}</td>
-                        <td class="py-3 px-3 sm:px-4 text-right font-bold ${isUp ? 'text-emerald-400' : 'text-rose-400'}">${isUp ? '+' : ''}${item.change.toFixed(2)}%</td>
-                        <td class="py-3 px-4 text-right text-slate-400 hidden md:table-cell">$${hStr} / $${lStr}</td>
-                        <td class="py-3 px-4 text-right text-slate-300 hidden sm:table-cell">${formatVol(item.vol)}</td>
-                        <td class="py-3 px-3 sm:px-4 text-right"><button class="bg-blue-600/20 hover:bg-blue-600 text-cyan-300 hover:text-white font-bold px-2.5 py-1 rounded-md text-[11px] border border-blue-500/30 transition">Open &rarr;</button></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        window.switchView = function(view) {
-            const h = document.getElementById('view-home');
-            const t = document.getElementById('view-terminal');
-            const navHome = document.getElementById('navHomeBtn');
-            const navTerm = document.getElementById('navTermBtn');
-            if (view === 'home') {
-                h.classList.remove('hidden'); t.classList.add('hidden');
-                navHome.classList.add('nav-active'); navTerm.classList.remove('nav-active');
-                renderFeaturedCards(); renderScreenerTable(); updateWalletDisplays();
-            } else {
-                h.classList.add('hidden'); t.classList.remove('hidden');
-                navTerm.classList.add('nav-active'); navHome.classList.remove('nav-active');
-                setTimeout(() => { resizeChartsAndCanvas(); chart.timeScale().fitContent(); }, 60);
-            }
-        };
-
-        // 5. CHARTING ENGINE & TOUCH/MOUSE DRAWING SUITE
+        // Charting Engine
         const chartContainer = document.getElementById('chartContainer');
         const chart = LightweightCharts.createChart(chartContainer, {
             layout: { background: { type: 'solid', color: '#040711' }, textColor: '#64748b', attributionLogo: false },
             watermark: { visible: false },
             grid: { vertLines: { color: '#0c1424' }, horzLines: { color: '#0c1424' } },
-            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-            rightPriceScale: { borderColor: '#16223B' },
-            timeScale: { borderColor: '#16223B', timeVisible: true, secondsVisible: false }
+            timeScale: { timeVisible: true }
         });
-
-        let activeSeries = null;
-        let ma1Series = chart.addLineSeries({ color: '#38bdf8', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false });
-        let ma2Series = chart.addLineSeries({ color: '#818cf8', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false });
-        let ma3Series = chart.addLineSeries({ color: '#c084fc', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false });
-        let bollUpper = chart.addLineSeries({ color: 'rgba(16, 185, 129, 0.5)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-        let bollLower = chart.addLineSeries({ color: 'rgba(16, 185, 129, 0.5)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-
-        const rsiContainer = document.getElementById('rsiContainer');
-        const rsiChart = LightweightCharts.createChart(rsiContainer, {
-            layout: { background: { type: 'solid', color: '#040711' }, textColor: '#64748b', attributionLogo: false },
-            watermark: { visible: false },
-            grid: { vertLines: { color: '#0c1424' }, horzLines: { color: '#0c1424' } },
-            rightPriceScale: { borderColor: '#16223B' },
-            timeScale: { visible: false }
-        });
-        const rsiSeries = rsiChart.addLineSeries({ color: '#38bdf8', lineWidth: 1.5 });
-
-        chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
-            if (range) rsiChart.timeScale().setVisibleLogicalRange(range);
-            renderDrawingsCanvas();
-        });
-
-        chart.subscribeCrosshairMove(param => {
-            if (!param.time || !activeSeries) return;
-            const d = param.seriesData.get(activeSeries);
-            if (!d) return;
-            document.getElementById('ohlcLegend').innerText = d.open !== undefined ? `O: ${d.open}  H: ${d.high}  L: ${d.low}  C: ${d.close}` : `Price: ${d.value}`;
-        });
-
-        function setChartType(type) {
-            currentChartType = type;
-            if (activeSeries) chart.removeSeries(activeSeries);
-            if (type === 'Candlestick') activeSeries = chart.addCandlestickSeries({ upColor: '#10b981', downColor: '#f43f5e', borderVisible: false, wickUpColor: '#10b981', wickDownColor: '#f43f5e' });
-            else if (type === 'Bar') activeSeries = chart.addBarSeries({ upColor: '#10b981', downColor: '#f43f5e' });
-            else if (type === 'Line') activeSeries = chart.addLineSeries({ color: '#38bdf8', lineWidth: 2 });
-            else if (type === 'Area') activeSeries = chart.addAreaSeries({ lineColor: '#38bdf8', topColor: 'rgba(56, 189, 248, 0.35)', bottomColor: 'rgba(56, 189, 248, 0.0)' });
-            else if (type === 'Baseline') {
-                const baseVal = rawCandles.length ? rawCandles[Math.floor(rawCandles.length / 2)].close : 100;
-                activeSeries = chart.addBaselineSeries({ baseValue: { type: 'price', price: baseVal }, topLineColor: '#10b981', bottomLineColor: '#f43f5e' });
-            }
-            if (rawCandles.length > 0) updateAllChartSeries();
-        }
-
-        function calculateSMA(data, period) {
-            let res = [];
-            for (let i = period - 1; i < data.length; i++) {
-                let sum = 0;
-                for (let j = 0; j < period; j++) sum += data[i - j].close;
-                res.push({ time: data[i].time, value: sum / period });
-            }
-            return res;
-        }
-
-        function calculateBollinger(data, period = 20, mult = 2) {
-            let upper = [], lower = [];
-            for (let i = period - 1; i < data.length; i++) {
-                let slice = data.slice(i - period + 1, i + 1).map(d => d.close);
-                let mean = slice.reduce((a, b) => a + b, 0) / period;
-                let sd = Math.sqrt(slice.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / period);
-                upper.push({ time: data[i].time, value: mean + mult * sd });
-                lower.push({ time: data[i].time, value: mean - mult * sd });
-            }
-            return { upper, lower };
-        }
-
-        function calculateRSI(data, period = 14) {
-            let rsiData = [];
-            if (data.length <= period) return rsiData;
-            let gains = 0, losses = 0;
-            for (let i = 1; i < data.length; i++) {
-                let change = data[i].close - data[i - 1].close;
-                if (i <= period) {
-                    if (change >= 0) gains += change; else losses -= change;
-                    if (i === period) {
-                        gains /= period; losses /= period;
-                        rsiData.push({ time: data[i].time, value: 100 - (100 / (1 + (gains / (losses || 0.00001)))) });
-                    }
-                } else {
-                    gains = (gains * (period - 1) + (change > 0 ? change : 0)) / period;
-                    losses = (losses * (period - 1) + (change < 0 ? -change : 0)) / period;
-                    rsiData.push({ time: data[i].time, value: 100 - (100 / (1 + (gains / (losses || 0.00001)))) });
-                }
-            }
-            return rsiData;
-        }
-
-        function updateAllChartSeries() {
-            if (!activeSeries || rawCandles.length === 0) return;
-            if (['Line', 'Area', 'Baseline'].includes(currentChartType)) activeSeries.setData(rawCandles.map(c => ({ time: c.time, value: c.close })));
-            else activeSeries.setData(rawCandles);
-
-            [1, 2, 3].forEach(idx => {
-                const chk = document.getElementById(`chkMA${idx}`).checked;
-                const len = parseInt(document.getElementById(`lenMA${idx}`).value) || 7;
-                const col = document.getElementById(`colMA${idx}`).value;
-                const sObj = idx === 1 ? ma1Series : idx === 2 ? ma2Series : ma3Series;
-                sObj.applyOptions({ color: col, visible: chk });
-                if (chk) {
-                    const arr = calculateSMA(rawCandles, len);
-                    sObj.setData(arr);
-                    if (arr.length) document.getElementById(`legMA${idx}`).innerText = `MA(${len}): ${arr[arr.length - 1].value.toFixed(4)}`;
-                }
-            });
-
-            const useBoll = document.getElementById('chkBOLL').checked;
-            bollUpper.applyOptions({ visible: useBoll }); bollLower.applyOptions({ visible: useBoll });
-            document.getElementById('legBOLL').classList.toggle('hidden', !useBoll);
-            if (useBoll) {
-                const b = calculateBollinger(rawCandles, 20, 2);
-                bollUpper.setData(b.upper); bollLower.setData(b.lower);
-            }
-
-            const rsiArr = calculateRSI(rawCandles, 14);
-            rsiSeries.setData(rsiArr);
-            if (rsiArr.length) document.getElementById('rsiValLabel').innerText = rsiArr[rsiArr.length - 1].value.toFixed(2);
-            renderDrawingsCanvas();
-        }
-
-        window.toggleIndicatorModal = () => document.getElementById('indicatorModal').classList.toggle('hidden');
-        window.applyIndicatorSettings = () => { updateAllChartSeries(); toggleIndicatorModal(); saveSymbolWorkspaceLocalAndCloud(); };
-
-        let rsiShown = false;
-        window.toggleRsiSubchart = () => { rsiShown = !rsiShown; rsiContainer.style.display = rsiShown ? 'block' : 'none'; resizeChartsAndCanvas(); };
-
-        // Touch & Mouse Drawing Canvas
-        const drawingCanvas = document.getElementById('drawingCanvas');
-        const ctx = drawingCanvas.getContext('2d');
-        let currentTool = 'cursor', pendingAnchor = null, mousePreviewPoint = null, isBrushing = false, currentBrushStroke = [];
+        const activeSeries = chart.addCandlestickSeries({ upColor: '#10b981', downColor: '#f43f5e' });
 
         function resizeChartsAndCanvas() {
             const rect = chartContainer.getBoundingClientRect();
@@ -1216,623 +435,142 @@
                 chart.applyOptions({ width: rect.width, height: rect.height });
                 drawingCanvas.width = rect.width; drawingCanvas.height = rect.height;
             }
-            const rsiRect = rsiContainer.getBoundingClientRect();
-            if (rsiRect.width > 0 && rsiRect.height > 0) rsiChart.applyOptions({ width: rsiRect.width, height: rsiRect.height });
-            renderDrawingsCanvas();
         }
         new ResizeObserver(resizeChartsAndCanvas).observe(chartContainer);
-        window.addEventListener('orientationchange', () => setTimeout(resizeChartsAndCanvas, 200));
+
+        // Drawing Suite
+        const drawingCanvas = document.getElementById('drawingCanvas');
+        const ctx = drawingCanvas.getContext('2d');
+        let currentTool = 'cursor', pendingAnchor = null;
 
         window.setDrawingTool = function(tool) {
-            currentTool = tool; pendingAnchor = null; mousePreviewPoint = null;
-            document.querySelectorAll('aside button[id^="draw-"]').forEach(b => b.classList.remove('tool-active'));
+            currentTool = tool; pendingAnchor = null;
+            document.querySelectorAll('aside button, #mobileToolboxTray button').forEach(b => b.classList.remove('tool-active'));
             document.getElementById('draw-' + tool)?.classList.add('tool-active');
-            const isDraw = tool !== 'cursor';
-            drawingCanvas.style.pointerEvents = isDraw ? 'auto' : 'none';
-            drawingCanvas.style.cursor = isDraw ? 'crosshair' : 'default';
-            document.getElementById('drawingBanner').classList.toggle('hidden', !isDraw);
-            document.getElementById('activeToolLabel').innerText = `Tool: ${tool.toUpperCase()}`;
-            renderDrawingsCanvas();
+            document.getElementById('m-' + tool)?.classList.add('tool-active');
+            drawingCanvas.style.pointerEvents = tool !== 'cursor' ? 'auto' : 'none';
         };
-
-        function getChartPoint(e) {
-            const rect = drawingCanvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const x = clientX - rect.left, y = clientY - rect.top;
-            const time = chart.timeScale().coordinateToTime(x) || rawCandles[rawCandles.length - 1]?.time;
-            const price = activeSeries ? activeSeries.coordinateToPrice(y) : null;
-            return { x, y, time, price };
-        }
-
-        drawingCanvas.addEventListener('mousedown', (e) => {
-            if (currentTool === 'brush') { isBrushing = true; const pt = getChartPoint(e); currentBrushStroke = [{ time: pt.time, price: pt.price }]; }
-        });
-        drawingCanvas.addEventListener('touchstart', (e) => {
-            if (currentTool === 'brush') { isBrushing = true; const pt = getChartPoint(e); currentBrushStroke = [{ time: pt.time, price: pt.price }]; }
-        }, { passive: true });
-
-        drawingCanvas.addEventListener('mousemove', (e) => {
-            if (currentTool === 'cursor' || !activeSeries) return;
-            const pt = getChartPoint(e);
-            if (!pt.price) return;
-            if (currentTool === 'brush' && isBrushing) { currentBrushStroke.push({ time: pt.time, price: pt.price }); renderDrawingsCanvas(); return; }
-            if (pendingAnchor) { mousePreviewPoint = { time: pt.time, price: pt.price }; renderDrawingsCanvas(); }
-        });
-        drawingCanvas.addEventListener('touchmove', (e) => {
-            if (currentTool === 'cursor' || !activeSeries) return;
-            const pt = getChartPoint(e);
-            if (!pt.price) return;
-            if (currentTool === 'brush' && isBrushing) { currentBrushStroke.push({ time: pt.time, price: pt.price }); renderDrawingsCanvas(); return; }
-            if (pendingAnchor) { mousePreviewPoint = { time: pt.time, price: pt.price }; renderDrawingsCanvas(); }
-        }, { passive: true });
-
-        const finishBrush = () => {
-            if (currentTool === 'brush' && isBrushing) {
-                isBrushing = false;
-                if (currentBrushStroke.length > 1) { userDrawings.push({ type: 'brush', points: currentBrushStroke }); saveSymbolWorkspaceLocalAndCloud(); }
-                currentBrushStroke = []; setDrawingTool('cursor');
-            }
-        };
-        drawingCanvas.addEventListener('mouseup', finishBrush);
-        drawingCanvas.addEventListener('touchend', finishBrush);
 
         drawingCanvas.addEventListener('click', (e) => {
-            if (currentTool === 'cursor' || currentTool === 'brush' || !activeSeries) return;
-            const pt = getChartPoint(e);
-            if (!pt.price) return;
-            if (currentTool === 'hline') { userDrawings.push({ type: 'hline', price: pt.price }); saveSymbolWorkspaceLocalAndCloud(); setDrawingTool('cursor'); return; }
-            if (currentTool === 'vline') { userDrawings.push({ type: 'vline', time: pt.time }); saveSymbolWorkspaceLocalAndCloud(); setDrawingTool('cursor'); return; }
-            if (currentTool === 'text') {
-                const label = prompt('Enter chart callout note:', 'Liquidity Zone');
-                if (label) { userDrawings.push({ type: 'text', time: pt.time, price: pt.price, text: label }); saveSymbolWorkspaceLocalAndCloud(); }
-                setDrawingTool('cursor'); return;
-            }
-            if (!pendingAnchor) pendingAnchor = { time: pt.time, price: pt.price };
-            else {
-                userDrawings.push({ type: currentTool, p1: pendingAnchor, p2: { time: pt.time, price: pt.price } });
-                pendingAnchor = null; mousePreviewPoint = null; saveSymbolWorkspaceLocalAndCloud(); setDrawingTool('cursor');
-            }
+            if (currentTool === 'cursor') return;
+            const rect = drawingCanvas.getBoundingClientRect();
+            const time = chart.timeScale().coordinateToTime(e.clientX - rect.left);
+            const price = activeSeries.coordinateToPrice(e.clientY - rect.top);
+            if (!price) return;
+            if (currentTool === 'hline') { userDrawings.push({ type: 'hline', price }); renderDrawings(); setDrawingTool('cursor'); return; }
+            if (!pendingAnchor) pendingAnchor = { time, price };
+            else { userDrawings.push({ type: currentTool, p1: pendingAnchor, p2: { time, price } }); pendingAnchor = null; renderDrawings(); setDrawingTool('cursor'); }
         });
 
-        window.undoLastDrawing = () => { userDrawings.pop(); saveSymbolWorkspaceLocalAndCloud(); renderDrawingsCanvas(); };
-        window.clearAllDrawings = () => { userDrawings = []; pendingAnchor = null; mousePreviewPoint = null; saveSymbolWorkspaceLocalAndCloud(); renderDrawingsCanvas(); };
-
-        function drawShapeObject(d) {
-            ctx.save();
-            if (d.type === 'hline') {
-                const y = activeSeries.priceToCoordinate(d.price);
-                if (y !== null) {
-                    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]);
-                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(drawingCanvas.width, y); ctx.stroke();
-                    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 10px Fira Code'; ctx.fillText(`S/R $${d.price.toFixed(4)}`, 14, y - 5);
-                }
-            } else if (d.type === 'vline') {
-                const x = chart.timeScale().timeToCoordinate(d.time);
-                if (x !== null) {
-                    ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
-                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, drawingCanvas.height); ctx.stroke();
-                }
-            } else if (d.type === 'text') {
-                const x = chart.timeScale().timeToCoordinate(d.time) ?? 120, y = activeSeries.priceToCoordinate(d.price);
-                if (y !== null) {
-                    ctx.fillStyle = 'rgba(37, 99, 235, 0.9)'; ctx.fillRect(x, y - 18, ctx.measureText(d.text).width + 16, 20);
-                    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Inter'; ctx.fillText(d.text, x + 6, y - 4);
-                }
-            } else if (d.type === 'brush' && Array.isArray(d.points)) {
-                ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.beginPath();
-                d.points.forEach((pt, i) => {
-                    const x = chart.timeScale().timeToCoordinate(pt.time), y = activeSeries.priceToCoordinate(pt.price);
-                    if (x !== null && y !== null) { if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
-                });
-                ctx.stroke();
-            } else if (d.p1 && d.p2) {
-                const x1 = chart.timeScale().timeToCoordinate(d.p1.time) ?? 80, y1 = activeSeries.priceToCoordinate(d.p1.price);
-                const x2 = chart.timeScale().timeToCoordinate(d.p2.time) ?? (drawingCanvas.width - 80), y2 = activeSeries.priceToCoordinate(d.p2.price);
-                if (y1 === null || y2 === null) { ctx.restore(); return; }
-                if (d.type === 'trendline' || d.type === 'ray') {
-                    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1, y1);
-                    if (d.type === 'ray') ctx.lineTo(x1 + (x2 - x1) * 5, y1 + (y2 - y1) * 5); else ctx.lineTo(x2, y2);
-                    ctx.stroke();
-                } else if (d.type === 'rect') {
-                    ctx.fillStyle = 'rgba(56, 189, 248, 0.16)'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5;
-                    ctx.fillRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
-                    ctx.strokeRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
-                } else if (d.type === 'fib') {
-                    [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1].forEach(lvl => {
-                        const lvlPrice = d.p1.price + (d.p2.price - d.p1.price) * lvl;
-                        const ly = activeSeries.priceToCoordinate(lvlPrice);
-                        if (ly !== null) {
-                            ctx.strokeStyle = lvl === 0.618 ? '#38bdf8' : '#94a3b8'; ctx.lineWidth = 1;
-                            ctx.beginPath(); ctx.moveTo(Math.min(x1, x2), ly); ctx.lineTo(Math.max(x1, x2, drawingCanvas.width - 70), ly); ctx.stroke();
-                            ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 10px Fira Code'; ctx.fillText(`Fib ${(lvl * 100).toFixed(1)}% ($${lvlPrice.toFixed(4)})`, Math.min(x1, x2) + 6, ly - 4);
-                        }
-                    });
-                }
-            }
-            ctx.restore();
-        }
-
-        function renderDrawingsCanvas() {
+        window.clearAllDrawings = () => { userDrawings = []; renderDrawings(); };
+        function renderDrawings() {
             ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-            if (!activeSeries) return;
-            userDrawings.forEach(d => drawShapeObject(d));
-            if (pendingAnchor && mousePreviewPoint) drawShapeObject({ type: currentTool, p1: pendingAnchor, p2: mousePreviewPoint });
-            if (isBrushing && currentBrushStroke.length > 1) drawShapeObject({ type: 'brush', points: currentBrushStroke });
-        }
-
-        // 6. STREAMING ENGINE
-        let wsMux = null, synthInterval = null, latestDepthMsg = null;
-
-        async function initSymbol(symbol, timeframe = '1m') {
-            currentSymbol = symbol.toUpperCase(); currentTimeframe = timeframe;
-            document.getElementById('symbolInput').value = currentSymbol;
-            document.getElementById('chartTitleSymbol').innerText = `${currentSymbol} · ${timeframe}`;
-            document.getElementById('orderTape').innerHTML = '';
-            await loadSymbolWorkspace(currentSymbol);
-            if (!activeSeries) setChartType(currentChartType);
-
-            const catalogEntry = multiAssetCatalog.find(a => a.symbol === currentSymbol);
-            const isCryptoStream = catalogEntry ? catalogEntry.isLiveCrypto : currentSymbol.endsWith('USDT');
-
-            if (wsMux) { wsMux.close(); wsMux = null; }
-            if (synthInterval) { clearInterval(synthInterval); synthInterval = null; }
-
-            if (isCryptoStream) {
-                document.getElementById('assetBadge').innerText = 'LIVE';
-                try {
-                    const [klinesRes, tickerRes] = await Promise.all([
-                        fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${timeframe}&limit=300`),
-                        fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${currentSymbol}`)
-                    ]);
-                    if (klinesRes.ok) {
-                        const data = await klinesRes.json();
-                        rawCandles = data.map(d => ({ time: Math.floor(d[0] / 1000), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) })).sort((a, b) => a.time - b.time);
-                        lastKnownPrice = rawCandles[rawCandles.length - 1].close;
-                        updateAllChartSeries(); runAiAnalysis();
-                    }
-                    if (tickerRes.ok) {
-                        const tk = await tickerRes.json();
-                        updateTopRibbon(parseFloat(tk.lastPrice), parseFloat(tk.priceChangePercent), parseFloat(tk.highPrice), parseFloat(tk.lowPrice), parseFloat(tk.quoteVolume));
-                    }
-                } catch (e) {}
-
-                const s = currentSymbol.toLowerCase();
-                wsMux = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${s}@kline_${timeframe}/${s}@trade/${s}@depth20@100ms`);
-                wsMux.onmessage = (evt) => {
-                    const packet = JSON.parse(evt.data);
-                    if (!packet?.data) return;
-                    const { stream, data: msg } = packet;
-                    if (stream.includes('@kline_')) {
-                        const c = parseFloat(msg.k.c); lastKnownPrice = c;
-                        const bar = { time: Math.floor(msg.k.t / 1000), open: parseFloat(msg.k.o), high: parseFloat(msg.k.h), low: parseFloat(msg.k.l), close: c };
-                        if (rawCandles.length && rawCandles[rawCandles.length - 1].time === bar.time) rawCandles[rawCandles.length - 1] = bar;
-                        else rawCandles.push(bar);
-                        if (['Line', 'Area', 'Baseline'].includes(currentChartType)) activeSeries.update({ time: bar.time, value: c });
-                        else activeSeries.update(bar);
-                        updateLivePriceHeader(c, c >= bar.open); renderPositionsDock(c);
-                    } else if (stream.includes('@trade')) appendTradeTape(parseFloat(msg.p), parseFloat(msg.q), !msg.m, msg.T);
-                    else if (stream.includes('@depth20')) latestDepthMsg = msg;
-                };
-            } else {
-                document.getElementById('assetBadge').innerText = catalogEntry ? catalogEntry.category.toUpperCase() : 'GLOBAL';
-                const basePrice = catalogEntry ? catalogEntry.price : 150;
-                const nowSec = Math.floor(Date.now() / 1000);
-                rawCandles = []; let p = basePrice * 0.985;
-                for (let i = 260; i >= 0; i--) {
-                    const o = p, delta = (Math.random() - 0.492) * (basePrice * 0.0022), c = +(o + delta).toFixed(4);
-                    const h = +(Math.max(o, c) + Math.random() * (basePrice * 0.0014)).toFixed(4);
-                    const l = +(Math.min(o, c) - Math.random() * (basePrice * 0.0014)).toFixed(4);
-                    rawCandles.push({ time: nowSec - i * 60, open: o, high: h, low: l, close: c }); p = c;
+            userDrawings.forEach(d => {
+                ctx.save();
+                if (d.type === 'hline') {
+                    const y = activeSeries.priceToCoordinate(d.price);
+                    if (y !== null) { ctx.strokeStyle = '#38bdf8'; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(drawingCanvas.width, y); ctx.stroke(); }
                 }
-                lastKnownPrice = p; updateAllChartSeries(); runAiAnalysis();
-                updateTopRibbon(p, catalogEntry?.change || 0.85, p * 1.012, p * 0.988, catalogEntry?.vol || 450000000);
-
-                synthInterval = setInterval(() => {
-                    const last = rawCandles[rawCandles.length - 1], tick = (Math.random() - 0.495) * (basePrice * 0.0007), c = +(last.close + tick).toFixed(4);
-                    last.close = c; if (c > last.high) last.high = c; if (c < last.low) last.low = c; lastKnownPrice = c;
-                    if (['Line', 'Area', 'Baseline'].includes(currentChartType)) activeSeries.update({ time: last.time, value: c }); else activeSeries.update(last);
-                    updateLivePriceHeader(c, tick >= 0); renderPositionsDock(c);
-                    appendTradeTape(c, +(Math.random() * 45 + 1).toFixed(2), tick >= 0, Date.now());
-                    const asks = [], bids = [];
-                    for (let i = 1; i <= 10; i++) {
-                        asks.push([(c + i * (basePrice * 0.0002)).toFixed(4), (Math.random() * 100 + 10).toFixed(2)]);
-                        bids.push([(c - i * (basePrice * 0.0002)).toFixed(4), (Math.random() * 100 + 10).toFixed(2)]);
-                    }
-                    latestDepthMsg = { asks, bids };
-                }, 650);
-            }
+                ctx.restore();
+            });
         }
 
-        function updateLivePriceHeader(price, isUp) {
-            const pStr = '$' + (price >= 10 ? price.toFixed(2) : price.toFixed(4));
-            const el = document.getElementById('livePrice');
-            el.innerText = pStr; el.className = `font-bold text-base leading-none ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
-            const mobEl = document.getElementById('mobileLivePriceBadge');
-            mobEl.innerText = pStr; mobEl.className = `font-bold xl:hidden ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
-            const mid = document.getElementById('obMidPrice');
-            mid.innerText = pStr; mid.className = `font-bold text-sm ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
-        }
+        // Live WebSocket Data Stream
+        let ws = null;
+        async function initSymbol(sym) {
+            currentSymbol = sym.toUpperCase();
+            document.getElementById('symbolInput').value = currentSymbol;
+            if (ws) ws.close();
+            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1m&limit=200`);
+            const data = await res.json();
+            rawCandles = data.map(d => ({ time: Math.floor(d[0]/1000), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) }));
+            activeSeries.setData(rawCandles);
+            lastKnownPrice = rawCandles[rawCandles.length - 1].close;
 
-        function updateTopRibbon(last, chgPct, high, low, vol) {
-            updateLivePriceHeader(last, chgPct >= 0);
-            const chgEl = document.getElementById('stat24hChange');
-            chgEl.innerText = `${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%`;
-            chgEl.className = `font-semibold ${chgPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-            document.getElementById('stat24hHigh').innerText = '$' + (high >= 10 ? high.toFixed(2) : high.toFixed(4));
-            document.getElementById('stat24hLow').innerText = '$' + (low >= 10 ? low.toFixed(2) : low.toFixed(4));
-            document.getElementById('stat24hVol').innerText = formatVol(vol);
-        }
-
-        setInterval(() => {
-            if (!latestDepthMsg?.asks || !latestDepthMsg?.bids) return;
-            const step = parseFloat(document.getElementById('tickGrouping').value) || 0.0001;
-            const decimals = step < 1 ? Math.abs(Math.floor(Math.log10(step))) : 2;
-            const aggregate = (orders) => {
-                const map = new Map();
-                orders.forEach(o => {
-                    const bucket = (Math.floor(parseFloat(o[0]) / step) * step).toFixed(decimals);
-                    map.set(bucket, (map.get(bucket) || 0) + parseFloat(o[1]));
-                });
-                return Array.from(map.entries()).slice(0, 7);
+            ws = new WebSocket(`wss://stream.binance.com:9443/ws/${currentSymbol.toLowerCase()}@kline_1m`);
+            ws.onmessage = (evt) => {
+                const msg = JSON.parse(evt.data);
+                const c = parseFloat(msg.k.c);
+                lastKnownPrice = c;
+                activeSeries.update({ time: Math.floor(msg.k.t / 1000), open: parseFloat(msg.k.o), high: parseFloat(msg.k.h), low: parseFloat(msg.k.l), close: c });
+                document.getElementById('mobileLivePriceBadge').innerText = '$' + c.toFixed(2);
+                document.getElementById('livePrice')?.innerText = '$' + c.toFixed(2);
             };
-            const asks = aggregate(latestDepthMsg.asks), bids = aggregate(latestDepthMsg.bids);
-            let askSum = 0, bidSum = 0;
-            document.getElementById('orderBookAsks').innerHTML = asks.map(([p, q]) => {
-                askSum += q;
-                return `<div class="flex justify-between px-2 py-0.5 relative"><span class="text-rose-400 font-semibold">${p}</span><span class="text-slate-300">${q.toFixed(1)}</span><span class="text-slate-500">${askSum.toFixed(0)}</span></div>`;
-            }).join('');
-            document.getElementById('orderBookBids').innerHTML = bids.map(([p, q]) => {
-                bidSum += q;
-                return `<div class="flex justify-between px-2 py-0.5 relative"><span class="text-emerald-400 font-semibold">${p}</span><span class="text-slate-300">${q.toFixed(1)}</span><span class="text-slate-500">${bidSum.toFixed(0)}</span></div>`;
-            }).join('');
-            if (asks.length && bids.length) document.getElementById('orderBookSpread').innerText = `Spread: ${Math.abs(parseFloat(asks[0][0]) - parseFloat(bids[0][0])).toFixed(decimals)}`;
-        }, 160);
-
-        function appendTradeTape(price, qty, isBuy, timestamp) {
-            const tape = document.getElementById('orderTape');
-            const pStr = price >= 10 ? price.toFixed(2) : price.toFixed(4);
-            const tStr = new Date(timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const row = document.createElement('div');
-            row.className = `flex justify-between px-2 py-0.5 rounded ${isBuy ? 'text-emerald-400' : 'text-rose-400'}`;
-            row.innerHTML = `<span class="font-semibold">${pStr}</span><span>${qty.toFixed(2)}</span><span class="text-slate-500">${tStr}</span>`;
-            tape.prepend(row);
-            if (tape.children.length > 30) tape.lastChild.remove();
         }
 
-        // 7. PAPER TRADING & WALLET
-        function updateWalletDisplays() {
-            const fmt = '$' + paperBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        // Paper Trading
+        window.updateWalletDisplays = () => {
+            const fmt = '$' + paperBalance.toLocaleString();
             document.getElementById('headerPaperBalance').innerText = fmt;
             document.getElementById('homePaperBalance').innerText = fmt;
             document.getElementById('userBalance').innerText = fmt;
             document.getElementById('modalPaperBalance').innerText = fmt;
-            const rEl = document.getElementById('homeRealizedPnl');
-            rEl.innerText = `${realizedPnl >= 0 ? '+' : ''}$${realizedPnl.toFixed(2)}`;
-            rEl.className = `text-xs sm:text-sm font-bold ${realizedPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-            document.getElementById('homeOpenPosCount').innerText = `${paperPositions.length} Active`;
-        }
-
-        window.openWalletModal = () => { updateWalletDisplays(); document.getElementById('walletModal').classList.remove('hidden'); };
+        };
+        window.modifyPaperBalance = (amt) => { paperBalance += amt; updateWalletDisplays(); closeWalletModal(); };
+        window.openWalletModal = () => document.getElementById('walletModal').classList.remove('hidden');
         window.closeWalletModal = () => document.getElementById('walletModal').classList.add('hidden');
-        window.modifyPaperBalance = async (delta) => { paperBalance = Math.max(0, paperBalance + delta); await persistProfileToCloud(); updateWalletDisplays(); };
-        window.setExactPaperBalance = async () => {
-            const val = parseFloat(document.getElementById('customBalanceInput').value);
-            if (!isNaN(val) && val >= 0) { paperBalance = val; await persistProfileToCloud(); updateWalletDisplays(); closeWalletModal(); }
-        };
-        window.setMarginPercent = (pct) => { document.getElementById('orderMarginInput').value = Math.floor(paperBalance * pct); };
-        document.getElementById('leverageSlider').addEventListener('input', (e) => { document.getElementById('levBadge').innerText = e.target.value + 'x'; });
 
-        window.setOrderType = function(type) {
-            currentOrderType = type;
-            document.getElementById('tabMarket').className = type === 'Market' ? 'flex-1 py-1 rounded-md bg-blue-600 text-white' : 'flex-1 py-1 rounded-md text-slate-400';
-            document.getElementById('tabLimit').className = type === 'Limit' ? 'flex-1 py-1 rounded-md bg-blue-600 text-white' : 'flex-1 py-1 rounded-md text-slate-400';
-            document.getElementById('limitPriceBox').classList.toggle('hidden', type === 'Market');
-            if (type === 'Limit') document.getElementById('orderPriceInput').value = lastKnownPrice;
-        };
-
-        window.placePaperOrder = async function(side) {
-            if (!lastKnownPrice) return;
-            const margin = parseFloat(document.getElementById('orderMarginInput').value) || 0;
-            if (margin <= 0 || margin > paperBalance) { alert('Insufficient paper equity! Add funds via + Funds.'); return; }
-            const lev = parseInt(document.getElementById('leverageSlider').value) || 20;
-            const entry = currentOrderType === 'Limit' ? (parseFloat(document.getElementById('orderPriceInput').value) || lastKnownPrice) : lastKnownPrice;
-            const tp = parseFloat(document.getElementById('orderTpInput').value) || null;
-            const sl = parseFloat(document.getElementById('orderSlInput').value) || null;
-
+        window.placePaperOrder = (side) => {
+            const margin = parseFloat(document.getElementById('orderMarginInput').value) || 1000;
             paperBalance -= margin;
-            const newPos = {
-                id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-                symbol: currentSymbol, side, order_type: currentOrderType, leverage: lev,
-                margin, notional_size: margin * lev, entry_price: entry, take_profit: tp, stop_loss: sl, is_open: true
-            };
-            paperPositions.push(newPos);
-            localStorage.setItem('yog_positions', JSON.stringify(paperPositions));
-            await persistProfileToCloud();
-            if (currentUser) await supabaseClient.from('paper_positions').insert({ ...newPos, user_id: currentUser.id });
-            updateWalletDisplays(); renderPositionsDock();
+            paperPositions.push({ id: Date.now(), symbol: currentSymbol, side, margin, notional_size: margin * 20, entry_price: lastKnownPrice });
+            updateWalletDisplays(); renderPositions();
         };
-
-        window.closePaperPosition = async function(posId) {
-            const idx = paperPositions.findIndex(p => String(p.id) === String(posId));
-            if (idx === -1) return;
-            const pos = paperPositions[idx];
-            const mark = pos.symbol === currentSymbol && lastKnownPrice ? lastKnownPrice : pos.entry_price;
-            const diffRatio = pos.side === 'LONG' ? (mark - pos.entry_price) / pos.entry_price : (pos.entry_price - mark) / pos.entry_price;
-            const pnl = pos.notional_size * diffRatio;
-            paperBalance += (pos.margin + pnl); realizedPnl += pnl;
-            paperPositions.splice(idx, 1);
-            localStorage.setItem('yog_positions', JSON.stringify(paperPositions));
-            await persistProfileToCloud();
-            if (currentUser) await supabaseClient.from('paper_positions').update({ is_open: false, closed_pnl: pnl }).eq('id', posId);
-            updateWalletDisplays(); renderPositionsDock();
-        };
-
-        function renderPositionsDock(liveMark = lastKnownPrice) {
-            const tbody = document.getElementById('positionsTableBody');
+        function renderPositions() {
             document.getElementById('posCount').innerText = paperPositions.length;
-            tbody.innerHTML = ''; let totalPnl = 0;
-            paperPositions.forEach(pos => {
-                const entry = parseFloat(pos.entry_price), notional = parseFloat(pos.notional_size), margin = parseFloat(pos.margin), lev = parseInt(pos.leverage);
-                const mark = pos.symbol === currentSymbol && liveMark ? liveMark : entry;
-                const liqPrice = pos.side === 'LONG' ? entry * (1 - 0.9 / lev) : entry * (1 + 0.9 / lev);
-                const pnl = notional * (pos.side === 'LONG' ? (mark - entry) / entry : (entry - mark) / entry);
-                const roe = (pnl / margin) * 100; totalPnl += pnl;
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-yog-800/70';
-                tr.innerHTML = `
-                    <td class="py-2 px-3 font-bold text-white">${pos.symbol} <span class="text-[10px] text-cyan-400">${lev}x</span></td>
-                    <td class="py-2 px-3 font-bold ${pos.side === 'LONG' ? 'text-emerald-400' : 'text-rose-400'}">${pos.side}</td>
-                    <td class="py-2 px-3">$${notional.toLocaleString()}</td>
-                    <td class="py-2 px-3">$${entry >= 10 ? entry.toFixed(2) : entry.toFixed(4)}</td>
-                    <td class="py-2 px-3 text-slate-300">$${mark >= 10 ? mark.toFixed(2) : mark.toFixed(4)}</td>
-                    <td class="py-2 px-3 text-amber-400 hidden sm:table-cell">$${liqPrice >= 10 ? liqPrice.toFixed(2) : liqPrice.toFixed(4)}</td>
-                    <td class="py-2 px-3 text-[10px] hidden md:table-cell">${pos.take_profit || '--'} / ${pos.stop_loss || '--'}</td>
-                    <td class="py-2 px-3 font-bold ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${roe.toFixed(1)}%)</td>
-                    <td class="py-2 px-3 text-right"><button onclick="closePaperPosition('${pos.id}')" class="bg-yog-800 hover:bg-rose-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">Settle</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-            const totEl = document.getElementById('totalUnrealizedPnl');
-            totEl.innerText = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
-            totEl.className = `font-bold ${totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            document.getElementById('positionsTableBody').innerHTML = paperPositions.map(p => `<tr><td class="p-2">${p.symbol}</td><td class="p-2 text-cyan-400">${p.side}</td><td class="p-2">$${p.notional_size}</td></tr>`).join('');
         }
 
-        // 8. AI QUANT COPILOT
-        let lastAiComputed = null;
-        window.runAiAnalysis = function() {
-            if (rawCandles.length < 30) return;
-            const slice = rawCandles.slice(-30), last = slice[slice.length - 1].close;
-            const high = Math.max(...slice.map(c => c.high)), low = Math.min(...slice.map(c => c.low));
-            const rsiArr = calculateRSI(rawCandles, 14), currRsi = rsiArr.length ? rsiArr[rsiArr.length - 1].value : 50;
-            let pattern = 'Equilibrium Channel', isBull = last >= slice[0].close;
-            if (currRsi < 34) { pattern = 'Bullish Demand Spring'; isBull = true; }
-            else if (currRsi > 67) { pattern = 'Supply Distribution Top'; isBull = false; }
-            else if (last > high * 0.996) { pattern = 'Ascending Volatility Breakout'; isBull = true; }
-            else if (last < low * 1.004) { pattern = 'Liquidity Sweep Breakdown'; isBull = false; }
-
-            const tp = isBull ? +(last * 1.02).toFixed(4) : +(last * 0.98).toFixed(4);
-            const sl = isBull ? +(last * 0.991).toFixed(4) : +(last * 1.009).toFixed(4);
-            lastAiComputed = { isBull, entry: last, tp, sl };
-            document.getElementById('aiPattern').innerText = pattern;
-            const bEl = document.getElementById('aiBias');
-            bEl.innerText = isBull ? 'LONG BIAS 🚀' : 'SHORT BIAS 📉';
-            bEl.className = `font-bold ${isBull ? 'text-emerald-400' : 'text-rose-400'}`;
-            document.getElementById('aiEntry').innerText = `$${last >= 10 ? last.toFixed(2) : last.toFixed(4)}`;
-            document.getElementById('aiTarget').innerText = `$${tp >= 10 ? tp.toFixed(2) : tp.toFixed(4)}`;
-            document.getElementById('aiStop').innerText = `$${sl >= 10 ? sl.toFixed(2) : sl.toFixed(4)}`;
-        };
-        window.applyAiSetupToOrder = () => { if (lastAiComputed) { document.getElementById('orderTpInput').value = lastAiComputed.tp; document.getElementById('orderSlInput').value = lastAiComputed.sl; } };
-
-        // 9. INDIVIDUAL ACCOUNT & CUSTOM PROFILE EDITOR
-        function renderProfileUI() {
-            document.getElementById('profileName').innerText = userProfileData.display_name || 'Yogchart Trader';
-            document.getElementById('profileUsername').innerText = '@' + (userProfileData.username || 'quant_trader').replace(/^@/, '');
-            document.getElementById('profileBio').innerText = userProfileData.bio || 'Multi-Asset Quant & Technical Analyst';
-            document.getElementById('profileRiskBadge').innerText = userProfileData.risk_tolerance || 'Moderate';
-            const av = document.getElementById('profileAvatar');
-            av.innerText = (userProfileData.display_name || 'YG').substring(0, 2).toUpperCase();
-            av.style.backgroundColor = userProfileData.avatar_color || '#2563EB';
-
-            if (userProfileData.preferred_leverage) {
-                document.getElementById('leverageSlider').value = userProfileData.preferred_leverage;
-                document.getElementById('levBadge').innerText = userProfileData.preferred_leverage + 'x';
-            }
-        }
-        renderProfileUI();
-
-        window.openProfileEditorModal = function() {
-            document.getElementById('editDisplayName').value = userProfileData.display_name || '';
-            document.getElementById('editUsername').value = (userProfileData.username || '').replace(/^@/, '');
-            document.getElementById('editBio').value = userProfileData.bio || '';
-            document.getElementById('editAvatarColor').value = userProfileData.avatar_color || '#2563EB';
-            document.getElementById('editDefaultLev').value = userProfileData.preferred_leverage || 20;
-            document.getElementById('editRiskTolerance').value = userProfileData.risk_tolerance || 'Moderate';
-            document.getElementById('profileSaveMsg').classList.add('hidden');
-            document.getElementById('profileEditorModal').classList.remove('hidden');
-        };
-        window.closeProfileEditorModal = () => document.getElementById('profileEditorModal').classList.add('hidden');
-
-        window.saveCustomProfileDetails = async function() {
-            userProfileData = {
-                display_name: document.getElementById('editDisplayName').value.trim() || 'Yogchart Trader',
-                username: document.getElementById('editUsername').value.trim().replace(/^@/, '') || 'quant_trader',
-                bio: document.getElementById('editBio').value.trim() || 'Multi-Asset Quant & Technical Analyst',
-                avatar_color: document.getElementById('editAvatarColor').value || '#2563EB',
-                preferred_leverage: parseInt(document.getElementById('editDefaultLev').value) || 20,
-                risk_tolerance: document.getElementById('editRiskTolerance').value || 'Moderate'
-            };
-            localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
-            renderProfileUI();
-            await persistProfileToCloud();
-            const msg = document.getElementById('profileSaveMsg');
-            msg.classList.remove('hidden');
-            setTimeout(() => closeProfileEditorModal(), 900);
-        };
-
-        async function persistProfileToCloud() {
-            localStorage.setItem('yog_paper_balance', String(paperBalance));
-            localStorage.setItem('yog_realized_pnl', String(realizedPnl));
-            if (currentUser) {
-                await supabaseClient.from('profiles').upsert({
-                    id: currentUser.id,
-                    email: currentUser.email,
-                    display_name: userProfileData.display_name,
-                    username: userProfileData.username,
-                    bio: userProfileData.bio,
-                    avatar_color: userProfileData.avatar_color,
-                    preferred_leverage: userProfileData.preferred_leverage,
-                    risk_tolerance: userProfileData.risk_tolerance,
-                    paper_balance: paperBalance,
-                    realized_pnl: realizedPnl,
-                    updated_at: new Date()
-                });
-            }
-        }
-
+        // Authentication Logic (Email/Password Only - No Google SSO)
         window.openAuthModal = () => document.getElementById('authModal').classList.remove('hidden');
         window.closeAuthModal = () => document.getElementById('authModal').classList.add('hidden');
-
-        window.handleAuthClick = async function() {
-            if (currentUser) {
-                await supabaseClient.auth.signOut();
-                currentUser = null;
-                window.location.reload();
-            } else {
-                openAuthModal();
-            }
-        };
-
-        window.triggerGoogleOAuth = async function() {
-            await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin + window.location.pathname }
-            });
-        };
+        window.handleAuthClick = () => { if (currentUser) { supabaseClient.auth.signOut(); currentUser = null; window.location.reload(); } else { openAuthModal(); } };
 
         window.handleEmailAuth = async function(mode) {
-            const name = document.getElementById('authNameInput').value.trim() || 'Yogchart Pro Trader';
             const email = document.getElementById('authEmailInput').value.trim();
             const password = document.getElementById('authPassInput').value;
-            const msgEl = document.getElementById('authMsg');
-            if (!email || !password) {
-                msgEl.innerText = 'Please enter both email and password.';
-                msgEl.classList.remove('hidden');
-                return;
-            }
-            msgEl.innerText = 'Authenticating with Yogchart Cloud...';
-            msgEl.classList.remove('hidden');
+            const name = document.getElementById('authNameInput').value.trim() || 'Trader';
+            const msg = document.getElementById('authMsg');
+            msg.classList.remove('hidden');
 
             if (mode === 'signup') {
                 const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
-                if (error) { msgEl.innerText = error.message; return; }
-                if (data?.user) {
-                    userProfileData.display_name = name;
-                    userProfileData.username = name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'trader';
-                    await activateUserAccount(data.user);
-                    closeAuthModal();
-                }
+                if (error) { msg.innerText = error.message; return; }
+                msg.innerText = 'Account created! You can now sign in.';
             } else {
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) { msgEl.innerText = error.message; return; }
-                if (data?.user) {
-                    await activateUserAccount(data.user);
-                    closeAuthModal();
-                }
+                if (error) { msg.innerText = error.message; return; }
+                currentUser = data.user;
+                closeAuthModal();
+                window.location.reload();
             }
         };
 
-        async function saveSymbolWorkspaceLocalAndCloud() {
-            localStorage.setItem(`yog_drawings_${currentSymbol}`, JSON.stringify(userDrawings));
-            if (!currentUser) return;
-            await supabaseClient.from('workspaces').upsert({
-                user_id: currentUser.id,
-                symbol: currentSymbol,
-                timeframe: currentTimeframe,
-                chart_type: currentChartType,
-                drawings: userDrawings,
-                updated_at: new Date()
-            }, { onConflict: 'user_id,symbol' });
-        }
+        // Profile Editor
+        window.openProfileEditorModal = () => document.getElementById('profileEditorModal').classList.remove('hidden');
+        window.closeProfileEditorModal = () => document.getElementById('profileEditorModal').classList.add('hidden');
+        window.saveCustomProfileDetails = () => {
+            userProfileData.display_name = document.getElementById('editDisplayName').value;
+            userProfileData.username = document.getElementById('editUsername').value;
+            localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
+            document.getElementById('profileName').innerText = userProfileData.display_name;
+            document.getElementById('profileUsername').innerText = '@' + userProfileData.username;
+            closeProfileEditorModal();
+        };
 
-        async function loadSymbolWorkspace(sym) {
-            const localDraws = localStorage.getItem(`yog_drawings_${sym}`);
-            userDrawings = localDraws ? JSON.parse(localDraws) : [];
-            if (currentUser) {
-                const { data } = await supabaseClient.from('workspaces').select('*').eq('user_id', currentUser.id).eq('symbol', sym).maybeSingle();
-                if (data && Array.isArray(data.drawings)) userDrawings = data.drawings;
-            }
-            renderDrawingsCanvas();
-        }
+        window.switchView = function(view) {
+            const h = document.getElementById('view-home'), t = document.getElementById('view-terminal');
+            if (view === 'home') { h.classList.remove('hidden'); t.classList.add('hidden'); }
+            else { h.classList.add('hidden'); t.classList.remove('hidden'); setTimeout(resizeChartsAndCanvas, 50); }
+        };
 
-        async function activateUserAccount(user) {
-            currentUser = user;
-            const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
-            if (prof) {
-                userProfileData = {
-                    display_name: prof.display_name || user.user_metadata?.full_name || user.email.split('@')[0],
-                    username: prof.username || user.email.split('@')[0],
-                    bio: prof.bio || 'Multi-Asset Quant & Technical Analyst',
-                    avatar_color: prof.avatar_color || '#2563EB',
-                    preferred_leverage: prof.preferred_leverage || 20,
-                    risk_tolerance: prof.risk_tolerance || 'Moderate'
-                };
-                paperBalance = parseFloat(prof.paper_balance);
-                realizedPnl = parseFloat(prof.realized_pnl || 0);
-                localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
-            } else {
-                userProfileData.display_name = user.user_metadata?.full_name || userProfileData.display_name || user.email.split('@')[0];
-                userProfileData.username = user.email.split('@')[0];
-                await persistProfileToCloud();
-            }
-
-            renderProfileUI();
-            document.getElementById('profileStatus').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Cloud Account (${user.email}) · <strong class="text-emerald-400">Synced ✅</strong>`;
-
-            const loginBtn = document.getElementById('loginBtn');
-            loginBtn.innerText = 'SIGN OUT';
-            loginBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-extrabold px-2.5 sm:px-3.5 py-1.5 rounded-lg transition';
-
-            const { data: posData } = await supabaseClient.from('paper_positions').select('*').eq('user_id', user.id).eq('is_open', true);
-            if (posData && posData.length > 0) {
-                paperPositions = posData;
-                localStorage.setItem('yog_positions', JSON.stringify(paperPositions));
-            }
-            await loadSymbolWorkspace(currentSymbol);
-            updateWalletDisplays();
-            renderPositionsDock();
-        }
-
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (session?.user) activateUserAccount(session.user);
-        });
-
-        document.getElementById('saveWorkspace').addEventListener('click', async (e) => {
-            await saveSymbolWorkspaceLocalAndCloud();
-            await persistProfileToCloud();
-            e.target.innerText = '✅ Synced!';
-            setTimeout(() => e.target.innerText = '💾 Sync', 2000);
-        });
-
-        document.querySelectorAll('#timeframeSelector button').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('#timeframeSelector button').forEach(b => b.className = 'px-2 py-0.5 rounded text-slate-400 hover:text-white');
-                e.target.className = 'px-2 py-0.5 rounded bg-blue-600 text-white';
-                initSymbol(currentSymbol, e.target.dataset.tf);
-            });
-        });
-
-        document.getElementById('chartTypeSelect').addEventListener('change', (e) => {
-            setChartType(e.target.value);
-            saveSymbolWorkspaceLocalAndCloud();
-        });
-
-        renderFeaturedCards();
-        renderScreenerTable();
+        // Boot
+        document.getElementById('editDisplayName').value = userProfileData.display_name;
+        document.getElementById('editUsername').value = userProfileData.username;
+        document.getElementById('profileName').innerText = userProfileData.display_name;
+        document.getElementById('profileUsername').innerText = '@' + userProfileData.username;
         updateWalletDisplays();
-        renderPositionsDock();
-        syncLiveMarketQuotes();
-        initSymbol('XRPUSDT', '1m');
+        initSymbol('XRPUSDT');
     </script>
 </body>
 </html>
