@@ -17,7 +17,8 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
-        #chart-wrapper { position: relative; width: 100%; height: 100%; }
+        /* Added min-width: 0 to prevent the flex container from blowing out */
+        #chart-wrapper { position: relative; width: 100%; height: 100%; min-width: 0; }
         #chartContainer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
     </style>
 </head>
@@ -34,9 +35,9 @@
     </nav>
 
     <!-- Main Content Wrapper -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col overflow-hidden min-w-0">
         <!-- Top Header -->
-        <header class="h-14 flex justify-between items-center px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-20">
+        <header class="h-14 flex justify-between items-center px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-20 flex-shrink-0">
             <div class="flex items-center gap-4">
                 <div class="flex items-center bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2">
                     <span class="text-gray-400 text-sm">🔍</span>
@@ -54,9 +55,9 @@
         </header>
 
         <!-- Workspace -->
-        <main class="flex-1 flex overflow-hidden">
+        <main class="flex-1 flex overflow-hidden relative">
             <!-- Chart Section -->
-            <section class="flex-1 relative" id="chart-wrapper">
+            <section class="flex-1 relative min-w-0" id="chart-wrapper">
                 <div id="chartContainer"></div>
             </section>
 
@@ -89,11 +90,8 @@
         </main>
     </div>
     
-    <!-- Changed to type="module" -->
     <script type="module">
-        // ==========================================
-        // 1. SUPABASE AUTHENTICATION (ES Module)
-        // ==========================================
+        // 1. SUPABASE AUTHENTICATION
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
         const supabaseUrl = 'https://gqdirctfbzlnnfctcdcy.supabase.co';
@@ -121,9 +119,7 @@
         }
         checkUser();
 
-        // ==========================================
         // 2. THEME & HOTKEYS
-        // ==========================================
         const html = document.documentElement;
         document.getElementById('themeToggle').addEventListener('click', () => {
             html.classList.toggle('dark');
@@ -140,9 +136,7 @@
             if (e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); alert('MARKET SELL EXECUTED'); }
         });
 
-        // ==========================================
         // 3. CHARTING & LIVE DATA ENGINE
-        // ==========================================
         const chartContainer = document.getElementById('chartContainer');
         const chart = LightweightCharts.createChart(chartContainer, {
             layout: { background: { type: 'solid', color: '#030712' }, textColor: '#9ca3af' },
@@ -258,6 +252,3 @@
     </script>
 </body>
 </html>
-        document.getElementById('symbolInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') initSymbol(e.target.value); });
-        initSymbol('XRPUSDT');
-    </script>
