@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yogchart - Live Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap');
+        .terminal-font { font-family: 'Fira Code', monospace; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 h-screen flex flex-col transition-colors duration-200">
+    
+    <!-- Navbar -->
+    <header class="flex justify-between items-center px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <div class="flex items-center gap-4">
+            <h1 class="text-xl font-bold tracking-tighter">YOGCHART<span class="text-blue-500">.</span></h1>
+            <select id="assetSelect" class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-sm font-semibold">
+                <option value="XRPUSDT">XRP / USDT</option>
+                <option value="BTCUSDT">BTC / USDT</option>
+                <option value="SHIBUSDT">SHIB / USDT</option>
+            </select>
+        </div>
+        <div class="flex gap-3">
+            <button id="themeToggle" class="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-800 rounded hover:opacity-80">🌓 Toggle Theme</button>
+            <button id="ssoLogin" class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">SSO Login</button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex overflow-hidden">
+        
+        <!-- Toolbar (Left) -->
+        <aside class="w-12 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex flex-col items-center py-4 gap-4">
+            <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-xl" title="Trendline">📈</button>
+            <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-xl" title="Fibonacci">📏</button>
+            <button class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-xl" title="Save Preset">💾</button>
+        </aside>
+
+        <!-- Chart Area (Center) -->
+        <section class="flex-1 relative flex flex-col">
+            <div id="chartContainer" class="flex-1 w-full h-full"></div>
+        </section>
+
+        <!-- Sidebar: News & AI (Right) -->
+        <aside class="w-80 border-l border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-900 terminal-font text-xs">
+            
+            <!-- AI Recommender Module -->
+            <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+                <h2 class="font-bold text-blue-500 mb-2 uppercase">AI Recommender</h2>
+                <button id="runAi" class="w-full bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">GENERATE FORECAST</button>
+                <div id="aiOutput" class="mt-3 hidden text-gray-600 dark:text-gray-400">
+                    <p class="text-green-500 font-bold mb-1">> SIGNAL: BULLISH DIVERGENCE</p>
+                    <p>> RSI: 42.4 (Oversold recovery)</p>
+                    <p>> MACD: Bullish Crossover detected</p>
+                    <p>> Target: +4.2% | Stop Loss: -1.8%</p>
+                </div>
+            </div>
+
+            <!-- Live News Terminal -->
+            <div class="flex-1 overflow-hidden flex flex-col p-4">
+                <h2 class="font-bold text-red-500 mb-3 uppercase flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Live Feed
+                </h2>
+                <div id="newsFeed" class="flex-1 overflow-y-auto space-y-3 pr-2">
+                    <!-- News items injected here via JS -->
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        // --- 1. Theme Logic ---
+        const html = document.documentElement;
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            html.classList.toggle('dark');
+            updateChartTheme();
+        });
+
+        // --- 2. Charting Engine ---
+        const chartContainer = document.getElementById('chartContainer');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: chartContainer.clientHeight,
+            layout: { background: { type: 'solid', color: '#030712' }, textColor: '#9ca3af' },
+            grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } },
+            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+            timeScale: { timeVisible: true, secondsVisible: false },
+        });
+
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: '#22c55e', downColor: '#ef4444', borderVisible: false,
+            wickUpColor: '#22c55e', wickDownColor: '#ef4444'
+        });
+
+        function updateChartTheme() {
+            const isDark = html.classList.contains('dark');
+            chart.applyOptions({
+                layout: { background: { color: isDark ? '#030712' : '#ffffff' }, textColor: isDark ? '#9ca3af' : '#374151' },
+                grid: { vertLines: { color: isDark ? '#1f2937' : '#e5e7eb' }, horzLines: { color: isDark ? '#1f2937' : '#e5e7eb' } }
+            });
+        }
+
+        // Handle Resize
+        window.addEventListener('resize', () => chart.resize(chartContainer.clientWidth, chartContainer.clientHeight));
+
+        // --- 3. Live Data (Binance WebSocket) ---
+        let currentSymbol = 'XRPUSDT';
+        let ws = null;
+
+        async function loadData() {
+            // Fetch historical data
+            const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=1m&limit=100`);
+            const data = await res.json();
+            const formattedData = data.map(d => ({
+                time: d[0] / 1000, open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4])
+            }));
+            candleSeries.setData(formattedData);
+
+            // Connect Live WebSocket
+            if(ws) ws.close();
+            ws = new WebSocket(`wss://stream.binance.com:9443/ws/${currentSymbol.toLowerCase()}@kline_1m`);
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                const kline = message.k;
+                candleSeries.update({
+                    time: kline.t / 1000, open: parseFloat(kline.o), high: parseFloat(kline.h), low: parseFloat(kline.l), close: parseFloat(kline.c)
+                });
+            };
+        }
+        
+        document.getElementById('assetSelect').addEventListener('change', (e) => {
+            currentSymbol = e.target.value;
+            loadData();
+            document.getElementById('aiOutput').classList.add('hidden'); // Reset AI
+        });
+        loadData(); // Init
+
+        // --- 4. Mock Bloomberg News Terminal ---
+        const headlines = [
+            "SEC Appeals Court Ruling on Asset Securities",
+            "Whale Moves 45M Tokens to Cold Storage",
+            "Asian Markets Open Mixed Amid Rate Hike Fears",
+            "New Liquidity Protocol Launches on Mainnet",
+            "Exchange Outflows Hit 6-Month High",
+            "Macro: Inflation Data Shows Unexpected Cooling"
+        ];
+        const newsFeed = document.getElementById('newsFeed');
+        
+        function addNews() {
+            const headline = headlines[Math.floor(Math.random() * headlines.length)];
+            const time = new Date().toLocaleTimeString([], { hour12: false });
+            const isPositive = Math.random() > 0.5;
+            
+            const div = document.createElement('div');
+            div.className = "border-b border-gray-200 dark:border-gray-800 pb-2";
+            div.innerHTML = `<span class="text-gray-500">[${time}]</span> <span class="${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}">${headline}</span>`;
+            
+            newsFeed.prepend(div);
+            if(newsFeed.children.length > 20) newsFeed.lastChild.remove();
+        }
+        setInterval(addNews, 8000);
+        for(let i=0; i<6; i++) addNews(); // Initial load
+
+        // --- 5. AI Recommender Interaction ---
+        document.getElementById('runAi').addEventListener('click', (e) => {
+            const btn = e.target;
+            btn.innerText = "ANALYZING TAPE...";
+            setTimeout(() => {
+                btn.innerText = "GENERATE FORECAST";
+                document.getElementById('aiOutput').classList.remove('hidden');
+            }, 1200);
+        });
+        
+        // --- 6. SSO Mock Alert ---
+        document.getElementById('ssoLogin').addEventListener('click', () => {
+            alert('SSO flow would initialize here using Supabase Auth.');
+        });
+    </script>
+</body>
+</html>
