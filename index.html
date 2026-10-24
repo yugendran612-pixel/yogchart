@@ -401,6 +401,7 @@
 
                 <button onclick="toggleIndicatorModal()" class="bg-yog-800 hover:bg-yog-700 text-cyan-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap">ƒx Indicators</button>
                 <button onclick="toggleRsiSubchart()" class="bg-yog-800 hover:bg-yog-700 text-slate-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap">📊 RSI</button>
+                <button onclick="toggleWatchlistSymbol(currentSymbol)" id="watchlistStarBtn" class="bg-yog-800 hover:bg-yog-700 text-slate-400 text-[14px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap" title="Add to / remove from watchlist">☆</button>
             </div>
 
             <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -417,16 +418,32 @@
             <!-- Chart + Drawing Rail Wrapper (Always Visible & High Priority on Phone/Tablet/Desktop/TV) -->
             <div id="mobileChartPane" class="flex-1 flex min-h-[300px] sm:min-h-[420px] lg:min-h-0 min-w-0">
                 <!-- Left Drawing Suite Toolbar (desktop only — phones/tablets use the floating tool tray) -->
-                <aside id="drawSidebar" class="w-10 sm:w-12 bg-yog-900 border-r border-yog-700 hidden lg:flex flex-col items-center py-2 gap-1 z-20 flex-shrink-0 overflow-y-auto">
-                    <button onclick="setDrawingTool('cursor')" id="draw-cursor" data-tool="cursor" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent tool-active" title="Crosshair">➕</button>
+                <aside id="drawSidebar" class="w-10 sm:w-12 bg-yog-900 border-r border-yog-700 hidden lg:flex flex-col items-center py-2 gap-1 z-20 flex-shrink-0 overflow-y-auto no-scrollbar">
+                    <button onclick="setDrawingTool('cursor')" id="draw-cursor" data-tool="cursor" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent tool-active" title="Select / Move">➕</button>
                     <button onclick="setDrawingTool('trendline')" id="draw-trendline" data-tool="trendline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Trendline">📏</button>
-                    <button onclick="setDrawingTool('ray')" id="draw-ray" data-tool="ray" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Extended Ray">↗️</button>
+                    <button onclick="setDrawingTool('ray')" id="draw-ray" data-tool="ray" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Ray (extends infinitely)">↗️</button>
+                    <button onclick="setDrawingTool('arrow')" id="draw-arrow" data-tool="arrow" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Arrow">➜</button>
                     <button onclick="setDrawingTool('hline')" id="draw-hline" data-tool="hline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Horizontal S/R">➖</button>
-                    <button onclick="setDrawingTool('vline')" id="draw-vline" data-tool="vline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Vertical Line">┃</button>
-                    <button onclick="setDrawingTool('fib')" id="draw-fib" data-tool="fib" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Fibonacci">📐</button>
+                    <button onclick="setDrawingTool('vline')" id="draw-vline" data-tool="vline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Vertical Time Line">┃</button>
+                    <button onclick="setDrawingTool('fib')" id="draw-fib" data-tool="fib" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Fibonacci Retracement">📐</button>
                     <button onclick="setDrawingTool('rect')" id="draw-rect" data-tool="rect" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Zone Box">🔲</button>
-                    <button onclick="setDrawingTool('brush')" id="draw-brush" data-tool="brush" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Brush">✏️</button>
+                    <button onclick="setDrawingTool('ellipse')" id="draw-ellipse" data-tool="ellipse" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Ellipse">⬭</button>
+                    <button onclick="setDrawingTool('channel')" id="draw-channel" data-tool="channel" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Parallel Channel (drag twice)">☰</button>
+                    <button onclick="setDrawingTool('brush')" id="draw-brush" data-tool="brush" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Freehand Brush">✏️</button>
                     <button onclick="setDrawingTool('text')" id="draw-text" data-tool="text" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Text Callout">🔤</button>
+                    <div class="w-7 h-px bg-yog-700 my-1"></div>
+                    <button onclick="setDrawingTool('longpos')" id="draw-longpos" data-tool="longpos" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Long Position (entry → target, stop auto-set)">🟢</button>
+                    <button onclick="setDrawingTool('shortpos')" id="draw-shortpos" data-tool="shortpos" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Short Position (entry → target, stop auto-set)">🔴</button>
+                    <button onclick="setDrawingTool('riskreward')" id="draw-riskreward" data-tool="riskreward" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Risk:Reward Tool (entry → stop, projects 1R/2R/3R)">⚖️</button>
+                    <button onclick="setDrawingTool('measure')" id="draw-measure" data-tool="measure" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Measure Δ price / bars">🔍</button>
+                    <div class="w-7 h-px bg-yog-700 my-1"></div>
+                    <button onclick="toggleMagnet()" id="magnetToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Magnet (snap to OHLC): OFF">🧲</button>
+                    <button onclick="toggleLockDrawings()" id="lockToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Lock all drawings">🔒</button>
+                    <button onclick="toggleHideDrawings()" id="hideToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Hide / show all drawings">👁</button>
+                    <button onclick="openDrawingSettingsModal()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Drawing properties (color / width / style)">🎨</button>
+                    <div class="w-7 h-px bg-yog-700 my-1"></div>
+                    <button onclick="undoLastDrawing()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Undo last drawing">↩</button>
+                    <button onclick="clearAllDrawings()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-transparent" title="Clear all drawings">🗑</button>
                 </aside>
 
                 <!-- Center Interactive Chart -->
@@ -471,15 +488,18 @@
                         <span class="w-px h-4 bg-yog-600"></span>
                         <span class="text-cyan-400 text-[11px] leading-none font-bold">›</span>
                     </div>
-                    <div id="toolTrayPanel" class="absolute left-2 top-16 z-30 bg-yog-900/95 backdrop-blur-md border border-yog-600 rounded-2xl p-2.5 shadow-2xl grid-cols-3 gap-1.5 w-56">
+                    <div id="toolTrayPanel" class="absolute left-2 top-16 z-30 bg-yog-900/95 backdrop-blur-md border border-yog-600 rounded-2xl p-2.5 shadow-2xl grid-cols-3 gap-1.5 w-60">
                         <button data-tool="cursor" onclick="setDrawingTool('cursor'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
-                            <span class="text-base leading-none">➕</span><span>Crosshair</span>
+                            <span class="text-base leading-none">➕</span><span>Select</span>
                         </button>
                         <button data-tool="trendline" onclick="setDrawingTool('trendline'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
-                            <span class="text-base leading-none">📏</span><span>Trendline</span>
+                            <span class="text-base leading-none">📏</span><span>Trend</span>
                         </button>
                         <button data-tool="ray" onclick="setDrawingTool('ray'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
                             <span class="text-base leading-none">↗️</span><span>Ray</span>
+                        </button>
+                        <button data-tool="arrow" onclick="setDrawingTool('arrow'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">➜</span><span>Arrow</span>
                         </button>
                         <button data-tool="hline" onclick="setDrawingTool('hline'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
                             <span class="text-base leading-none">➖</span><span>H-Line</span>
@@ -488,16 +508,46 @@
                             <span class="text-base leading-none">┃</span><span>V-Line</span>
                         </button>
                         <button data-tool="fib" onclick="setDrawingTool('fib'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
-                            <span class="text-base leading-none">📐</span><span>Fibonacci</span>
+                            <span class="text-base leading-none">📐</span><span>Fib</span>
                         </button>
                         <button data-tool="rect" onclick="setDrawingTool('rect'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
-                            <span class="text-base leading-none">🔲</span><span>Zone Box</span>
+                            <span class="text-base leading-none">🔲</span><span>Zone</span>
+                        </button>
+                        <button data-tool="ellipse" onclick="setDrawingTool('ellipse'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">⬭</span><span>Ellipse</span>
+                        </button>
+                        <button data-tool="channel" onclick="setDrawingTool('channel'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">☰</span><span>Channel</span>
                         </button>
                         <button data-tool="brush" onclick="setDrawingTool('brush'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
                             <span class="text-base leading-none">✏️</span><span>Brush</span>
                         </button>
                         <button data-tool="text" onclick="setDrawingTool('text'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
                             <span class="text-base leading-none">🔤</span><span>Text</span>
+                        </button>
+                        <button data-tool="longpos" onclick="setDrawingTool('longpos'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-emerald-300 transition">
+                            <span class="text-base leading-none">🟢</span><span>Long</span>
+                        </button>
+                        <button data-tool="shortpos" onclick="setDrawingTool('shortpos'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-rose-300 transition">
+                            <span class="text-base leading-none">🔴</span><span>Short</span>
+                        </button>
+                        <button data-tool="riskreward" onclick="setDrawingTool('riskreward'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">⚖️</span><span>R:R</span>
+                        </button>
+                        <button data-tool="measure" onclick="setDrawingTool('measure'); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">🔍</span><span>Measure</span>
+                        </button>
+                        <button onclick="toggleMagnet(); closeToolTray();" id="magnetToggleBtnMobile" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">🧲</span><span>Magnet</span>
+                        </button>
+                        <button onclick="toggleLockDrawings(); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">🔒</span><span>Lock</span>
+                        </button>
+                        <button onclick="toggleHideDrawings(); closeToolTray();" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">👁</span><span>Hide</span>
+                        </button>
+                        <button onclick="openDrawingSettingsModal()" class="js-draw-btn flex flex-col items-center gap-1 py-2 rounded-xl hover:bg-yog-700 border border-transparent text-[9px] font-bold text-slate-300 transition">
+                            <span class="text-base leading-none">🎨</span><span>Style</span>
                         </button>
                         <div class="col-span-3 flex items-center gap-1.5 pt-1.5 mt-1 border-t border-yog-700">
                             <button onclick="undoLastDrawing()" class="flex-1 text-[10px] bg-yog-800 hover:bg-yog-700 text-slate-300 py-1.5 rounded-lg font-bold transition">↩ Undo</button>
@@ -646,48 +696,198 @@
     <!-- MODAL 1: CUSTOM ACCOUNT PROFILE EDITOR                    -->
     <!-- ========================================================= -->
     <div id="profileEditorModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
-                <h3 class="font-extrabold text-white text-sm">⚙️ Edit Individual Account & Profile</h3>
+        <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-lg overflow-hidden shadow-2xl max-h-[92dvh] flex flex-col">
+            <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800 flex-shrink-0">
+                <h3 class="font-extrabold text-white text-sm">⚙️ Trader Profile &amp; Account Settings</h3>
                 <button onclick="closeProfileEditorModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
             </div>
-            <div class="p-5 space-y-3.5 text-xs">
-                <div>
-                    <label class="text-slate-400 font-bold block mb-1">Display Name</label>
-                    <input id="editDisplayName" type="text" placeholder="Yogi Quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white font-semibold focus:border-cyan-400 focus:outline-none">
-                </div>
-                <div>
-                    <label class="text-slate-400 font-bold block mb-1">Unique Trader Handle (@username)</label>
-                    <input id="editUsername" type="text" placeholder="yogi_quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-cyan-300 terminal-font font-semibold focus:border-cyan-400 focus:outline-none">
-                </div>
-                <div>
-                    <label class="text-slate-400 font-bold block mb-1">Trader Bio / Strategy Notes</label>
-                    <input id="editBio" type="text" placeholder="Multi-Asset Institutional Quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none">
-                </div>
-                <div class="grid grid-cols-3 gap-2">
+            <div class="p-5 space-y-3.5 text-xs overflow-y-auto no-scrollbar">
+                <!-- Identity -->
+                <div class="bg-yog-950 border border-yog-700 rounded-lg p-3 space-y-2.5">
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-400 font-bold">Identity</div>
                     <div>
-                        <label class="text-slate-400 font-bold block mb-1">Avatar Badge</label>
-                        <input id="editAvatarColor" type="color" value="#2563EB" class="w-full h-9 rounded-lg bg-yog-950 border border-yog-700 cursor-pointer p-1">
+                        <label class="text-slate-400 font-bold block mb-1">Display Name</label>
+                        <input id="editDisplayName" type="text" placeholder="Yogi Quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white font-semibold focus:border-cyan-400 focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Username (@handle)</label>
+                            <input id="editUsername" type="text" placeholder="yogi_quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-cyan-300 terminal-font font-semibold focus:border-cyan-400 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Avatar Badge</label>
+                            <input id="editAvatarColor" type="color" value="#2563EB" class="w-full h-9 rounded-lg bg-yog-950 border border-yog-700 cursor-pointer p-1">
+                        </div>
                     </div>
                     <div>
-                        <label class="text-slate-400 font-bold block mb-1">Default Lev</label>
-                        <input id="editDefaultLev" type="number" min="1" max="100" value="20" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2.5 py-2 text-white terminal-font font-bold">
-                    </div>
-                    <div>
-                        <label class="text-slate-400 font-bold block mb-1">Risk Profile</label>
-                        <select id="editRiskTolerance" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
-                            <option value="Conservative">Conservative</option>
-                            <option value="Moderate" selected>Moderate</option>
-                            <option value="Aggressive">Aggressive</option>
-                            <option value="Institutional">Institutional</option>
-                        </select>
+                        <label class="text-slate-400 font-bold block mb-1">Trader Bio / Strategy Notes</label>
+                        <input id="editBio" type="text" placeholder="Multi-Asset Institutional Quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none">
                     </div>
                 </div>
+
+                <!-- Trading Style -->
+                <div class="bg-yog-950 border border-yog-700 rounded-lg p-3 space-y-2.5">
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-400 font-bold">Trading Style</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Trading Style</label>
+                            <select id="editTradingStyle" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
+                                <option value="Scalper">Scalper (seconds–minutes)</option>
+                                <option value="Day Trader">Day Trader (intraday)</option>
+                                <option value="Swing Trader">Swing Trader (days–weeks)</option>
+                                <option value="Position Trader">Position Trader (weeks–months)</option>
+                                <option value="Quant Algo">Quant / Algorithmic</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Experience Level</label>
+                            <select id="editExperienceLevel" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
+                                <option value="Novice">Novice (&lt;1 yr)</option>
+                                <option value="Intermediate">Intermediate (1–3 yr)</option>
+                                <option value="Advanced">Advanced (3–7 yr)</option>
+                                <option value="Professional">Professional (7+ yr)</option>
+                                <option value="Institutional">Institutional / Prop Desk</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Risk Tolerance</label>
+                            <select id="editRiskTolerance" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
+                                <option value="Conservative">Conservative</option>
+                                <option value="Moderate" selected>Moderate</option>
+                                <option value="Aggressive">Aggressive</option>
+                                <option value="Institutional">Institutional</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Default Risk per Trade (%)</label>
+                            <select id="editRiskPerTrade" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
+                                <option value="0.5">0.5% (institutional)</option>
+                                <option value="1">1% (conservative)</option>
+                                <option value="2" selected>2% (standard)</option>
+                                <option value="3">3% (aggressive)</option>
+                                <option value="5">5% (very aggressive)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Default Leverage</label>
+                            <input id="editDefaultLev" type="number" min="1" max="100" value="20" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2.5 py-2 text-white terminal-font font-bold">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Default Timeframe</label>
+                            <select id="editDefaultTimeframe" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
+                                <option value="1m">1 minute</option>
+                                <option value="5m">5 minutes</option>
+                                <option value="15m">15 minutes</option>
+                                <option value="1h">1 hour</option>
+                                <option value="4h">4 hours</option>
+                                <option value="1d">1 day</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Default Chart Type</label>
+                            <select id="editDefaultChartType" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
+                                <option value="Candlestick">Candlestick</option>
+                                <option value="Bar">Bar (OHLC)</option>
+                                <option value="Line">Line</option>
+                                <option value="Area">Area</option>
+                                <option value="Baseline">Baseline</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Dashboard Layout</label>
+                            <select id="editDashboardLayout" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
+                                <option value="Comfortable">Comfortable (spacious)</option>
+                                <option value="Compact">Compact (more data)</option>
+                                <option value="Minimal">Minimal (chart focus)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Handles -->
+                <div class="bg-yog-950 border border-yog-700 rounded-lg p-3 space-y-2.5">
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-400 font-bold">Social &amp; Community</div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Twitter / X Handle</label>
+                            <input id="editTwitter" type="text" placeholder="@yogi_quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Discord Username</label>
+                            <input id="editDiscord" type="text" placeholder="yogi_quant#0001" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1">Telegram Handle</label>
+                            <input id="editTelegram" type="text" placeholder="@yogi_quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white focus:border-cyan-400 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Actions -->
+                <div class="bg-yog-950 border border-yog-700 rounded-lg p-3 space-y-2">
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-400 font-bold">Account Actions</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="resetPaperAccount()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-2 rounded-lg font-bold transition">♻️ Reset Paper Account</button>
+                        <button onclick="closeProfileEditorModal(); openTradingStatsModal();" class="bg-yog-800 hover:bg-yog-700 text-cyan-300 border border-yog-600 px-3 py-2 rounded-lg font-bold transition">📊 View Trading Stats</button>
+                        <button onclick="closeProfileEditorModal(); openActivityLogModal();" class="bg-yog-800 hover:bg-yog-700 text-slate-200 border border-yog-600 px-3 py-2 rounded-lg font-bold transition">📜 Activity Log</button>
+                        <button onclick="closeProfileEditorModal(); openWatchlistModal();" class="bg-yog-800 hover:bg-yog-700 text-amber-300 border border-yog-600 px-3 py-2 rounded-lg font-bold transition">⭐ My Watchlist</button>
+                    </div>
+                </div>
+
                 <div id="profileSaveMsg" class="text-[11px] font-bold text-emerald-400 hidden">Profile synced to Supabase Cloud!</div>
-                <div class="flex justify-end gap-2 pt-2">
-                    <button onclick="closeProfileEditorModal()" class="bg-yog-800 hover:bg-yog-700 text-slate-300 font-bold px-4 py-2 rounded-lg">Cancel</button>
-                    <button onclick="saveCustomProfileDetails()" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-4 py-2 rounded-lg shadow">💾 Save Account Details</button>
+            </div>
+            <div class="px-5 py-3 border-t border-yog-700 bg-yog-800 flex justify-end gap-2 flex-shrink-0">
+                <button onclick="closeProfileEditorModal()" class="bg-yog-700 hover:bg-yog-600 text-slate-300 font-bold px-4 py-2 rounded-lg">Cancel</button>
+                <button onclick="saveCustomProfileDetails()" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-4 py-2 rounded-lg shadow">💾 Save Account Details</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- v3: TRADING STATS MODAL -->
+    <div id="tradingStatsModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
+                <h3 class="font-extrabold text-white text-sm">📊 Trading Performance Stats</h3>
+                <button onclick="closeTradingStatsModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+            </div>
+            <div class="p-5 space-y-3 text-xs">
+                <div id="tradingStatsContent" class="space-y-3"></div>
+                <div class="text-[10px] text-slate-500 leading-relaxed border-t border-yog-700 pt-3">
+                    Stats are computed from your closed paper positions. Open positions are excluded. Use the <strong class="text-rose-400">Reset Paper Account</strong> action in your profile to wipe everything and start over.
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- v3: WATCHLIST MODAL -->
+    <div id="watchlistModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
+                <h3 class="font-extrabold text-white text-sm">⭐ My Watchlist</h3>
+                <button onclick="closeWatchlistModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+            </div>
+            <div class="p-5 space-y-3 text-xs">
+                <div class="text-slate-400 text-[11px]">Tap any star on the chart or screener to add. Tap a row below to open its chart; tap ✕ to remove.</div>
+                <div id="watchlistContent" class="space-y-1.5 max-h-72 overflow-y-auto no-scrollbar"></div>
+                <div class="border-t border-yog-700 pt-3">
+                    <button onclick="closeWatchlistModal(); switchView('home');" class="w-full bg-yog-800 hover:bg-yog-700 text-cyan-300 font-bold py-2 rounded-lg transition">Browse Markets to Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- v3: ACTIVITY LOG MODAL -->
+    <div id="activityLogModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
+                <h3 class="font-extrabold text-white text-sm">📜 Recent Activity</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearActivityLog()" class="text-[10px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-1 rounded font-bold transition">Clear</button>
+                    <button onclick="closeActivityLogModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+                </div>
+            </div>
+            <div class="p-5 space-y-2 text-xs">
+                <div id="activityLogContent" class="space-y-1.5 max-h-80 overflow-y-auto no-scrollbar"></div>
             </div>
         </div>
     </div>
@@ -911,7 +1111,73 @@
         </div>
     </div>
 
-    <!-- MODAL 4: TECHNICAL INDICATORS -->
+
+    <!-- v3: DRAWING SETTINGS MODAL (color / width / style / magnet / labels / lock) -->
+    <div id="drawingSettingsModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+            <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
+                <h3 class="font-extrabold text-white text-sm">🎨 Drawing Properties &amp; Style</h3>
+                <button onclick="closeDrawingSettingsModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+            </div>
+            <div class="p-5 space-y-3.5 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-slate-400 font-bold block mb-1">Default Line Color</label>
+                        <input id="dsColor" type="color" value="#38bdf8" class="w-full h-9 rounded-lg bg-yog-950 border border-yog-700 cursor-pointer p-1">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-bold block mb-1">Brush Color</label>
+                        <input id="dsBrushColor" type="color" value="#facc15" class="w-full h-9 rounded-lg bg-yog-950 border border-yog-700 cursor-pointer p-1">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-bold block mb-1">Line Width (px)</label>
+                        <input id="dsLineWidth" type="number" min="1" max="6" value="2" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white terminal-font font-bold">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-bold block mb-1">Brush Width (px)</label>
+                        <input id="dsBrushWidth" type="number" min="1" max="10" value="2" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white terminal-font font-bold">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-bold block mb-1">Line Style</label>
+                        <select id="dsLineStyle" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
+                            <option value="solid">Solid</option>
+                            <option value="dashed">Dashed</option>
+                            <option value="dotted">Dotted</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-bold block mb-1">Magnet Mode</label>
+                        <select id="dsMagnetMode" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-2 text-white font-bold">
+                            <option value="close">Snap to Close</option>
+                            <option value="ohlc">Snap to nearest OHLC</option>
+                            <option value="high">Snap to High</option>
+                            <option value="low">Snap to Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-yog-950 border border-yog-700 rounded-lg p-3 space-y-2">
+                    <label class="flex items-center gap-2.5 font-bold text-slate-200 cursor-pointer">
+                        <input type="checkbox" id="dsMagnet" class="accent-blue-500"> Enable magnet (snap drawing anchors to candle OHLC)
+                    </label>
+                    <label class="flex items-center gap-2.5 font-bold text-slate-200 cursor-pointer">
+                        <input type="checkbox" id="dsShowLabels" checked class="accent-blue-500"> Show price labels on lines / fib levels
+                    </label>
+                    <label class="flex items-center gap-2.5 font-bold text-slate-200 cursor-pointer">
+                        <input type="checkbox" id="dsLocked" class="accent-blue-500"> Lock all drawings (prevent move / delete)
+                    </label>
+                </div>
+                <div class="bg-blue-500/5 border border-blue-500/20 rounded-lg p-2.5 text-[10px] text-slate-400 leading-relaxed">
+                    <strong class="text-cyan-300">Tip:</strong> On mobile, drag (press-drag-release) to draw any 2-point tool. Long-press an existing drawing in Select mode to delete it; drag to move.
+                </div>
+            </div>
+            <div class="px-5 py-3 bg-yog-800 border-t border-yog-700 flex justify-end gap-2">
+                <button onclick="closeDrawingSettingsModal()" class="bg-yog-700 hover:bg-yog-600 text-slate-300 font-bold px-4 py-1.5 rounded-lg text-xs">Cancel</button>
+                <button onclick="applyDrawingSettings()" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-4 py-1.5 rounded-lg text-xs">Apply</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- MODAL 4: TECHNICAL INDICATORS -->
     <div id="indicatorModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-lg overflow-hidden shadow-2xl">
             <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
@@ -1014,7 +1280,15 @@
         });
 
         let currentUser = null;
-        let userProfileData = JSON.parse(localStorage.getItem('yog_profile_meta') || '{"display_name":"Yogchart Guest Trader","username":"guest_quant","bio":"Multi-Asset Quant & Technical Analyst","avatar_color":"#2563EB","preferred_leverage":20,"risk_tolerance":"Moderate"}');
+        let userProfileData = JSON.parse(localStorage.getItem('yog_profile_meta') || JSON.stringify({
+            display_name: 'Yogchart Guest Trader', username: 'guest_quant',
+            bio: 'Multi-Asset Quant & Technical Analyst', avatar_color: '#2563EB',
+            preferred_leverage: 20, risk_tolerance: 'Moderate',
+            trading_style: 'Swing Trader', experience_level: 'Intermediate',
+            risk_per_trade: 2, default_timeframe: '1m', default_chart_type: 'Candlestick',
+            dashboard_layout: 'Comfortable', twitter: '', discord: '', telegram: '',
+            watchlist: []
+        }));
         let paperBalance = parseFloat(localStorage.getItem('yog_paper_balance')) || 100000.00;
         let realizedPnl = parseFloat(localStorage.getItem('yog_realized_pnl')) || 0.00;
         let currentSymbol = 'XRPUSDT';
@@ -1465,7 +1739,6 @@
         }
         // Kick off non-blocking on startup
         window.addEventListener('DOMContentLoaded', () => setTimeout(loadFullBybitUniverse, 600));
-        ];
 
         function formatVol(num) {
             if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
@@ -1913,10 +2186,41 @@
         let rsiShown = false;
         window.toggleRsiSubchart = () => { rsiShown = !rsiShown; rsiContainer.style.display = rsiShown ? 'block' : 'none'; resizeChartsAndCanvas(); };
 
-        // Touch & Mouse Drawing Canvas
+        // ================================================================
+        // v3 MOBILE-FIRST DRAG-TO-DRAW ENGINE
+        //   • Pointer Events API (works for mouse + touch + pen)
+        //   • Press-drag-release for ALL 2-point tools (no more tap-tap)
+        //   • Magnifier badge shows live anchor price/time during drag
+        //   • Magnet (snap to nearest candle OHLC) toggle
+        //   • Brush stroke smoothing (Douglas–Peucker)
+        //   • Drag-to-move existing drawings + long-press to delete
+        //   • Drawing properties modal (color, width, style, label, lock, visibility)
+        //   • New tools: arrow, channel, long/short position, R:R, measure, ellipse
+        // ================================================================
         const drawingCanvas = document.getElementById('drawingCanvas');
         const ctx = drawingCanvas.getContext('2d');
-        let currentTool = 'cursor', pendingAnchor = null, mousePreviewPoint = null, isBrushing = false, currentBrushStroke = [];
+        let currentTool = 'cursor';
+        let pendingAnchor = null, mousePreviewPoint = null;
+        let isBrushing = false, currentBrushStroke = [];
+        // v3 drag-to-draw state
+        let dragStartPoint = null;       // p1 captured on pointerdown
+        let dragCurrentPoint = null;     // p2 updated on pointermove
+        let isDraggingDraw = false;      // active drag-to-draw in progress
+        let pointerDownPos = null;       // raw {x,y} for tap-vs-drag detection
+        let pointerDownTime = 0;
+        let longPressTimer = null;
+        let movingDrawingIdx = -1;       // index in userDrawings being drag-moved
+        let movingDrawingOffset = null;  // {dt, dp} offset from pointer to anchor
+        let channelPhase = 0;            // 0=none, 1=awaiting width drag for channel
+        let channelBaseLine = null;      // {p1, p2} for channel phase 1
+
+        // Drawing settings (persisted)
+        let drawSettings = JSON.parse(localStorage.getItem('yog_draw_settings') || JSON.stringify({
+            magnet: false, magnetMode: 'close', brushWidth: 2, lineWidth: 2,
+            lineStyle: 'solid', defaultColor: '#38bdf8', brushColor: '#facc15',
+            showLabels: true, locked: false, visible: true
+        }));
+        const saveDrawSettings = () => localStorage.setItem('yog_draw_settings', JSON.stringify(drawSettings));
 
         function resizeChartsAndCanvas() {
             const rect = chartContainer.getBoundingClientRect();
@@ -1931,150 +2235,701 @@
         new ResizeObserver(resizeChartsAndCanvas).observe(chartContainer);
         window.addEventListener('orientationchange', () => setTimeout(resizeChartsAndCanvas, 200));
 
-        // v2: Tool metadata shared by sidebar + floating tray
+        // v3: expanded tool metadata — shared by sidebar + floating tray
         const TOOL_META = {
-            cursor: { icon: '➕', label: 'Crosshair' }, trendline: { icon: '📏', label: 'Trendline' }, ray: { icon: '↗️', label: 'Ray' },
-            hline: { icon: '➖', label: 'H-Line' }, vline: { icon: '┃', label: 'V-Line' }, fib: { icon: '📐', label: 'Fibonacci' },
-            rect: { icon: '🔲', label: 'Zone Box' }, brush: { icon: '✏️', label: 'Brush' }, text: { icon: '🔤', label: 'Text' }
+            cursor:    { icon: '➕',  label: 'Select',      hint: 'Tap to select, drag to move, long-press to delete' },
+            trendline: { icon: '📏',  label: 'Trendline',   hint: 'Drag from start to end' },
+            ray:       { icon: '↗️',  label: 'Ray',         hint: 'Drag — extends infinitely from start point' },
+            hline:     { icon: '➖',  label: 'H-Line',      hint: 'Tap once for horizontal support / resistance' },
+            vline:     { icon: '┃',  label: 'V-Line',      hint: 'Tap once for vertical time marker' },
+            fib:       { icon: '📐',  label: 'Fibonacci',   hint: 'Drag from swing low → swing high (or vice versa)' },
+            rect:      { icon: '🔲',  label: 'Zone Box',    hint: 'Drag to mark a supply / demand zone' },
+            brush:     { icon: '✏️',  label: 'Brush',       hint: 'Freehand draw (smoothed)' },
+            text:      { icon: '🔤',  label: 'Text',        hint: 'Tap to drop a callout note' },
+            arrow:     { icon: '➜',  label: 'Arrow',       hint: 'Drag — line with arrowhead at the end' },
+            channel:   { icon: '☰',  label: 'Channel',     hint: 'Drag main trend → then drag channel width' },
+            longpos:   { icon: '🟢',  label: 'Long Pos',    hint: 'Drag entry → target; stop auto-set at 1:1 R:R' },
+            shortpos:  { icon: '🔴',  label: 'Short Pos',   hint: 'Drag entry → target; stop auto-set at 1:1 R:R' },
+            riskreward:{ icon: '⚖️',  label: 'R:R',         hint: 'Drag entry → stop; projects 1R/2R/3R targets' },
+            measure:   { icon: '🔍',  label: 'Measure',     hint: 'Drag to measure Δ price, Δ %, bars' },
+            ellipse:   { icon: '⬭',  label: 'Ellipse',     hint: 'Drag to bound an ellipse around a price/time zone' }
         };
+        const TWO_POINT_TOOLS = new Set(['trendline','ray','fib','rect','arrow','channel','longpos','shortpos','riskreward','measure','ellipse']);
+        const ONE_POINT_TOOLS = new Set(['hline','vline','text']);
 
         window.setDrawingTool = function(tool) {
             currentTool = tool; pendingAnchor = null; mousePreviewPoint = null;
+            isDraggingDraw = false; dragStartPoint = null; dragCurrentPoint = null;
+            channelPhase = 0; channelBaseLine = null;
             document.querySelectorAll('.js-draw-btn').forEach(b => b.classList.toggle('tool-active', b.dataset.tool === tool));
             const trayIconEl = document.getElementById('toolTrayIcon');
             if (trayIconEl && TOOL_META[tool]) trayIconEl.innerText = TOOL_META[tool].icon;
             const isDraw = tool !== 'cursor';
             drawingCanvas.style.pointerEvents = isDraw ? 'auto' : 'none';
             drawingCanvas.style.cursor = isDraw ? 'crosshair' : 'default';
-            document.getElementById('drawingBanner').classList.toggle('hidden', !isDraw);
-            document.getElementById('activeToolLabel').innerText = `Tool: ${tool.toUpperCase()}`;
+            const banner = document.getElementById('drawingBanner');
+            if (banner) {
+                banner.classList.toggle('hidden', !isDraw);
+                if (isDraw && TOOL_META[tool]) banner.innerText = (TOOL_META[tool].hint || '').toUpperCase();
+            }
+            const labelEl = document.getElementById('activeToolLabel');
+            if (labelEl) labelEl.innerText = `Tool: ${TOOL_META[tool]?.label || tool.toUpperCase()}`;
             renderDrawingsCanvas();
         };
 
-        function getChartPoint(e) {
+        // Convert pointer event → {x, y, time, price} with optional magnet snap
+        function getChartPoint(e, applyMagnet) {
             const rect = drawingCanvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            const clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
             const x = clientX - rect.left, y = clientY - rect.top;
-            const time = chart.timeScale().coordinateToTime(x) || rawCandles[rawCandles.length - 1]?.time;
-            const price = activeSeries ? activeSeries.coordinateToPrice(y) : null;
+            let time = chart.timeScale().coordinateToTime(x) || rawCandles[rawCandles.length - 1]?.time || null;
+            let price = activeSeries ? activeSeries.coordinateToPrice(y) : null;
+            if (applyMagnet && drawSettings.magnet && price !== null && rawCandles.length > 0) {
+                // Find the candle whose time is closest to `time`
+                let bestIdx = 0, bestDt = Infinity;
+                for (let i = 0; i < rawCandles.length; i++) {
+                    const dt = Math.abs(rawCandles[i].time - time);
+                    if (dt < bestDt) { bestDt = dt; bestIdx = i; }
+                }
+                const candle = rawCandles[bestIdx];
+                const candidates = [candle.open, candle.high, candle.low, candle.close];
+                if (drawSettings.magnetMode === 'high') price = candle.high;
+                else if (drawSettings.magnetMode === 'low') price = candle.low;
+                else if (drawSettings.magnetMode === 'ohlc') {
+                    let best = candle.close, bestD = Infinity;
+                    for (const c of candidates) { const d = Math.abs(c - price); if (d < bestD) { bestD = d; best = c; } }
+                    price = best;
+                } else price = candle.close;
+            }
             return { x, y, time, price };
         }
 
-        drawingCanvas.addEventListener('mousedown', (e) => {
-            if (currentTool === 'brush') { isBrushing = true; const pt = getChartPoint(e); currentBrushStroke = [{ time: pt.time, price: pt.price }]; }
-        });
-        drawingCanvas.addEventListener('touchstart', (e) => {
-            if (currentTool === 'brush') { isBrushing = true; const pt = getChartPoint(e); currentBrushStroke = [{ time: pt.time, price: pt.price }]; }
-        }, { passive: true });
+        // ---- Magnifier / info badge ----
+        const magnifierEl = document.createElement('div');
+        magnifierEl.id = 'drawMagnifier';
+        magnifierEl.style.cssText = 'display:none;position:absolute;z-index:35;background:rgba(8,13,26,0.96);border:1px solid #38bdf8;border-radius:10px;padding:6px 9px;font:600 11px/1.4 Fira Code,monospace;color:#e2e8f0;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,0.6);max-width:230px;backdrop-filter:blur(6px);';
+        chartContainer.appendChild(magnifierEl);
+        function showMagnifier(pt, extra) {
+            if (!pt || pt.price === null) { magnifierEl.style.display = 'none'; return; }
+            const t = pt.time ? new Date(pt.time * 1000) : null;
+            const tStr = t ? t.toLocaleString([], { month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' }) : '--';
+            const pStr = pt.price >= 100 ? pt.price.toFixed(2) : pt.price >= 1 ? pt.price.toFixed(4) : pt.price.toFixed(6);
+            let html = `<div style="color:#38bdf8;font-weight:700;">$${pStr}</div><div style="color:#94a3b8;font-size:10px;">${tStr}</div>`;
+            if (extra) html += `<div style="color:#fbbf24;font-size:10px;margin-top:3px;white-space:nowrap;">${extra}</div>`;
+            magnifierEl.innerHTML = html;
+            magnifierEl.style.display = 'block';
+            // Position top-right with safe offset
+            const rect = chartContainer.getBoundingClientRect();
+            const mw = magnifierEl.offsetWidth, mh = magnifierEl.offsetHeight;
+            let left = rect.width - mw - 12, top = 12;
+            if (pt.x < rect.width * 0.5) left = 12; // flip to left if pointer is on the right
+            magnifierEl.style.left = left + 'px';
+            magnifierEl.style.top = top + 'px';
+        }
+        function hideMagnifier() { magnifierEl.style.display = 'none'; }
 
-        drawingCanvas.addEventListener('mousemove', (e) => {
-            if (currentTool === 'cursor' || !activeSeries) return;
-            const pt = getChartPoint(e);
-            if (!pt.price) return;
-            if (currentTool === 'brush' && isBrushing) { currentBrushStroke.push({ time: pt.time, price: pt.price }); renderDrawingsCanvas(); return; }
-            if (pendingAnchor) { mousePreviewPoint = { time: pt.time, price: pt.price }; renderDrawingsCanvas(); }
-        });
-        drawingCanvas.addEventListener('touchmove', (e) => {
-            if (currentTool === 'cursor' || !activeSeries) return;
-            const pt = getChartPoint(e);
-            if (!pt.price) return;
-            if (currentTool === 'brush' && isBrushing) { currentBrushStroke.push({ time: pt.time, price: pt.price }); renderDrawingsCanvas(); return; }
-            if (pendingAnchor) { mousePreviewPoint = { time: pt.time, price: pt.price }; renderDrawingsCanvas(); }
-        }, { passive: true });
+        // ---- Hit-testing for cursor mode (move / long-press delete) ----
+        function pointSegDist(px, py, x1, y1, x2, y2) {
+            const dx = x2 - x1, dy = y2 - y1;
+            if (dx === 0 && dy === 0) return Math.hypot(px - x1, py - y1);
+            const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx*dx + dy*dy)));
+            return Math.hypot(px - (x1 + t*dx), py - (y1 + t*dy));
+        }
+        function hitTestDrawing(d, px, py) {
+            const tol = 12;
+            if (d.type === 'hline') {
+                const y = activeSeries.priceToCoordinate(d.price); return y !== null && Math.abs(py - y) <= tol;
+            }
+            if (d.type === 'vline') {
+                const x = chart.timeScale().timeToCoordinate(d.time); return x !== null && Math.abs(px - x) <= tol;
+            }
+            if (d.type === 'text') {
+                const x = chart.timeScale().timeToCoordinate(d.time) ?? 0, y = activeSeries.priceToCoordinate(d.price) ?? 0;
+                return px >= x - 4 && px <= x + 120 && py >= y - 22 && py <= y + 4;
+            }
+            if (d.type === 'brush' && Array.isArray(d.points)) {
+                for (let i = 1; i < d.points.length; i++) {
+                    const x1 = chart.timeScale().timeToCoordinate(d.points[i-1].time), y1 = activeSeries.priceToCoordinate(d.points[i-1].price);
+                    const x2 = chart.timeScale().timeToCoordinate(d.points[i].time), y2 = activeSeries.priceToCoordinate(d.points[i].price);
+                    if (x1 === null || x2 === null) continue;
+                    if (pointSegDist(px, py, x1, y1, x2, y2) <= tol) return true;
+                }
+                return false;
+            }
+            if (d.p1 && d.p2) {
+                const x1 = chart.timeScale().timeToCoordinate(d.p1.time), y1 = activeSeries.priceToCoordinate(d.p1.price);
+                const x2 = chart.timeScale().timeToCoordinate(d.p2.time), y2 = activeSeries.priceToCoordinate(d.p2.price);
+                if (x1 === null || x2 === null || y1 === null || y2 === null) return false;
+                if (d.type === 'rect' || d.type === 'ellipse' || d.type === 'longpos' || d.type === 'shortpos' || d.type === 'riskreward') {
+                    const xmin = Math.min(x1,x2), xmax = Math.max(x1,x2), ymin = Math.min(y1,y2), ymax = Math.max(y1,y2);
+                    return px >= xmin - tol && px <= xmax + tol && py >= ymin - tol && py <= ymax + tol;
+                }
+                return pointSegDist(px, py, x1, y1, x2, y2) <= tol;
+            }
+            return false;
+        }
+        function findDrawingAt(px, py) {
+            for (let i = userDrawings.length - 1; i >= 0; i--) {
+                if (hitTestDrawing(userDrawings[i], px, py)) return i;
+            }
+            return -1;
+        }
 
-        const finishBrush = () => {
+        // ---- Brush smoothing: simple point decimation (every Nth + endpoint) ----
+        function simplifyBrush(pts) {
+            if (pts.length <= 4) return pts;
+            const out = [pts[0]];
+            const step = Math.max(1, Math.floor(pts.length / 60));
+            for (let i = step; i < pts.length - 1; i += step) out.push(pts[i]);
+            out.push(pts[pts.length - 1]);
+            return out;
+        }
+
+        // ---- Pointer event handlers (unified mouse + touch + pen) ----
+        drawingCanvas.addEventListener('pointerdown', (e) => {
+            if (!activeSeries) return;
+            // pointerdown fires for mouse + touch + pen; we accept all
+            e.preventDefault?.();
+            const pt = getChartPoint(e, true);
+            pointerDownPos = { x: pt.x, y: pt.y };
+            pointerDownTime = Date.now();
+            if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+
+            if (currentTool === 'cursor') {
+                if (drawSettings.locked) return;
+                // Hit-test existing drawings for move / long-press delete
+                const idx = findDrawingAt(pt.x, pt.y);
+                if (idx >= 0) {
+                    movingDrawingIdx = idx;
+                    const d = userDrawings[idx];
+                    // Store the offset from pointer to every anchor in the drawing,
+                    // so all anchors move together when we drag.
+                    const offsets = {};
+                    if (d.p1) offsets.p1 = { time: pt.time - d.p1.time, price: pt.price - d.p1.price };
+                    if (d.p2) offsets.p2 = { time: pt.time - d.p2.time, price: pt.price - d.p2.price };
+                    if (d.offset !== undefined) offsets.offset = d.offset; // preserve channel offset
+                    if (d.price !== undefined) offsets.price = pt.price - d.price;
+                    if (d.time !== undefined) offsets.time = pt.time - d.time;
+                    if (d.points) offsets.points = d.points.map(p => ({ time: pt.time - p.time, price: pt.price - p.price }));
+                    movingDrawingOffset = offsets;
+                    // Long-press delete: if the user holds the finger still for 700ms
+                    // without moving, delete this drawing instead of moving it.
+                    longPressTimer = setTimeout(() => {
+                        if (movingDrawingIdx >= 0) {
+                            userDrawings.splice(movingDrawingIdx, 1);
+                            movingDrawingIdx = -1;
+                            movingDrawingOffset = null;
+                            saveSymbolWorkspaceLocalAndCloud();
+                            renderDrawingsCanvas();
+                            showToast('🗑 Drawing deleted (long-press)', 'info');
+                        }
+                        longPressTimer = null;
+                    }, 700);
+                    return;
+                }
+                return;
+            }
+
+            if (currentTool === 'brush') {
+                isBrushing = true;
+                currentBrushStroke = [{ time: pt.time, price: pt.price }];
+                showMagnifier(pt, 'Brushing…');
+                return;
+            }
+
+            if (ONE_POINT_TOOLS.has(currentTool)) {
+                // hline / vline / text: commit on pointerdown (single tap)
+                commitOnePoint(currentTool, pt);
+                return;
+            }
+
+            if (TWO_POINT_TOOLS.has(currentTool)) {
+                if (currentTool === 'channel' && channelPhase === 1 && channelBaseLine) {
+                    // Phase 2 of channel: this pointerdown starts the width drag
+                    isDraggingDraw = true;
+                    dragStartPoint = pt;
+                    dragCurrentPoint = pt;
+                    showMagnifier(pt, 'Channel width…');
+                } else {
+                    // Phase 1 (or single drag for other 2-point tools)
+                    isDraggingDraw = true;
+                    dragStartPoint = pt;
+                    dragCurrentPoint = pt;
+                    showMagnifier(pt, TOOL_META[currentTool].label + '…');
+                }
+            }
+        });
+
+        drawingCanvas.addEventListener('pointermove', (e) => {
+            if (!activeSeries) return;
+            const pt = getChartPoint(e, true);
+            // Cancel long-press if pointer moves meaningfully
+            if (longPressTimer && pointerDownPos) {
+                const moved = Math.hypot(pt.x - pointerDownPos.x, pt.y - pointerDownPos.y);
+                if (moved > 6) { clearTimeout(longPressTimer); longPressTimer = null; }
+            }
+            // Cursor move mode: dragging an existing drawing
+            if (currentTool === 'cursor' && movingDrawingIdx >= 0) {
+                const d = userDrawings[movingDrawingIdx];
+                const off = movingDrawingOffset || {};
+                if (off.p1) { d.p1.time = pt.time - off.p1.time; d.p1.price = pt.price - off.p1.price; }
+                if (off.p2) { d.p2.time = pt.time - off.p2.time; d.p2.price = pt.price - off.p2.price; }
+                if (off.price !== undefined) d.price = pt.price - off.price;
+                if (off.time !== undefined) d.time = pt.time - off.time;
+                if (off.points) d.points = d.points.map((p, i) => ({ time: pt.time - off.points[i].time, price: pt.price - off.points[i].price }));
+                showMagnifier(pt, 'Moving…');
+                renderDrawingsCanvas();
+                return;
+            }
+            if (currentTool === 'cursor') return;
+
+            if (currentTool === 'brush' && isBrushing) {
+                currentBrushStroke.push({ time: pt.time, price: pt.price });
+                showMagnifier(pt, 'Brushing…');
+                renderDrawingsCanvas();
+                return;
+            }
+            if (isDraggingDraw) {
+                dragCurrentPoint = pt;
+                const extra = computeDragInfoExtra(currentTool, dragStartPoint, dragCurrentPoint);
+                showMagnifier(pt, extra);
+                renderDrawingsCanvas();
+            }
+        });
+
+        const finishPointerDraw = (e) => {
+            if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+            if (currentTool === 'cursor') {
+                if (movingDrawingIdx >= 0) {
+                    movingDrawingIdx = -1;
+                    movingDrawingOffset = null;
+                    saveSymbolWorkspaceLocalAndCloud();
+                    renderDrawingsCanvas();
+                }
+                hideMagnifier();
+                return;
+            }
             if (currentTool === 'brush' && isBrushing) {
                 isBrushing = false;
-                if (currentBrushStroke.length > 1) { userDrawings.push({ type: 'brush', points: currentBrushStroke }); saveSymbolWorkspaceLocalAndCloud(); }
-                currentBrushStroke = []; setDrawingTool('cursor');
+                if (currentBrushStroke.length > 1) {
+                    const simplified = simplifyBrush(currentBrushStroke);
+                    userDrawings.push({ type: 'brush', points: simplified, color: drawSettings.brushColor, width: drawSettings.brushWidth });
+                    saveSymbolWorkspaceLocalAndCloud();
+                }
+                currentBrushStroke = [];
+                setDrawingTool('cursor');
+                hideMagnifier();
+                return;
             }
+            if (isDraggingDraw && dragStartPoint && dragCurrentPoint) {
+                const moved = Math.hypot(dragCurrentPoint.x - dragStartPoint.x, dragCurrentPoint.y - dragStartPoint.y);
+                if (moved >= 4) {
+                    commitTwoPoint(currentTool, dragStartPoint, dragCurrentPoint);
+                }
+                isDraggingDraw = false;
+                dragStartPoint = null;
+                dragCurrentPoint = null;
+                if (currentTool !== 'channel' || channelPhase === 1) {
+                    // Auto-return to cursor unless channel phase 1 just completed
+                    if (currentTool === 'channel' && channelPhase === 0) {
+                        // Will be flipped to 1 inside commitTwoPoint
+                    } else {
+                        setDrawingTool('cursor');
+                    }
+                } else {
+                    setDrawingTool('cursor');
+                }
+            }
+            hideMagnifier();
         };
-        drawingCanvas.addEventListener('mouseup', finishBrush);
-        drawingCanvas.addEventListener('touchend', finishBrush);
-
-        drawingCanvas.addEventListener('click', (e) => {
-            if (currentTool === 'cursor' || currentTool === 'brush' || !activeSeries) return;
-            const pt = getChartPoint(e);
-            if (!pt.price) return;
-            if (currentTool === 'hline') { userDrawings.push({ type: 'hline', price: pt.price }); saveSymbolWorkspaceLocalAndCloud(); setDrawingTool('cursor'); return; }
-            if (currentTool === 'vline') { userDrawings.push({ type: 'vline', time: pt.time }); saveSymbolWorkspaceLocalAndCloud(); setDrawingTool('cursor'); return; }
-            if (currentTool === 'text') {
-                const label = prompt('Enter chart callout note:', 'Liquidity Zone');
-                if (label) { userDrawings.push({ type: 'text', time: pt.time, price: pt.price, text: label }); saveSymbolWorkspaceLocalAndCloud(); }
-                setDrawingTool('cursor'); return;
-            }
-            if (!pendingAnchor) pendingAnchor = { time: pt.time, price: pt.price };
-            else {
-                userDrawings.push({ type: currentTool, p1: pendingAnchor, p2: { time: pt.time, price: pt.price } });
-                pendingAnchor = null; mousePreviewPoint = null; saveSymbolWorkspaceLocalAndCloud(); setDrawingTool('cursor');
-            }
+        drawingCanvas.addEventListener('pointerup', finishPointerDraw);
+        drawingCanvas.addEventListener('pointercancel', finishPointerDraw);
+        drawingCanvas.addEventListener('pointerleave', (e) => {
+            // Only finish if we were actively drawing
+            if (isBrushing || isDraggingDraw) finishPointerDraw(e);
         });
 
-        window.undoLastDrawing = () => { userDrawings.pop(); saveSymbolWorkspaceLocalAndCloud(); renderDrawingsCanvas(); };
-        window.clearAllDrawings = () => { userDrawings = []; pendingAnchor = null; mousePreviewPoint = null; saveSymbolWorkspaceLocalAndCloud(); renderDrawingsCanvas(); };
+        function computeDragInfoExtra(tool, p1, p2) {
+            if (!p1 || !p2 || p1.price === null || p2.price === null) return TOOL_META[tool].label;
+            const dp = p2.price - p1.price;
+            const dpPct = (dp / p1.price) * 100;
+            if (tool === 'measure') {
+                const bars = Math.round(Math.abs(p2.time - p1.time) / 60);
+                return `Δ$${dp.toFixed(4)}  Δ${dpPct.toFixed(2)}%  ${bars} bars`;
+            }
+            if (tool === 'longpos' || tool === 'shortpos' || tool === 'riskreward') {
+                const risk = Math.abs(dp);
+                const rr = risk > 0 ? Math.abs(p2.price - p1.price) / risk : 0;
+                return `Risk $${risk.toFixed(4)}  Δ${dpPct.toFixed(2)}%`;
+            }
+            return `Δ${dpPct.toFixed(2)}%`;
+        }
+
+        function commitOnePoint(tool, pt) {
+            if (tool === 'hline') {
+                userDrawings.push({ type: 'hline', price: pt.price, color: drawSettings.defaultColor });
+            } else if (tool === 'vline') {
+                userDrawings.push({ type: 'vline', time: pt.time, color: '#818cf8' });
+            } else if (tool === 'text') {
+                const label = prompt('Enter chart callout note:', 'Liquidity Zone');
+                if (!label) { setDrawingTool('cursor'); return; }
+                userDrawings.push({ type: 'text', time: pt.time, price: pt.price, text: label, color: drawSettings.defaultColor });
+            }
+            saveSymbolWorkspaceLocalAndCloud();
+            setDrawingTool('cursor');
+            renderDrawingsCanvas();
+        }
+
+        function commitTwoPoint(tool, p1, p2) {
+            const drawing = {
+                type: tool, p1: { time: p1.time, price: p1.price }, p2: { time: p2.time, price: p2.price },
+                color: drawSettings.defaultColor, width: drawSettings.lineWidth, style: drawSettings.lineStyle
+            };
+            if (tool === 'brush') { drawing.points = currentBrushStroke; drawing.color = drawSettings.brushColor; drawing.width = drawSettings.brushWidth; }
+            if (tool === 'channel') {
+                if (channelPhase === 0) {
+                    // Phase 1 complete — stash base line, await phase 2
+                    channelBaseLine = { p1: drawing.p1, p2: drawing.p2 };
+                    channelPhase = 1;
+                    showToast('☰ Channel: now drag the channel width', 'info');
+                    // Don't push yet; keep tool active
+                    return;
+                } else {
+                    // Phase 2 complete — compute offset (vertical price delta)
+                    drawing.p1 = channelBaseLine.p1;
+                    drawing.p2 = channelBaseLine.p2;
+                    drawing.offset = p2.price - channelBaseLine.p2.price;
+                    channelPhase = 0;
+                    channelBaseLine = null;
+                }
+            }
+            userDrawings.push(drawing);
+            saveSymbolWorkspaceLocalAndCloud();
+        }
+
+        window.undoLastDrawing = () => {
+            if (userDrawings.length === 0) { showToast('Nothing to undo', 'info'); return; }
+            userDrawings.pop();
+            saveSymbolWorkspaceLocalAndCloud();
+            renderDrawingsCanvas();
+            showToast('↩ Undid last drawing', 'info');
+        };
+        window.clearAllDrawings = () => {
+            if (userDrawings.length === 0) return;
+            if (!confirm('Clear ALL drawings on this chart? This cannot be undone.')) return;
+            userDrawings = []; pendingAnchor = null; mousePreviewPoint = null;
+            saveSymbolWorkspaceLocalAndCloud();
+            renderDrawingsCanvas();
+            showToast('🗑 All drawings cleared', 'info');
+        };
+        // v3: toggle magnet, lock, visibility, drawing settings modal
+        window.toggleMagnet = function() {
+            drawSettings.magnet = !drawSettings.magnet;
+            saveDrawSettings();
+            const btn = document.getElementById('magnetToggleBtn');
+            if (btn) {
+                btn.classList.toggle('tool-active', drawSettings.magnet);
+                btn.title = 'Magnet (snap to OHLC): ' + (drawSettings.magnet ? 'ON' : 'OFF');
+            }
+            showToast('🧲 Magnet ' + (drawSettings.magnet ? 'ON' : 'OFF'), 'info');
+        };
+        window.toggleLockDrawings = function() {
+            drawSettings.locked = !drawSettings.locked;
+            saveDrawSettings();
+            const btn = document.getElementById('lockToggleBtn');
+            if (btn) btn.classList.toggle('tool-active', drawSettings.locked);
+            showToast(drawSettings.locked ? '🔒 Drawings locked' : '🔓 Drawings unlocked', 'info');
+        };
+        window.toggleHideDrawings = function() {
+            drawSettings.visible = !drawSettings.visible;
+            saveDrawSettings();
+            const btn = document.getElementById('hideToggleBtn');
+            if (btn) btn.classList.toggle('tool-active', !drawSettings.visible);
+            renderDrawingsCanvas();
+            showToast(drawSettings.visible ? '👁 Drawings shown' : '🙈 Drawings hidden', 'info');
+        };
+        window.openDrawingSettingsModal = function() {
+            // Sync current settings into modal inputs
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+            set('dsColor', drawSettings.defaultColor);
+            set('dsBrushColor', drawSettings.brushColor);
+            set('dsLineWidth', drawSettings.lineWidth);
+            set('dsBrushWidth', drawSettings.brushWidth);
+            set('dsLineStyle', drawSettings.lineStyle);
+            set('dsMagnetMode', drawSettings.magnetMode);
+            const cb = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v; };
+            cb('dsMagnet', drawSettings.magnet);
+            cb('dsShowLabels', drawSettings.showLabels);
+            cb('dsLocked', drawSettings.locked);
+            document.getElementById('drawingSettingsModal').classList.remove('hidden');
+        };
+        window.closeDrawingSettingsModal = () => document.getElementById('drawingSettingsModal').classList.add('hidden');
+        window.applyDrawingSettings = function() {
+            const get = (id) => { const el = document.getElementById(id); return el ? el.value : null; };
+            const ckb = (id) => { const el = document.getElementById(id); return el ? el.checked : false; };
+            drawSettings.defaultColor = get('dsColor') || '#38bdf8';
+            drawSettings.brushColor = get('dsBrushColor') || '#facc15';
+            drawSettings.lineWidth = parseInt(get('dsLineWidth')) || 2;
+            drawSettings.brushWidth = parseInt(get('dsBrushWidth')) || 2;
+            drawSettings.lineStyle = get('dsLineStyle') || 'solid';
+            drawSettings.magnetMode = get('dsMagnetMode') || 'close';
+            drawSettings.magnet = ckb('dsMagnet');
+            drawSettings.showLabels = ckb('dsShowLabels');
+            drawSettings.locked = ckb('dsLocked');
+            saveDrawSettings();
+            renderDrawingsCanvas();
+            closeDrawingSettingsModal();
+            showToast('🎨 Drawing settings applied', 'success');
+        };
+
+        // ====================== SHAPE RENDERING ======================
+        function applyStrokeStyle(d) {
+            ctx.strokeStyle = d.color || '#38bdf8';
+            ctx.lineWidth = Math.max(1, d.width || drawSettings.lineWidth || 2);
+            const style = d.style || drawSettings.lineStyle || 'solid';
+            if (style === 'dashed') ctx.setLineDash([8, 5]);
+            else if (style === 'dotted') ctx.setLineDash([2, 4]);
+            else ctx.setLineDash([]);
+        }
+        function drawArrowhead(x, y, angle, color) {
+            const size = 10;
+            ctx.save();
+            ctx.fillStyle = color || '#38bdf8';
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-size, -size * 0.45);
+            ctx.lineTo(-size, size * 0.45);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
 
         function drawShapeObject(d) {
+            if (!drawSettings.visible && d !== pendingPreviewObj()) return;
             ctx.save();
+            // ============ 1-POINT ============
             if (d.type === 'hline') {
                 const y = activeSeries.priceToCoordinate(d.price);
                 if (y !== null) {
-                    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]);
+                    applyStrokeStyle(d);
                     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(drawingCanvas.width, y); ctx.stroke();
-                    ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 10px Fira Code'; ctx.fillText(`S/R $${d.price.toFixed(4)}`, 14, y - 5);
+                    ctx.setLineDash([]);
+                    if (drawSettings.showLabels) {
+                        const lbl = `S/R $${fmtPrice(d.price)}`;
+                        ctx.font = 'bold 10px Fira Code';
+                        ctx.fillStyle = d.color || '#38bdf8';
+                        ctx.fillText(lbl, 14, y - 5);
+                    }
                 }
             } else if (d.type === 'vline') {
                 const x = chart.timeScale().timeToCoordinate(d.time);
                 if (x !== null) {
-                    ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+                    applyStrokeStyle(d);
                     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, drawingCanvas.height); ctx.stroke();
+                    ctx.setLineDash([]);
+                    if (drawSettings.showLabels) {
+                        const t = new Date(d.time * 1000);
+                        const lbl = t.toLocaleString([], { month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+                        ctx.font = 'bold 10px Fira Code';
+                        ctx.fillStyle = d.color || '#818cf8';
+                        ctx.fillText(lbl, x + 5, 14);
+                    }
                 }
             } else if (d.type === 'text') {
                 const x = chart.timeScale().timeToCoordinate(d.time) ?? 120, y = activeSeries.priceToCoordinate(d.price);
                 if (y !== null) {
-                    ctx.fillStyle = 'rgba(37, 99, 235, 0.9)'; ctx.fillRect(x, y - 18, ctx.measureText(d.text).width + 16, 20);
-                    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Inter'; ctx.fillText(d.text, x + 6, y - 4);
+                    ctx.font = 'bold 11px Inter';
+                    const w = ctx.measureText(d.text).width + 16;
+                    ctx.fillStyle = d.color ? hexAlpha(d.color, 0.92) : 'rgba(37, 99, 235, 0.92)';
+                    ctx.fillRect(x, y - 18, w, 20);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(d.text, x + 6, y - 4);
                 }
             } else if (d.type === 'brush' && Array.isArray(d.points)) {
-                ctx.strokeStyle = '#facc15'; ctx.lineWidth = 2; ctx.beginPath();
+                applyStrokeStyle({ color: d.color || drawSettings.brushColor, width: d.width || drawSettings.brushWidth, style: 'solid' });
+                ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+                ctx.beginPath();
                 d.points.forEach((pt, i) => {
                     const x = chart.timeScale().timeToCoordinate(pt.time), y = activeSeries.priceToCoordinate(pt.price);
                     if (x !== null && y !== null) { if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
                 });
                 ctx.stroke();
+                ctx.setLineDash([]);
             } else if (d.p1 && d.p2) {
+                // ============ 2-POINT ============
                 const x1 = chart.timeScale().timeToCoordinate(d.p1.time) ?? 80, y1 = activeSeries.priceToCoordinate(d.p1.price);
                 const x2 = chart.timeScale().timeToCoordinate(d.p2.time) ?? (drawingCanvas.width - 80), y2 = activeSeries.priceToCoordinate(d.p2.price);
                 if (y1 === null || y2 === null) { ctx.restore(); return; }
-                if (d.type === 'trendline' || d.type === 'ray') {
-                    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x1, y1);
-                    if (d.type === 'ray') ctx.lineTo(x1 + (x2 - x1) * 5, y1 + (y2 - y1) * 5); else ctx.lineTo(x2, y2);
+                applyStrokeStyle(d);
+
+                if (d.type === 'trendline') {
+                    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                    drawEndpointDot(x1, y1, d.color); drawEndpointDot(x2, y2, d.color);
+                } else if (d.type === 'ray') {
+                    ctx.beginPath(); ctx.moveTo(x1, y1);
+                    ctx.lineTo(x1 + (x2 - x1) * 5, y1 + (y2 - y1) * 5);
                     ctx.stroke();
+                    drawEndpointDot(x1, y1, d.color);
+                } else if (d.type === 'arrow') {
+                    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                    const angle = Math.atan2(y2 - y1, x2 - x1);
+                    drawArrowhead(x2, y2, angle, d.color || '#38bdf8');
                 } else if (d.type === 'rect') {
-                    ctx.fillStyle = 'rgba(56, 189, 248, 0.16)'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5;
-                    ctx.fillRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
-                    ctx.strokeRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+                    const xmin = Math.min(x1,x2), ymin = Math.min(y1,y2);
+                    const w = Math.abs(x2-x1), h = Math.abs(y2-y1);
+                    ctx.fillStyle = hexAlpha(d.color || '#38bdf8', 0.16);
+                    ctx.fillRect(xmin, ymin, w, h);
+                    ctx.strokeRect(xmin, ymin, w, h);
+                } else if (d.type === 'ellipse') {
+                    const cx = (x1+x2)/2, cy = (y1+y2)/2;
+                    const rx = Math.max(2, Math.abs(x2-x1)/2), ry = Math.max(2, Math.abs(y2-y1)/2);
+                    ctx.fillStyle = hexAlpha(d.color || '#38bdf8', 0.10);
+                    ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 2*Math.PI); ctx.fill();
+                    ctx.stroke();
                 } else if (d.type === 'fib') {
-                    [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1].forEach(lvl => {
+                    const levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+                    const xmin = Math.min(x1,x2), xmax = Math.max(x1,x2);
+                    levels.forEach(lvl => {
                         const lvlPrice = d.p1.price + (d.p2.price - d.p1.price) * lvl;
                         const ly = activeSeries.priceToCoordinate(lvlPrice);
                         if (ly !== null) {
-                            ctx.strokeStyle = lvl === 0.618 ? '#38bdf8' : '#94a3b8'; ctx.lineWidth = 1;
-                            ctx.beginPath(); ctx.moveTo(Math.min(x1, x2), ly); ctx.lineTo(Math.max(x1, x2, drawingCanvas.width - 70), ly); ctx.stroke();
-                            ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 10px Fira Code'; ctx.fillText(`Fib ${(lvl * 100).toFixed(1)}% ($${lvlPrice.toFixed(4)})`, Math.min(x1, x2) + 6, ly - 4);
+                            ctx.strokeStyle = lvl === 0.618 ? (d.color || '#38bdf8') : '#94a3b8';
+                            ctx.lineWidth = lvl === 0.618 ? 1.5 : 1;
+                            ctx.setLineDash(lvl === 0.5 ? [4,4] : []);
+                            ctx.beginPath(); ctx.moveTo(xmin, ly); ctx.lineTo(Math.max(xmax, drawingCanvas.width - 70), ly); ctx.stroke();
+                            if (drawSettings.showLabels) {
+                                ctx.setLineDash([]);
+                                ctx.font = 'bold 10px Fira Code';
+                                ctx.fillStyle = lvl === 0.618 ? (d.color || '#38bdf8') : '#94a3b8';
+                                ctx.fillText(`Fib ${(lvl*100).toFixed(1)}%  $${fmtPrice(lvlPrice)}`, xmin + 6, ly - 4);
+                            }
                         }
                     });
+                } else if (d.type === 'channel') {
+                    // Base line + parallel offset line + 2 connecting lines
+                    const off = d.offset || 0;
+                    const yOffPx = activeSeries.priceToCoordinate(d.p2.price + off) ?? y2;
+                    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                    ctx.strokeStyle = hexAlpha(d.color || '#38bdf8', 0.7);
+                    ctx.setLineDash([6, 4]);
+                    ctx.beginPath(); ctx.moveTo(x1, yOffPx); ctx.lineTo(x2, yOffPx); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.strokeStyle = hexAlpha(d.color || '#38bdf8', 0.3);
+                    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x1, yOffPx); ctx.moveTo(x2, y2); ctx.lineTo(x2, yOffPx); ctx.stroke();
+                } else if (d.type === 'longpos' || d.type === 'shortpos') {
+                    const isLong = d.type === 'longpos';
+                    const entryP = d.p1.price, targetP = d.p2.price;
+                    const risk = Math.abs(targetP - entryP);
+                    const stopP = isLong ? entryP - risk : entryP + risk;
+                    const yEntry = activeSeries.priceToCoordinate(entryP);
+                    const yTarget = activeSeries.priceToCoordinate(targetP);
+                    const yStop = activeSeries.priceToCoordinate(stopP);
+                    if (yEntry !== null && yTarget !== null && yStop !== null) {
+                        // Target zone (green)
+                        ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
+                        ctx.fillRect(Math.min(x1,x2), Math.min(yEntry, yTarget), Math.abs(x2-x1), Math.abs(yTarget - yEntry));
+                        ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1; ctx.setLineDash([5,3]);
+                        ctx.strokeRect(Math.min(x1,x2), Math.min(yEntry, yTarget), Math.abs(x2-x1), Math.abs(yTarget - yEntry));
+                        // Stop zone (red)
+                        ctx.fillStyle = 'rgba(244, 63, 94, 0.18)';
+                        ctx.fillRect(Math.min(x1,x2), Math.min(yEntry, yStop), Math.abs(x2-x1), Math.abs(yStop - yEntry));
+                        ctx.strokeStyle = '#f43f5e';
+                        ctx.strokeRect(Math.min(x1,x2), Math.min(yEntry, yStop), Math.abs(x2-x1), Math.abs(yStop - yEntry));
+                        ctx.setLineDash([]);
+                        if (drawSettings.showLabels) {
+                            ctx.font = 'bold 10px Fira Code';
+                            ctx.fillStyle = '#10b981'; ctx.fillText(`TP $${fmtPrice(targetP)}`, Math.min(x1,x2) + 4, Math.min(yEntry, yTarget) - 4);
+                            ctx.fillStyle = '#f43f5e'; ctx.fillText(`SL $${fmtPrice(stopP)}`, Math.min(x1,x2) + 4, Math.max(yEntry, yStop) + 14);
+                            ctx.fillStyle = '#fff'; ctx.fillText(`Entry $${fmtPrice(entryP)}`, Math.min(x1,x2) + 4, yEntry - 4);
+                        }
+                    }
+                } else if (d.type === 'riskreward') {
+                    const entryP = d.p1.price, stopP = d.p2.price;
+                    const risk = Math.abs(stopP - entryP);
+                    if (risk <= 0) { ctx.restore(); return; }
+                    const isLong = stopP < entryP;
+                    const targets = [1, 2, 3].map(r => isLong ? entryP + r*risk : entryP - r*risk);
+                    const yEntry = activeSeries.priceToCoordinate(entryP);
+                    const yStop = activeSeries.priceToCoordinate(stopP);
+                    ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
+                    if (yStop !== null) { ctx.beginPath(); ctx.moveTo(Math.min(x1,x2), yStop); ctx.lineTo(Math.max(x1,x2), yStop); ctx.stroke(); }
+                    ctx.setLineDash([]);
+                    targets.forEach((tp, i) => {
+                        const y = activeSeries.priceToCoordinate(tp);
+                        if (y !== null) {
+                            ctx.strokeStyle = '#10b981'; ctx.lineWidth = i === 1 ? 1.5 : 1;
+                            ctx.beginPath(); ctx.moveTo(Math.min(x1,x2), y); ctx.lineTo(Math.max(x1,x2), y); ctx.stroke();
+                            if (drawSettings.showLabels) {
+                                ctx.font = 'bold 10px Fira Code';
+                                ctx.fillStyle = '#10b981';
+                                ctx.fillText(`${i+1}R  $${fmtPrice(tp)}`, Math.max(x1,x2) + 4, y + 3);
+                            }
+                        }
+                    });
+                    if (yEntry !== null && drawSettings.showLabels) {
+                        ctx.font = 'bold 10px Fira Code';
+                        ctx.fillStyle = '#fff';
+                        ctx.fillText(`Entry $${fmtPrice(entryP)}`, Math.min(x1,x2) + 4, yEntry - 4);
+                        ctx.fillStyle = '#f43f5e';
+                        ctx.fillText(`Stop $${fmtPrice(stopP)} (1R)`, Math.min(x1,x2) + 4, yStop + 14);
+                    }
+                } else if (d.type === 'measure') {
+                    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                    drawEndpointDot(x1, y1, d.color); drawEndpointDot(x2, y2, d.color);
+                    // Midpoint label
+                    const mx = (x1+x2)/2, my = (y1+y2)/2;
+                    const dp = d.p2.price - d.p1.price;
+                    const dpPct = (dp / d.p1.price) * 100;
+                    const bars = Math.round(Math.abs(d.p2.time - d.p1.time) / 60);
+                    const lbl = `Δ$${fmtPrice(dp)}  Δ${dpPct.toFixed(2)}%  ${bars} bars`;
+                    ctx.font = 'bold 10px Fira Code';
+                    const w = ctx.measureText(lbl).width + 14;
+                    ctx.fillStyle = 'rgba(8,13,26,0.95)';
+                    ctx.fillRect(mx - w/2, my - 22, w, 18);
+                    ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1;
+                    ctx.strokeRect(mx - w/2, my - 22, w, 18);
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.fillText(lbl, mx - w/2 + 7, my - 8);
                 }
             }
             ctx.restore();
+        }
+        function pendingPreviewObj() { return (isDraggingDraw && dragStartPoint && dragCurrentPoint) ? { type: currentTool, p1: dragStartPoint, p2: dragCurrentPoint, offset: 0 } : null; }
+        function drawEndpointDot(x, y, color) {
+            ctx.save();
+            ctx.fillStyle = color || '#38bdf8';
+            ctx.beginPath(); ctx.arc(x, y, 3, 0, 2*Math.PI); ctx.fill();
+            ctx.restore();
+        }
+        function fmtPrice(p) {
+            if (p === null || p === undefined || isNaN(p)) return '--';
+            if (p >= 100) return p.toFixed(2);
+            if (p >= 1) return p.toFixed(4);
+            if (p >= 0.01) return p.toFixed(5);
+            return p.toFixed(8);
+        }
+        function hexAlpha(hex, alpha) {
+            // Convert #RRGGBB → rgba()
+            if (!hex || hex[0] !== '#' || hex.length < 7) return `rgba(56,189,248,${alpha})`;
+            const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16);
+            return `rgba(${r},${g},${b},${alpha})`;
         }
 
         function renderDrawingsCanvas() {
             ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
             if (!activeSeries) return;
-            userDrawings.forEach(d => drawShapeObject(d));
+            if (drawSettings.visible) {
+                userDrawings.forEach(d => drawShapeObject(d));
+            }
+            // Live preview during drag
+            const preview = pendingPreviewObj();
+            if (preview) drawShapeObject(preview);
+            if (isBrushing && currentBrushStroke.length > 1) drawShapeObject({ type: 'brush', points: currentBrushStroke, color: drawSettings.brushColor, width: drawSettings.brushWidth });
+            // Legacy tap-tap preview (kept for compatibility — unused in v3 drag mode)
             if (pendingAnchor && mousePreviewPoint) drawShapeObject({ type: currentTool, p1: pendingAnchor, p2: mousePreviewPoint });
-            if (isBrushing && currentBrushStroke.length > 1) drawShapeObject({ type: 'brush', points: currentBrushStroke });
         }
 
         // 6. STREAMING ENGINE
@@ -2086,6 +2941,7 @@
             document.getElementById('chartTitleSymbol').innerText = `${currentSymbol} · ${timeframe}`;
             const fsBadge = document.getElementById('fsSymbolBadge');
             if (fsBadge) fsBadge.innerText = `${currentSymbol} · ${timeframe}`;
+            updateWatchlistStar();
             document.getElementById('orderTape').innerHTML = '';
             await loadSymbolWorkspace(currentSymbol);
             if (!activeSeries) setChartType(currentChartType);
@@ -2271,6 +3127,8 @@
             await persistProfileToCloud();
             if (currentUser) await supabaseClient.from('paper_positions').insert({ ...newPos, user_id: currentUser.id });
             updateWalletDisplays(); renderPositionsDock();
+            logActivity('Opened ' + side + ' ' + currentSymbol + ' · ' + lev + 'x · $' + (margin * lev).toLocaleString() + ' notional', '⚡');
+            showToast('⚡ ' + side + ' ' + currentSymbol + ' opened (' + lev + 'x)', 'success');
         };
 
         window.closePaperPosition = async function(posId) {
@@ -2281,11 +3139,18 @@
             const diffRatio = pos.side === 'LONG' ? (mark - pos.entry_price) / pos.entry_price : (pos.entry_price - mark) / pos.entry_price;
             const pnl = pos.notional_size * diffRatio;
             paperBalance += (pos.margin + pnl); realizedPnl += pnl;
+            // v3: record closed trade for stats panel
+            const closed = { ...pos, closed_pnl: pnl, closed_at: new Date().toISOString(), is_open: false };
+            const hist = JSON.parse(localStorage.getItem('yog_closed_trades') || '[]');
+            hist.push(closed);
+            localStorage.setItem('yog_closed_trades', JSON.stringify(hist));
             paperPositions.splice(idx, 1);
             localStorage.setItem('yog_positions', JSON.stringify(paperPositions));
             await persistProfileToCloud();
             if (currentUser) await supabaseClient.from('paper_positions').update({ is_open: false, closed_pnl: pnl }).eq('id', posId);
             updateWalletDisplays(); renderPositionsDock();
+            logActivity('Closed ' + pos.side + ' ' + pos.symbol + ' · ' + (pnl >= 0 ? '+' : '') + fmtMoney(pnl), pnl >= 0 ? '✅' : '❌');
+            showToast((pnl >= 0 ? '✅ Closed +' : '❌ Closed ') + fmtMoney(pnl), pnl >= 0 ? 'success' : 'error');
         };
 
         function renderPositionsDock(liveMark = lastKnownPrice) {
@@ -2349,42 +3214,72 @@
             document.getElementById('profileName').innerText = userProfileData.display_name || 'Yogchart Trader';
             document.getElementById('profileUsername').innerText = '@' + (userProfileData.username || 'quant_trader').replace(/^@/, '');
             document.getElementById('profileBio').innerText = userProfileData.bio || 'Multi-Asset Quant & Technical Analyst';
-            document.getElementById('profileRiskBadge').innerText = userProfileData.risk_tolerance || 'Moderate';
+            document.getElementById('profileRiskBadge').innerText = (userProfileData.trading_style || 'Swing Trader') + ' · ' + (userProfileData.risk_tolerance || 'Moderate');
             const av = document.getElementById('profileAvatar');
             av.innerText = (userProfileData.display_name || 'YG').substring(0, 2).toUpperCase();
             av.style.backgroundColor = userProfileData.avatar_color || '#2563EB';
 
             if (userProfileData.preferred_leverage) {
-                document.getElementById('leverageSlider').value = userProfileData.preferred_leverage;
-                document.getElementById('levBadge').innerText = userProfileData.preferred_leverage + 'x';
+                const ls = document.getElementById('leverageSlider');
+                const lb = document.getElementById('levBadge');
+                if (ls) ls.value = userProfileData.preferred_leverage;
+                if (lb) lb.innerText = userProfileData.preferred_leverage + 'x';
             }
+            // Open positions count on home card
+            const oc = document.getElementById('homeOpenPosCount');
+            if (oc) oc.innerText = paperPositions.filter(p => p.is_open).length + ' Active';
         }
         renderProfileUI();
 
         window.openProfileEditorModal = function() {
-            document.getElementById('editDisplayName').value = userProfileData.display_name || '';
-            document.getElementById('editUsername').value = (userProfileData.username || '').replace(/^@/, '');
-            document.getElementById('editBio').value = userProfileData.bio || '';
-            document.getElementById('editAvatarColor').value = userProfileData.avatar_color || '#2563EB';
-            document.getElementById('editDefaultLev').value = userProfileData.preferred_leverage || 20;
-            document.getElementById('editRiskTolerance').value = userProfileData.risk_tolerance || 'Moderate';
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+            set('editDisplayName', userProfileData.display_name);
+            set('editUsername', (userProfileData.username || '').replace(/^@/, ''));
+            set('editBio', userProfileData.bio);
+            set('editAvatarColor', userProfileData.avatar_color || '#2563EB');
+            set('editDefaultLev', userProfileData.preferred_leverage || 20);
+            set('editRiskTolerance', userProfileData.risk_tolerance || 'Moderate');
+            set('editTradingStyle', userProfileData.trading_style || 'Swing Trader');
+            set('editExperienceLevel', userProfileData.experience_level || 'Intermediate');
+            set('editRiskPerTrade', userProfileData.risk_per_trade || 2);
+            set('editDefaultTimeframe', userProfileData.default_timeframe || '1m');
+            set('editDefaultChartType', userProfileData.default_chart_type || 'Candlestick');
+            set('editDashboardLayout', userProfileData.dashboard_layout || 'Comfortable');
+            set('editTwitter', userProfileData.twitter || '');
+            set('editDiscord', userProfileData.discord || '');
+            set('editTelegram', userProfileData.telegram || '');
             document.getElementById('profileSaveMsg').classList.add('hidden');
             document.getElementById('profileEditorModal').classList.remove('hidden');
         };
         window.closeProfileEditorModal = () => document.getElementById('profileEditorModal').classList.add('hidden');
 
         window.saveCustomProfileDetails = async function() {
+            const get = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+            const getNum = (id) => { const el = document.getElementById(id); return el ? (parseInt(el.value) || 0) : 0; };
+            // Preserve watchlist across saves
+            const existingWatchlist = Array.isArray(userProfileData.watchlist) ? userProfileData.watchlist : [];
             userProfileData = {
-                display_name: document.getElementById('editDisplayName').value.trim() || 'Yogchart Trader',
-                username: document.getElementById('editUsername').value.trim().replace(/^@/, '') || 'quant_trader',
-                bio: document.getElementById('editBio').value.trim() || 'Multi-Asset Quant & Technical Analyst',
-                avatar_color: document.getElementById('editAvatarColor').value || '#2563EB',
-                preferred_leverage: parseInt(document.getElementById('editDefaultLev').value) || 20,
-                risk_tolerance: document.getElementById('editRiskTolerance').value || 'Moderate'
+                display_name: get('editDisplayName') || 'Yogchart Trader',
+                username: get('editUsername').replace(/^@/, '') || 'quant_trader',
+                bio: get('editBio') || 'Multi-Asset Quant & Technical Analyst',
+                avatar_color: get('editAvatarColor') || '#2563EB',
+                preferred_leverage: getNum('editDefaultLev') || 20,
+                risk_tolerance: get('editRiskTolerance') || 'Moderate',
+                trading_style: get('editTradingStyle') || 'Swing Trader',
+                experience_level: get('editExperienceLevel') || 'Intermediate',
+                risk_per_trade: parseFloat(get('editRiskPerTrade')) || 2,
+                default_timeframe: get('editDefaultTimeframe') || '1m',
+                default_chart_type: get('editDefaultChartType') || 'Candlestick',
+                dashboard_layout: get('editDashboardLayout') || 'Comfortable',
+                twitter: get('editTwitter'),
+                discord: get('editDiscord'),
+                telegram: get('editTelegram'),
+                watchlist: existingWatchlist
             };
             localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
             renderProfileUI();
             await persistProfileToCloud();
+            logActivity('Updated profile settings', '⚙️');
             const msg = document.getElementById('profileSaveMsg');
             msg.classList.remove('hidden');
             setTimeout(() => closeProfileEditorModal(), 900);
@@ -2393,20 +3288,275 @@
         async function persistProfileToCloud() {
             localStorage.setItem('yog_paper_balance', String(paperBalance));
             localStorage.setItem('yog_realized_pnl', String(realizedPnl));
+            localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
             if (currentUser) {
-                await supabaseClient.from('profiles').upsert({
-                    id: currentUser.id,
-                    email: currentUser.email,
-                    display_name: userProfileData.display_name,
-                    username: userProfileData.username,
-                    bio: userProfileData.bio,
-                    avatar_color: userProfileData.avatar_color,
-                    preferred_leverage: userProfileData.preferred_leverage,
-                    risk_tolerance: userProfileData.risk_tolerance,
-                    paper_balance: paperBalance,
-                    realized_pnl: realizedPnl,
-                    updated_at: new Date()
-                });
+                try {
+                    await supabaseClient.from('profiles').upsert({
+                        id: currentUser.id,
+                        email: currentUser.email,
+                        display_name: userProfileData.display_name,
+                        username: userProfileData.username,
+                        bio: userProfileData.bio,
+                        avatar_color: userProfileData.avatar_color,
+                        preferred_leverage: userProfileData.preferred_leverage,
+                        risk_tolerance: userProfileData.risk_tolerance,
+                        trading_style: userProfileData.trading_style,
+                        experience_level: userProfileData.experience_level,
+                        risk_per_trade: userProfileData.risk_per_trade,
+                        default_timeframe: userProfileData.default_timeframe,
+                        default_chart_type: userProfileData.default_chart_type,
+                        dashboard_layout: userProfileData.dashboard_layout,
+                        twitter: userProfileData.twitter,
+                        discord: userProfileData.discord,
+                        telegram: userProfileData.telegram,
+                        watchlist: userProfileData.watchlist || [],
+                        paper_balance: paperBalance,
+                        realized_pnl: realizedPnl,
+                        updated_at: new Date()
+                    });
+                } catch (e) {
+                    console.warn('[Yogchart] Profile sync warning (non-fatal):', e.message);
+                }
+            }
+        }
+
+        // ================================================================
+        // v3 PROFILE EXPANSION: Trading Stats, Watchlist, Activity Log,
+        //                         Reset Paper Account, Default-Settings Auto-Apply
+        // ================================================================
+        let activityLog = JSON.parse(localStorage.getItem('yog_activity_log') || '[]');
+        function logActivity(msg, icon = '•') {
+            const entry = { t: Date.now(), icon, msg };
+            activityLog.unshift(entry);
+            if (activityLog.length > 80) activityLog = activityLog.slice(0, 80);
+            localStorage.setItem('yog_activity_log', JSON.stringify(activityLog));
+        }
+        window.clearActivityLog = function() {
+            if (!confirm('Clear all activity log entries?')) return;
+            activityLog = [];
+            localStorage.setItem('yog_activity_log', '[]');
+            renderActivityLog();
+            showToast('📜 Activity log cleared', 'info');
+        };
+        function renderActivityLog() {
+            const el = document.getElementById('activityLogContent');
+            if (!el) return;
+            if (activityLog.length === 0) {
+                el.innerHTML = '<div class="text-center text-slate-500 py-8">No activity yet. Place a trade, save a drawing, or update your profile to see entries here.</div>';
+                return;
+            }
+            el.innerHTML = activityLog.map(e => {
+                const dt = new Date(e.t);
+                const tstr = dt.toLocaleString([], { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                return '<div class="flex items-start gap-2.5 bg-yog-950 border border-yog-700 rounded-lg px-3 py-2"><span class="text-base leading-none flex-shrink-0">' + e.icon + '</span><div class="min-w-0 flex-1"><div class="text-slate-200 font-semibold text-[11px]">' + e.msg + '</div><div class="text-slate-500 text-[10px] terminal-font mt-0.5">' + tstr + '</div></div></div>';
+            }).join('');
+        }
+        window.openActivityLogModal = function() {
+            renderActivityLog();
+            document.getElementById('activityLogModal').classList.remove('hidden');
+        };
+        window.closeActivityLogModal = () => document.getElementById('activityLogModal').classList.add('hidden');
+
+        function computeTradingStats() {
+            // Pull closed trades from localStorage 'yog_closed_trades' if present,
+            // else fall back to deriving from current open positions.
+            const closed = JSON.parse(localStorage.getItem('yog_closed_trades') || '[]');
+            const total = closed.length;
+            const wins = closed.filter(t => (t.closed_pnl || 0) > 0);
+            const losses = closed.filter(t => (t.closed_pnl || 0) < 0);
+            const totalPnl = closed.reduce((s, t) => s + (t.closed_pnl || 0), 0);
+            const winRate = total > 0 ? (wins.length / total) * 100 : 0;
+            const best = total > 0 ? closed.reduce((a, b) => (b.closed_pnl || 0) > (a.closed_pnl || 0) ? b : a) : null;
+            const worst = total > 0 ? closed.reduce((a, b) => (b.closed_pnl || 0) < (a.closed_pnl || 0) ? b : a) : null;
+            // Avg hold: from created_at to closed_at (ms → minutes)
+            let totalHoldMs = 0, holdCount = 0;
+            closed.forEach(t => {
+                if (t.created_at && t.closed_at) {
+                    totalHoldMs += new Date(t.closed_at) - new Date(t.created_at);
+                    holdCount++;
+                }
+            });
+            const avgHoldMin = holdCount > 0 ? totalHoldMs / holdCount / 60000 : 0;
+            // Current streak (consecutive wins or losses from end)
+            let streak = 0, streakType = '—';
+            for (let i = closed.length - 1; i >= 0; i--) {
+                const p = closed[i].closed_pnl || 0;
+                if (p === 0) break;
+                if (streak === 0) { streakType = p > 0 ? 'Win' : 'Loss'; streak++; }
+                else if ((p > 0 && streakType === 'Win') || (p < 0 && streakType === 'Loss')) streak++;
+                else break;
+            }
+            const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + t.closed_pnl, 0) / wins.length : 0;
+            const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.closed_pnl, 0) / losses.length) : 0;
+            const profitFactor = avgLoss > 0 ? (avgWin * wins.length) / (avgLoss * losses.length) : (wins.length > 0 ? Infinity : 0);
+            return {
+                total, wins: wins.length, losses: losses.length, winRate, totalPnl,
+                best, worst, avgHoldMin, streak, streakType, avgWin, avgLoss, profitFactor
+            };
+        }
+        function fmtMoney(n) {
+            const sign = n < 0 ? '-' : '';
+            const abs = Math.abs(n);
+            return sign + '$' + abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        function fmtHold(min) {
+            if (min < 60) return Math.round(min) + ' min';
+            if (min < 1440) return (min / 60).toFixed(1) + ' hr';
+            return (min / 1440).toFixed(1) + ' day';
+        }
+        window.openTradingStatsModal = function() {
+            const s = computeTradingStats();
+            const el = document.getElementById('tradingStatsContent');
+            if (!el) return;
+            const profitFactorStr = s.profitFactor === Infinity ? '∞' : s.profitFactor.toFixed(2);
+            el.innerHTML = `
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-yog-950 border border-yog-700 rounded-lg p-3">
+                        <div class="text-[10px] text-slate-400 uppercase">Total Trades</div>
+                        <div class="text-xl font-extrabold text-white terminal-font mt-1">${s.total}</div>
+                    </div>
+                    <div class="bg-yog-950 border border-yog-700 rounded-lg p-3">
+                        <div class="text-[10px] text-slate-400 uppercase">Win Rate</div>
+                        <div class="text-xl font-extrabold ${s.winRate >= 50 ? 'text-emerald-400' : 'text-rose-400'} terminal-font mt-1">${s.winRate.toFixed(1)}%</div>
+                    </div>
+                    <div class="bg-yog-950 border border-yog-700 rounded-lg p-3">
+                        <div class="text-[10px] text-slate-400 uppercase">Wins / Losses</div>
+                        <div class="text-sm font-bold terminal-font mt-1"><span class="text-emerald-400">${s.wins}</span> / <span class="text-rose-400">${s.losses}</span></div>
+                    </div>
+                    <div class="bg-yog-950 border border-yog-700 rounded-lg p-3">
+                        <div class="text-[10px] text-slate-400 uppercase">Profit Factor</div>
+                        <div class="text-sm font-bold text-cyan-400 terminal-font mt-1">${profitFactorStr}</div>
+                    </div>
+                    <div class="bg-yog-950 border border-yog-700 rounded-lg p-3">
+                        <div class="text-[10px] text-slate-400 uppercase">Realized PnL</div>
+                        <div class="text-sm font-extrabold ${s.totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'} terminal-font mt-1">${fmtMoney(s.totalPnl)}</div>
+                    </div>
+                    <div class="bg-yog-950 border border-yog-700 rounded-lg p-3">
+                        <div class="text-[10px] text-slate-400 uppercase">Avg Hold</div>
+                        <div class="text-sm font-bold text-slate-200 terminal-font mt-1">${s.total > 0 ? fmtHold(s.avgHoldMin) : '—'}</div>
+                    </div>
+                </div>
+                <div class="bg-yog-950 border border-yog-700 rounded-lg p-3 space-y-1.5">
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-400 font-bold mb-1">Best / Worst Trade</div>
+                    <div class="flex justify-between text-[11px]"><span class="text-slate-400">Best</span><span class="text-emerald-400 font-bold terminal-font">${s.best ? fmtMoney(s.best.closed_pnl) + ' (' + (s.best.symbol || '') + ' ' + (s.best.side || '') + ')' : '—'}</span></div>
+                    <div class="flex justify-between text-[11px]"><span class="text-slate-400">Worst</span><span class="text-rose-400 font-bold terminal-font">${s.worst ? fmtMoney(s.worst.closed_pnl) + ' (' + (s.worst.symbol || '') + ' ' + (s.worst.side || '') + ')' : '—'}</span></div>
+                    <div class="flex justify-between text-[11px]"><span class="text-slate-400">Avg Win</span><span class="text-emerald-400 font-bold terminal-font">${s.avgWin ? fmtMoney(s.avgWin) : '—'}</span></div>
+                    <div class="flex justify-between text-[11px]"><span class="text-slate-400">Avg Loss</span><span class="text-rose-400 font-bold terminal-font">${s.avgLoss ? fmtMoney(s.avgLoss) : '—'}</span></div>
+                </div>
+                <div class="bg-yog-950 border border-yog-700 rounded-lg p-3 flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-cyan-400 font-bold">Current Streak</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">Consecutive ${s.streakType === 'Win' ? 'winning' : s.streakType === 'Loss' ? 'losing' : ''} trades</div>
+                    </div>
+                    <div class="text-2xl font-black terminal-font ${s.streakType === 'Win' ? 'text-emerald-400' : s.streakType === 'Loss' ? 'text-rose-400' : 'text-slate-500'}">${s.streak || 0} ${s.streakType === 'Win' ? '🔥' : s.streakType === 'Loss' ? '❄️' : ''}</div>
+                </div>
+                <div class="bg-yog-950 border border-yog-700 rounded-lg p-3 flex justify-between items-center">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-wider text-cyan-400 font-bold">Current Equity</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">Paper balance + realized PnL</div>
+                    </div>
+                    <div class="text-base font-extrabold text-cyan-300 terminal-font">${fmtMoney(paperBalance)}</div>
+                </div>
+            `;
+            document.getElementById('tradingStatsModal').classList.remove('hidden');
+        };
+        window.closeTradingStatsModal = () => document.getElementById('tradingStatsModal').classList.add('hidden');
+
+        // v3: Watchlist — saved per user
+        window.toggleWatchlistSymbol = function(sym) {
+            sym = String(sym || currentSymbol).toUpperCase();
+            if (!Array.isArray(userProfileData.watchlist)) userProfileData.watchlist = [];
+            const idx = userProfileData.watchlist.indexOf(sym);
+            if (idx >= 0) {
+                userProfileData.watchlist.splice(idx, 1);
+                showToast('⭐ Removed ' + sym + ' from watchlist', 'info');
+                logActivity('Removed ' + sym + ' from watchlist', '⭐');
+            } else {
+                userProfileData.watchlist.push(sym);
+                showToast('⭐ Added ' + sym + ' to watchlist', 'success');
+                logActivity('Added ' + sym + ' to watchlist', '⭐');
+            }
+            localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
+            persistProfileToCloud();
+            renderWatchlist();
+            updateWatchlistStar();
+        };
+        window.removeFromWatchlist = function(sym) {
+            sym = String(sym).toUpperCase();
+            if (!Array.isArray(userProfileData.watchlist)) return;
+            userProfileData.watchlist = userProfileData.watchlist.filter(s => s !== sym);
+            localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
+            persistProfileToCloud();
+            renderWatchlist();
+            updateWatchlistStar();
+        };
+        window.isInWatchlist = function(sym) {
+            sym = String(sym || currentSymbol).toUpperCase();
+            return Array.isArray(userProfileData.watchlist) && userProfileData.watchlist.includes(sym);
+        };
+        function updateWatchlistStar() {
+            const btn = document.getElementById('watchlistStarBtn');
+            if (!btn) return;
+            const inList = isInWatchlist(currentSymbol);
+            btn.innerText = inList ? '★' : '☆';
+            btn.classList.toggle('text-amber-400', inList);
+            btn.classList.toggle('text-slate-400', !inList);
+            btn.title = inList ? 'Remove from watchlist' : 'Add to watchlist';
+        }
+        function renderWatchlist() {
+            const el = document.getElementById('watchlistContent');
+            if (!el) return;
+            const list = Array.isArray(userProfileData.watchlist) ? userProfileData.watchlist : [];
+            if (list.length === 0) {
+                el.innerHTML = '<div class="text-center text-slate-500 py-8">No symbols saved yet. Tap ☆ on any chart or row in the screener to add it here.</div>';
+                return;
+            }
+            el.innerHTML = list.map(sym => {
+                const entry = multiAssetCatalog.find(c => c.symbol === sym);
+                const price = entry ? entry.price : 0;
+                const pStr = price >= 100 ? price.toFixed(2) : price >= 1 ? price.toFixed(4) : (price > 0 ? price.toFixed(6) : '—');
+                return `<div class="flex items-center justify-between bg-yog-950 border border-yog-700 rounded-lg px-3 py-2"><button onclick="closeWatchlistModal(); switchView('terminal'); initSymbol('${sym}', currentTimeframe);" class="flex-1 text-left flex items-center gap-3"><span class="text-amber-400 text-base">★</span><div><div class="text-white font-bold terminal-font text-[12px]">${sym}</div><div class="text-slate-500 text-[10px]">${entry ? entry.name : 'Custom symbol'}</div></div></button><div class="flex items-center gap-2"><span class="text-cyan-400 terminal-font font-bold text-[11px]">${pStr}</span><button onclick="removeFromWatchlist('${sym}')" class="text-slate-500 hover:text-rose-400 text-base leading-none" title="Remove">✕</button></div></div>`;
+            }).join('');
+        }
+        window.openWatchlistModal = function() {
+            renderWatchlist();
+            document.getElementById('watchlistModal').classList.remove('hidden');
+        };
+        window.closeWatchlistModal = () => document.getElementById('watchlistModal').classList.add('hidden');
+
+        // v3: Reset paper account
+        window.resetPaperAccount = async function() {
+            if (!confirm('Reset your paper trading account?\n\nThis will:\n  • Restore balance to $100,000.00\n  • Close all open positions (recorded as realized PnL)\n  • Clear all closed trades history\n  • Reset realized PnL to $0.00\n\nThis action cannot be undone.')) return;
+            paperBalance = 100000.00;
+            realizedPnl = 0.00;
+            paperPositions = [];
+            localStorage.setItem('yog_paper_balance', String(paperBalance));
+            localStorage.setItem('yog_realized_pnl', String(realizedPnl));
+            localStorage.setItem('yog_positions', '[]');
+            localStorage.setItem('yog_closed_trades', '[]');
+            updateWalletDisplays();
+            renderPositionsDock();
+            await persistProfileToCloud();
+            logActivity('Reset paper account to $100,000', '♻️');
+            showToast('♻️ Paper account reset to $100,000', 'success');
+            closeProfileEditorModal();
+        };
+
+        // v3: hooks into placePaperOrder & closePaperPosition are applied directly
+        //     to those functions (see their bodies above) — they call logActivity()
+        //     and push closed trades to 'yog_closed_trades' for the stats panel.
+
+        // v3: Apply default chart type / timeframe on first chart load
+        function applyDefaultChartPreferences() {
+            if (userProfileData.default_chart_type && userProfileData.default_chart_type !== currentChartType) {
+                setChartType(userProfileData.default_chart_type);
+                document.getElementById('chartTypeSelect').value = userProfileData.default_chart_type;
+                const fsSel = document.getElementById('chartTypeSelectFs');
+                if (fsSel) fsSel.value = userProfileData.default_chart_type;
+            }
+            if (userProfileData.default_timeframe && userProfileData.default_timeframe !== currentTimeframe) {
+                setTimeframeActive(userProfileData.default_timeframe);
+                // Don't force-reload if user is mid-stream
             }
         }
 
@@ -2611,7 +3761,17 @@
                     bio: prof.bio || 'Multi-Asset Quant & Technical Analyst',
                     avatar_color: prof.avatar_color || '#2563EB',
                     preferred_leverage: prof.preferred_leverage || 20,
-                    risk_tolerance: prof.risk_tolerance || 'Moderate'
+                    risk_tolerance: prof.risk_tolerance || 'Moderate',
+                    trading_style: prof.trading_style || 'Swing Trader',
+                    experience_level: prof.experience_level || 'Intermediate',
+                    risk_per_trade: prof.risk_per_trade || 2,
+                    default_timeframe: prof.default_timeframe || '1m',
+                    default_chart_type: prof.default_chart_type || 'Candlestick',
+                    dashboard_layout: prof.dashboard_layout || 'Comfortable',
+                    twitter: prof.twitter || '',
+                    discord: prof.discord || '',
+                    telegram: prof.telegram || '',
+                    watchlist: Array.isArray(prof.watchlist) ? prof.watchlist : (Array.isArray(userProfileData.watchlist) ? userProfileData.watchlist : [])
                 };
                 paperBalance = parseFloat(prof.paper_balance) || 100000.00;
                 realizedPnl = parseFloat(prof.realized_pnl) || 0.00;
@@ -2619,8 +3779,10 @@
             } else {
                 userProfileData.display_name = user.user_metadata?.full_name || userProfileData.display_name || user.email.split('@')[0];
                 userProfileData.username = user.email.split('@')[0];
+                if (!Array.isArray(userProfileData.watchlist)) userProfileData.watchlist = [];
                 await persistProfileToCloud();
             }
+            logActivity('Signed in as ' + (userProfileData.display_name || user.email), '🟢');
 
             renderProfileUI();
             document.getElementById('profileStatus').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Cloud Account (${user.email}) · <strong class="text-emerald-400">Synced ✅</strong>`;
@@ -2784,7 +3946,8 @@
         syncLiveMarketQuotes();
         initSymbol('XRPUSDT', '1m');
         updateUserChip();
-        window.addEventListener('load', () => setTimeout(resizeChartsAndCanvas, 500));
+        updateWatchlistStar();
+        window.addEventListener('load', () => setTimeout(() => { resizeChartsAndCanvas(); updateWatchlistStar(); }, 500));
     </script>
 </body>
 </html>
