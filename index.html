@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yogchart - Professional Institutional Terminal</title>
+    <title>Yogchart Pro - Multi-Asset Institutional Exchange</title>
     
     <!-- CDNs -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,146 +11,455 @@
     
     <script>tailwind.config = { darkMode: 'class' }</script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap');
-        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
-        .terminal-font { font-family: 'Fira Code', monospace; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
         
-        /* Completely hide TradingView watermark branding */
-        .tv-lightweight-charts__watermark, .tv-chart-watermark { display: none !important; }
+        body { margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; background-color: #0b0e14; color: #e5e7eb; user-select: none; }
+        .terminal-font { font-family: 'Fira Code', monospace; }
+        
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+        /* Nuke TradingView Watermark (DOM + Canvas SVG Anchor) */
+        .tv-lightweight-charts__watermark, 
+        .tv-chart-watermark, 
+        a[href*="tradingview.com"] { 
+            display: none !important; 
+            opacity: 0 !important; 
+            pointer-events: none !important; 
+            visibility: hidden !important;
+        }
 
         #chart-wrapper { position: relative; width: 100%; height: 100%; min-width: 0; display: flex; flex-direction: column; }
         #chartContainer { flex: 1; width: 100%; position: relative; }
-        #rsiContainer { height: 110px; width: 100%; position: relative; display: none; border-top: 1px solid #1f2937; }
+        #drawingCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; }
+        #rsiContainer { height: 100px; width: 100%; position: relative; display: none; border-top: 1px solid #1e232d; }
+
+        .tool-active { background-color: #2563eb !important; color: #ffffff !important; border-color: #3b82f6 !important; }
+        .tab-active { border-bottom: 2px solid #f59e0b; color: #ffffff; }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-[#030712] text-gray-900 dark:text-gray-100 h-screen flex">
-    
-    <!-- Global Navigation Rail -->
-    <nav class="w-16 flex flex-col items-center py-4 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-30 flex-shrink-0">
-        <div class="font-bold text-xl mb-8 tracking-tighter text-blue-500 cursor-pointer" onclick="switchView('home')" title="Home Screener">Y.</div>
-        <button onclick="switchView('home')" class="p-3 mb-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-400 transition" title="Markets">🌐</button>
-        <button onclick="switchView('terminal')" class="p-3 mb-2 bg-blue-500/10 text-blue-500 rounded-xl" title="Terminal">📈</button>
-        <div class="mt-auto">
-            <button id="themeToggle" class="p-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-gray-500">🌓</button>
-        </div>
-    </nav>
+<body class="h-screen flex flex-col bg-[#0b0e14] text-gray-200 overflow-hidden">
 
-    <!-- Main Content Wrapper -->
-    <div class="flex-1 flex flex-col overflow-hidden min-w-0">
-        
-        <!-- TOP HEADER -->
-        <header class="h-14 flex justify-between items-center px-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14] z-20 flex-shrink-0">
-            <div class="flex items-center gap-3">
-                <button onclick="switchView('home')" class="text-xs bg-gray-800 hover:bg-gray-700 text-gray-200 px-2.5 py-1.5 rounded font-bold border border-gray-700">🏠 MARKETS</button>
-                
-                <div class="flex items-center bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2">
-                    <span class="text-gray-400 text-sm">🔍</span>
-                    <input id="symbolInput" type="text" value="XRPUSDT" class="bg-transparent border-none focus:outline-none py-1 px-2 text-sm font-bold uppercase w-28 terminal-font">
-                </div>
-                
-                <!-- Timeframe Selector -->
-                <div id="timeframeSelector" class="hidden sm:flex bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded p-0.5 text-xs font-bold terminal-font">
-                    <button data-tf="1m" class="px-2 py-1 rounded bg-blue-600 text-white">1m</button>
-                    <button data-tf="5m" class="px-2 py-1 rounded text-gray-400 hover:text-white">5m</button>
-                    <button data-tf="15m" class="px-2 py-1 rounded text-gray-400 hover:text-white">15m</button>
-                    <button data-tf="1h" class="px-2 py-1 rounded text-gray-400 hover:text-white">1h</button>
-                    <button data-tf="4h" class="px-2 py-1 rounded text-gray-400 hover:text-white">4h</button>
-                    <button data-tf="1d" class="px-2 py-1 rounded text-gray-400 hover:text-white">1d</button>
-                </div>
-
-                <!-- Chart Type Selector -->
-                <select id="chartTypeSelect" class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-xs font-bold rounded px-2 py-1.5 text-gray-300 terminal-font">
-                    <option value="Candlestick">🕯️ Candlestick</option>
-                    <option value="Line">📈 Line</option>
-                    <option value="Area">⛰️ Area</option>
-                    <option value="Bar">📊 Bar (OHLC)</option>
-                </select>
-
-                <div class="flex flex-col hidden lg:flex">
-                    <span class="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Binance Live Price</span>
-                    <span id="livePrice" class="font-bold text-lg terminal-font leading-none text-gray-400">--</span>
-                </div>
+    <!-- ========================================== -->
+    <!-- TOP GLOBAL EXCHANGE BAR (BYBIT / BINANCE)  -->
+    <!-- ========================================== -->
+    <header class="h-12 bg-[#10141d] border-b border-[#1e232d] px-3 flex items-center justify-between z-30 flex-shrink-0">
+        <!-- Left: Brand, Screener Switch, & Active Ticker Info -->
+        <div class="flex items-center gap-3">
+            <div onclick="switchView('home')" class="flex items-center gap-1.5 cursor-pointer pr-2 border-r border-[#1e232d]">
+                <div class="w-7 h-7 rounded bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center font-black text-black text-base tracking-tighter">Y</div>
+                <span class="font-extrabold text-sm tracking-tight text-white hidden sm:inline">YOG<span class="text-amber-500">CHART</span></span>
             </div>
 
-            <div class="flex items-center gap-3">
-                <button id="saveWorkspace" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold px-3 py-1.5 rounded border border-gray-700 transition hidden">💾 SAVE LAYOUT</button>
-                <button id="loginBtn" class="bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded hover:bg-blue-700 transition">LOGIN</button>
-            </div>
-        </header>
+            <button onclick="switchView('home')" class="text-[11px] bg-[#1a202c] hover:bg-[#252d3d] text-gray-200 px-2.5 py-1 rounded font-bold border border-gray-700/60 transition flex items-center gap-1">
+                <span>🌐</span> MARKETS
+            </button>
 
-        <!-- VIEW 1: HOME SCREENER -->
-        <div id="view-home" class="flex-1 overflow-y-auto p-6 bg-[#030712] flex flex-col gap-6">
-            <div class="flex justify-between items-center">
+            <!-- Quick Symbol Search -->
+            <div class="flex items-center bg-[#0b0e14] border border-[#262c3a] focus-within:border-amber-500 rounded px-2 py-0.5">
+                <input id="symbolInput" type="text" value="XRPUSDT" class="bg-transparent border-none focus:outline-none text-xs font-bold uppercase w-20 text-white terminal-font" title="Press Enter to load symbol">
+                <span id="assetBadge" class="text-[9px] bg-amber-500/10 text-amber-400 px-1 rounded font-bold">PERP</span>
+            </div>
+
+            <!-- Live 24h Ticker Ribbon -->
+            <div class="hidden xl:flex items-center gap-5 pl-2 border-l border-[#1e232d] terminal-font text-xs">
                 <div>
-                    <h1 class="text-2xl font-black tracking-tight text-white">Yogchart Institutional Markets</h1>
-                    <p class="text-xs text-gray-400">Direct Binance API liquidity streams & high-performance websocket orderbooks.</p>
+                    <div id="livePrice" class="font-bold text-base leading-none text-green-400">--</div>
+                    <div id="subUsdPrice" class="text-[10px] text-gray-500">≈ $--</div>
                 </div>
-            </div>
-
-            <!-- Asset Grid Matrix -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="assetGrid">
-                <!-- Dynamically populated -->
+                <div>
+                    <div class="text-[10px] text-gray-500">24h Change</div>
+                    <div id="stat24hChange" class="font-semibold text-gray-300">--%</div>
+                </div>
+                <div>
+                    <div class="text-[10px] text-gray-500">24h High</div>
+                    <div id="stat24hHigh" class="font-semibold text-gray-300">--</div>
+                </div>
+                <div>
+                    <div class="text-[10px] text-gray-500">24h Low</div>
+                    <div id="stat24hLow" class="font-semibold text-gray-300">--</div>
+                </div>
+                <div>
+                    <div class="text-[10px] text-gray-500">24h Turnover(USDT)</div>
+                    <div id="stat24hVol" class="font-semibold text-gray-300">--</div>
+                </div>
+                <div>
+                    <div class="text-[10px] text-gray-500">Funding / Countdown</div>
+                    <div class="font-semibold text-amber-400">0.0100% <span id="fundingTimer" class="text-gray-400">03:42:10</span></div>
+                </div>
             </div>
         </div>
 
-        <!-- VIEW 2: TERMINAL WORKSPACE -->
-        <div id="view-terminal" class="flex-1 flex overflow-hidden relative hidden">
-            <!-- Chart Section -->
-            <section class="flex-1 relative min-w-0 flex flex-col" id="chart-wrapper">
-                <div id="chartContainer"></div>
-                <div id="rsiContainer"></div>
+        <!-- Right: Chart Controls, Indicators Modal Trigger, Cloud Sync & Auth -->
+        <div class="flex items-center gap-2">
+            <!-- Timeframe Bar -->
+            <div id="timeframeSelector" class="hidden md:flex bg-[#0b0e14] border border-[#1e232d] rounded p-0.5 text-[11px] font-bold terminal-font">
+                <button data-tf="1m" class="px-2 py-0.5 rounded bg-amber-500 text-black">1m</button>
+                <button data-tf="5m" class="px-2 py-0.5 rounded text-gray-400 hover:text-white">5m</button>
+                <button data-tf="15m" class="px-2 py-0.5 rounded text-gray-400 hover:text-white">15m</button>
+                <button data-tf="1h" class="px-2 py-0.5 rounded text-gray-400 hover:text-white">1h</button>
+                <button data-tf="4h" class="px-2 py-0.5 rounded text-gray-400 hover:text-white">4h</button>
+                <button data-tf="1d" class="px-2 py-0.5 rounded text-gray-400 hover:text-white">1D</button>
+            </div>
+
+            <!-- Chart Series Type -->
+            <select id="chartTypeSelect" class="bg-[#0b0e14] border border-[#1e232d] text-[11px] font-bold rounded px-2 py-1 text-gray-300 terminal-font focus:outline-none">
+                <option value="Candlestick">🕯️ Candles</option>
+                <option value="Bar">📊 OHLC Bars</option>
+                <option value="Line">📈 Line</option>
+                <option value="Area">⛰️ Area</option>
+            </select>
+
+            <!-- Indicators Settings Modal Trigger (Like Binance/Bybit) -->
+            <button onclick="toggleIndicatorModal()" class="bg-[#1a202c] hover:bg-[#252d3d] text-gray-200 text-[11px] font-bold px-2.5 py-1 rounded border border-gray-700/60 transition flex items-center gap-1">
+                <span>⚙️</span> Indicators
+            </button>
+
+            <button id="saveWorkspace" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 text-[11px] font-bold px-2.5 py-1 rounded border border-emerald-500/40 transition hidden">
+                💾 Save Cloud
+            </button>
+            <button id="loginBtn" class="bg-amber-500 hover:bg-amber-400 text-black text-[11px] font-extrabold px-3 py-1 rounded transition">
+                LOGIN
+            </button>
+        </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: LIVE MULTI-ASSET SCREENER MATRIX   -->
+    <!-- ========================================== -->
+    <div id="view-home" class="flex-1 overflow-y-auto p-6 bg-[#0b0e14] hidden flex-col gap-6 z-20">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1e232d] pb-4">
+            <div>
+                <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                    Institutional Multi-Asset Screener
+                    <span class="text-[10px] bg-green-500/10 text-green-400 border border-green-500/30 px-2 py-0.5 rounded font-mono">LIVE BINANCE + SYNTHETIC FEEDS</span>
+                </h1>
+                <p class="text-xs text-gray-400 mt-0.5">Real-time streaming quotes for Crypto Spot/Perps, S&P 500 Equities, Commodities, and Treasury Yields. Click any row to launch terminal.</p>
+            </div>
+            <div class="flex flex-wrap gap-1.5" id="screenerTabs">
+                <button onclick="filterScreener('all', this)" class="px-3 py-1 bg-amber-500 text-black rounded text-xs font-extrabold">All Markets</button>
+                <button onclick="filterScreener('crypto', this)" class="px-3 py-1 bg-[#161b26] text-gray-300 rounded text-xs font-bold hover:bg-gray-800">Crypto (Live API)</button>
+                <button onclick="filterScreener('stock', this)" class="px-3 py-1 bg-[#161b26] text-gray-300 rounded text-xs font-bold hover:bg-gray-800">Stocks & S&P 500</button>
+                <button onclick="filterScreener('commodity', this)" class="px-3 py-1 bg-[#161b26] text-gray-300 rounded text-xs font-bold hover:bg-gray-800">Commodities</button>
+                <button onclick="filterScreener('bond', this)" class="px-3 py-1 bg-[#161b26] text-gray-300 rounded text-xs font-bold hover:bg-gray-800">Bonds & Yields</button>
+            </div>
+        </div>
+
+        <!-- Screener Table -->
+        <div class="bg-[#10141d] border border-[#1e232d] rounded-lg overflow-hidden">
+            <table class="w-full text-left border-collapse terminal-font text-xs">
+                <thead>
+                    <tr class="border-b border-[#1e232d] text-gray-500 text-[11px] bg-[#0d1119]">
+                        <th class="py-3 px-4">INSTRUMENT</th>
+                        <th class="py-3 px-4">CATEGORY</th>
+                        <th class="py-3 px-4 text-right">LAST PRICE</th>
+                        <th class="py-3 px-4 text-right">24H CHANGE</th>
+                        <th class="py-3 px-4 text-right hidden sm:table-cell">24H HIGH</th>
+                        <th class="py-3 px-4 text-right hidden sm:table-cell">24H LOW</th>
+                        <th class="py-3 px-4 text-right hidden md:table-cell">24H VOLUME</th>
+                        <th class="py-3 px-4 text-right">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody id="screenerBody" class="divide-y divide-[#1e232d]/60">
+                    <!-- Populated dynamically with live Binance tickers + multi-asset feeds -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: BYBIT-GRADE TRADING TERMINAL       -->
+    <!-- ========================================== -->
+    <div id="view-terminal" class="flex-1 flex flex-col overflow-hidden">
+        
+        <!-- Upper Workspace: Left Drawing Rail + Center Chart + Orderbook + Order Execution -->
+        <div class="flex-1 flex overflow-hidden min-h-0">
+            
+            <!-- 1. LEFT VERTICAL DRAWING TOOLBAR -->
+            <aside class="w-11 bg-[#10141d] border-r border-[#1e232d] flex flex-col items-center py-2 gap-1.5 z-20 flex-shrink-0">
+                <button onclick="setDrawingTool('cursor')" id="draw-cursor" class="w-8 h-8 rounded flex items-center justify-center text-xs hover:bg-gray-800 border border-transparent tool-active" title="Crosshair Pointer">➕</button>
+                <button onclick="setDrawingTool('trendline')" id="draw-trendline" class="w-8 h-8 rounded flex items-center justify-center text-xs hover:bg-gray-800 border border-transparent" title="Draw Trendline (Click 2 points)">📏</button>
+                <button onclick="setDrawingTool('hline')" id="draw-hline" class="w-8 h-8 rounded flex items-center justify-center text-xs hover:bg-gray-800 border border-transparent" title="Horizontal Support/Resistance Ray">➖</button>
+                <button onclick="setDrawingTool('fib')" id="draw-fib" class="w-8 h-8 rounded flex items-center justify-center text-xs hover:bg-gray-800 border border-transparent" title="Fibonacci Retracement (Click High & Low)">📐</button>
+                <button onclick="setDrawingTool('rect')" id="draw-rect" class="w-8 h-8 rounded flex items-center justify-center text-xs hover:bg-gray-800 border border-transparent" title="Supply / Demand Zone Box">🔲</button>
+                <div class="h-px w-6 bg-[#1e232d] my-1"></div>
+                <button onclick="toggleRsiSubchart()" id="btnRsiQuick" class="w-8 h-8 rounded flex items-center justify-center text-[10px] font-extrabold bg-gray-800/70 text-amber-400 hover:bg-gray-700" title="Toggle RSI(14) Sub-Chart">RSI</button>
+                <button onclick="clearAllDrawings()" class="w-8 h-8 rounded flex items-center justify-center text-xs hover:bg-red-500/20 text-red-400 mt-auto" title="Delete All Drawings">🗑️</button>
+            </aside>
+
+            <!-- 2. CENTER INTERACTIVE CHARTING ENGINE -->
+            <section class="flex-1 flex flex-col min-w-0 bg-[#0b0e14] relative" id="chart-wrapper">
+                <!-- Floating Active Indicator Legend (Exactly like Binance top-left overlay) -->
+                <div class="absolute top-2 left-3 z-20 pointer-events-none flex flex-col gap-0.5 terminal-font text-[11px]">
+                    <div id="ohlcLegend" class="text-gray-300 font-semibold">O: --  H: --  L: --  C: --</div>
+                    <div id="maLegend" class="flex flex-wrap gap-3 text-[10px]">
+                        <span id="legMA1" class="text-yellow-400">MA(7): --</span>
+                        <span id="legMA2" class="text-pink-400">MA(25): --</span>
+                        <span id="legMA3" class="text-purple-400">MA(99): --</span>
+                        <span id="legBOLL" class="text-cyan-400 hidden">BOLL(20,2): --</span>
+                    </div>
+                </div>
+
+                <!-- Floating Drawing Mode Banner -->
+                <div id="drawingBanner" class="hidden absolute top-2 right-16 z-20 bg-blue-600/90 text-white text-[11px] font-bold px-3 py-1 rounded shadow">
+                    DRAWING MODE: Click on chart to place anchor points
+                </div>
+
+                <div id="chartContainer">
+                    <canvas id="drawingCanvas"></canvas>
+                </div>
+                <div id="rsiContainer">
+                    <div class="absolute top-1 left-3 z-10 text-[10px] font-bold text-amber-400 terminal-font pointer-events-none">RSI (14) <span id="rsiValLabel">--</span></div>
+                </div>
             </section>
 
-            <!-- Right Sidebar -->
-            <aside class="w-80 border-l border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-[#0B0E14] terminal-font text-xs z-10 flex-shrink-0">
-                
-                <!-- AI Engine Panel -->
-                <div class="p-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/40 flex flex-col gap-2">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-bold text-blue-400 flex items-center gap-1.5">🤖 AI TAPE ENGINE</h3>
-                        <span id="aiStatus" class="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-bold">ONLINE</span>
-                    </div>
-                    <div id="aiInsightsBox" class="bg-gray-900/80 border border-gray-800 p-2 rounded text-[11px] text-gray-300 space-y-1">
-                        <div>Bias: <span id="aiBias" class="font-bold text-gray-400">Scanning Ticks...</span></div>
-                        <div>Entry Zone: <span id="aiEntry" class="font-bold text-gray-300">--</span></div>
-                        <div>Stop Loss: <span id="aiStop" class="font-bold text-red-400">--</span></div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-1.5">
-                        <button id="toggleRsi" class="bg-gray-800 text-gray-300 py-1.5 rounded font-bold hover:bg-gray-700 border border-gray-700">TOGGLE RSI</button>
-                        <button onclick="runAiAnalysis()" class="bg-blue-600 text-white py-1.5 rounded font-bold hover:bg-blue-700">RUN SCAN</button>
-                    </div>
-                </div>
-                
-                <!-- Live Order Tape (Throttled Buffer Pipeline) -->
-                <div class="flex-1 overflow-hidden flex flex-col min-h-0">
-                    <div class="flex justify-between text-gray-400 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#0B0E14]">
-                        <span class="w-1/3">PRICE</span><span class="w-1/3 text-right">SIZE</span><span class="w-1/3 text-right">TIME</span>
-                    </div>
-                    <div id="orderTape" class="flex-1 overflow-y-auto p-1"></div>
+            <!-- 3. LEVEL 2 ORDER BOOK & LIVE TRADES COLUMN -->
+            <aside class="w-64 bg-[#10141d] border-l border-[#1e232d] flex flex-col terminal-font text-[11px] z-10 flex-shrink-0 hidden lg:flex">
+                <!-- Precision Grouping Header -->
+                <div class="h-8 px-3 border-b border-[#1e232d] flex items-center justify-between">
+                    <span class="font-bold text-gray-300">Order Book</span>
+                    <select id="tickGrouping" class="bg-[#0b0e14] border border-[#262c3a] rounded text-[10px] px-1.5 py-0.5 text-gray-300 focus:outline-none">
+                        <option value="0.0001">0.0001</option>
+                        <option value="0.001">0.001</option>
+                        <option value="0.01">0.01</option>
+                        <option value="0.1">0.1</option>
+                        <option value="1">1.0</option>
+                    </select>
                 </div>
 
-                <!-- Level 2 Order Book -->
-                <div class="h-56 flex flex-col border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0B0E14]">
-                    <div class="bg-gray-100 dark:bg-gray-900 px-4 py-1.5 border-b border-gray-200 dark:border-gray-800">
-                        <h3 class="font-bold text-gray-500 flex items-center gap-2">📊 LEVEL 2 DEPTH</h3>
+                <!-- Column Headers -->
+                <div class="flex justify-between text-[10px] text-gray-500 px-3 py-1 bg-[#0b0e14]">
+                    <span>Price(USDT)</span>
+                    <span class="text-right">Qty</span>
+                    <span class="text-right">Total</span>
+                </div>
+
+                <!-- Asks (Sells) -->
+                <div id="orderBookAsks" class="h-44 flex flex-col-reverse justify-start overflow-hidden px-1 space-y-reverse space-y-0.5"></div>
+
+                <!-- Mid Spread Bar -->
+                <div class="py-1.5 px-3 bg-[#0b0e14] border-y border-[#1e232d] flex items-center justify-between">
+                    <span id="obMidPrice" class="font-bold text-sm text-green-400">--</span>
+                    <span id="orderBookSpread" class="text-[10px] text-gray-500">Spread: --</span>
+                </div>
+
+                <!-- Bids (Buys) -->
+                <div id="orderBookBids" class="h-44 flex flex-col justify-start overflow-hidden px-1 space-y-0.5"></div>
+
+                <!-- Recent Market Trades Stream -->
+                <div class="flex-1 flex flex-col border-t border-[#1e232d] min-h-0">
+                    <div class="px-3 py-1.5 bg-[#0d1119] border-b border-[#1e232d] flex justify-between items-center">
+                        <span class="font-bold text-gray-300">Recent Trades</span>
+                        <span class="text-[9px] text-amber-400">⚡ WHALE FILTER ON</span>
                     </div>
-                    <div class="flex justify-between text-gray-400 px-3 py-1 bg-gray-50 dark:bg-[#0B0E14] text-[10px]">
-                        <span>BID SIZE</span><span>PRICE</span><span>ASK SIZE</span>
+                    <div class="flex justify-between text-[10px] text-gray-500 px-3 py-1 bg-[#0b0e14]">
+                        <span>Price</span>
+                        <span class="text-right">Size</span>
+                        <span class="text-right">Time</span>
                     </div>
-                    <div id="orderBookAsks" class="flex-1 flex flex-col-reverse p-1 space-y-reverse space-y-0.5 overflow-hidden"></div>
-                    <div id="orderBookSpread" class="text-center font-bold py-1 bg-gray-100 dark:bg-gray-800 text-[10px] text-gray-500">SPREAD: --</div>
-                    <div id="orderBookBids" class="flex-1 flex flex-col p-1 space-y-0.5 overflow-hidden"></div>
+                    <div id="orderTape" class="flex-1 overflow-y-auto px-1 space-y-0.5"></div>
+                </div>
+            </aside>
+
+            <!-- 4. RIGHT EXECUTION PANEL & AI PATTERN ENGINE -->
+            <aside class="w-72 bg-[#10141d] border-l border-[#1e232d] flex flex-col text-xs z-10 flex-shrink-0">
+                <!-- Order Execution Box -->
+                <div class="p-3 border-b border-[#1e232d] flex flex-col gap-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-gray-200">Isolated <span class="text-amber-400" id="levBadge">20x</span></span>
+                        <span class="text-[10px] text-gray-400 terminal-font">Avail: <strong id="userBalance" class="text-white">100,000.00</strong> USDT</span>
+                    </div>
+
+                    <!-- Leverage Slider -->
+                    <div class="flex items-center gap-2">
+                        <input id="leverageSlider" type="range" min="1" max="100" value="20" class="w-full accent-amber-500 h-1 bg-gray-700 rounded cursor-pointer">
+                    </div>
+
+                    <!-- Order Type Tabs -->
+                    <div class="flex bg-[#0b0e14] p-0.5 rounded border border-[#1e232d] text-[11px] font-bold">
+                        <button onclick="setOrderType('Market')" id="tabMarket" class="flex-1 py-1 rounded bg-[#1e232d] text-white">Market</button>
+                        <button onclick="setOrderType('Limit')" id="tabLimit" class="flex-1 py-1 rounded text-gray-400">Limit</button>
+                    </div>
+
+                    <!-- Limit Price Input -->
+                    <div id="limitPriceBox" class="hidden">
+                        <label class="text-[10px] text-gray-400">Order Price (USDT)</label>
+                        <input id="orderPriceInput" type="number" step="any" class="w-full bg-[#0b0e14] border border-[#262c3a] rounded px-2.5 py-1.5 text-white terminal-font font-bold mt-0.5 focus:border-amber-500 focus:outline-none">
+                    </div>
+
+                    <!-- Order Size Input -->
+                    <div>
+                        <label class="text-[10px] text-gray-400">Margin Cost (USDT)</label>
+                        <input id="orderMarginInput" type="number" value="1000" class="w-full bg-[#0b0e14] border border-[#262c3a] rounded px-2.5 py-1.5 text-white terminal-font font-bold mt-0.5 focus:border-amber-500 focus:outline-none">
+                    </div>
+
+                    <!-- TP / SL Inputs -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-gray-400">Take Profit</label>
+                            <input id="orderTpInput" type="number" step="any" placeholder="Optional" class="w-full bg-[#0b0e14] border border-[#262c3a] rounded px-2 py-1 text-green-400 terminal-font text-[11px] focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-400">Stop Loss</label>
+                            <input id="orderSlInput" type="number" step="any" placeholder="Optional" class="w-full bg-[#0b0e14] border border-[#262c3a] rounded px-2 py-1 text-red-400 terminal-font text-[11px] focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Buy / Long & Sell / Short Triggers -->
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="placePaperOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-2 rounded transition shadow">
+                            Buy / Long
+                        </button>
+                        <button onclick="placePaperOrder('SHORT')" class="bg-rose-500 hover:bg-rose-400 text-white font-extrabold py-2 rounded transition shadow">
+                            Sell / Short
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Institutional Pattern & Tape Analyzer -->
+                <div class="p-3 flex-1 flex flex-col gap-2 bg-[#0d1119] overflow-y-auto">
+                    <div class="flex items-center justify-between">
+                        <span class="font-extrabold text-amber-400 flex items-center gap-1 text-[11px]">🧠 AI QUANT COPILOT</span>
+                        <button onclick="runAiAnalysis()" class="text-[10px] bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded font-bold">SCAN NOW</button>
+                    </div>
+
+                    <div class="bg-[#0b0e14] border border-[#1e232d] rounded p-2.5 space-y-1.5 terminal-font text-[11px]">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Detected Structure:</span>
+                            <span id="aiPattern" class="font-bold text-cyan-400">Scanning...</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Directional Bias:</span>
+                            <span id="aiBias" class="font-bold text-gray-300">--</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Optimal Entry Zone:</span>
+                            <span id="aiEntry" class="font-bold text-emerald-400">--</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Take Profit Target:</span>
+                            <span id="aiTarget" class="font-bold text-amber-400">--</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Invalidation (SL):</span>
+                            <span id="aiStop" class="font-bold text-rose-400">--</span>
+                        </div>
+                        <div class="pt-1 border-t border-[#1e232d] flex justify-between items-center">
+                            <span class="text-[10px] text-gray-500">Auto-Fill Order Ticket:</span>
+                            <button onclick="applyAiSetupToOrder()" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white px-2 py-0.5 rounded font-bold">Apply Setup</button>
+                        </div>
+                    </div>
                 </div>
             </aside>
         </div>
+
+        <!-- ========================================== -->
+        <!-- BOTTOM POSITIONS & ORDER HISTORY DOCK      -->
+        <!-- ========================================== -->
+        <section class="h-44 bg-[#10141d] border-t border-[#1e232d] flex flex-col flex-shrink-0 z-20">
+            <div class="h-8 px-4 border-b border-[#1e232d] flex items-center justify-between text-xs font-bold text-gray-400 bg-[#0d1119]">
+                <div class="flex gap-6">
+                    <button class="tab-active py-1.5">Active Positions (<span id="posCount">0</span>)</button>
+                </div>
+                <div class="terminal-font text-[11px]">
+                    Total Unrealized PnL: <span id="totalUnrealizedPnl" class="font-bold text-gray-300">$0.00</span>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+                <table class="w-full text-left border-collapse terminal-font text-[11px]">
+                    <thead>
+                        <tr class="text-gray-500 border-b border-[#1e232d] bg-[#0b0e14]">
+                            <th class="py-1.5 px-4">Symbol</th>
+                            <th class="py-1.5 px-4">Side</th>
+                            <th class="py-1.5 px-4">Position Size</th>
+                            <th class="py-1.5 px-4">Entry Price</th>
+                            <th class="py-1.5 px-4">Mark Price</th>
+                            <th class="py-1.5 px-4">Est. Liq. Price</th>
+                            <th class="py-1.5 px-4">TP / SL</th>
+                            <th class="py-1.5 px-4">Unrealized PnL (ROE%)</th>
+                            <th class="py-1.5 px-4 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="positionsTableBody" class="divide-y divide-[#1e232d]">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
-    
+
+    <!-- ========================================== -->
+    <!-- BINANCE-STYLE INDICATOR SETTINGS MODAL     -->
+    <!-- ========================================== -->
+    <div id="indicatorModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-[#161b26] border border-[#262c3a] rounded-xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div class="px-5 py-3.5 border-b border-[#262c3a] flex items-center justify-between">
+                <h3 class="font-bold text-white text-sm">Main & Sub Chart Indicators</h3>
+                <button onclick="toggleIndicatorModal()" class="text-gray-400 hover:text-white text-lg leading-none">&times;</button>
+            </div>
+            <div class="p-5 space-y-4 text-xs">
+                <div class="font-bold text-amber-400 uppercase tracking-wider text-[10px]">Moving Averages (Main Chart Overlays)</div>
+                
+                <!-- MA1 Row -->
+                <div class="flex items-center justify-between gap-3 bg-[#0b0e14] p-2.5 rounded border border-[#1e232d]">
+                    <label class="flex items-center gap-2 font-bold text-gray-200 cursor-pointer">
+                        <input type="checkbox" id="chkMA1" checked class="accent-amber-500"> MA 1
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-500">Length:</span>
+                        <input type="number" id="lenMA1" value="7" min="2" max="500" class="w-16 bg-[#161b26] border border-gray-700 rounded px-2 py-1 text-white terminal-font">
+                        <input type="color" id="colMA1" value="#facc15" class="w-7 h-7 rounded bg-transparent border-0 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- MA2 Row -->
+                <div class="flex items-center justify-between gap-3 bg-[#0b0e14] p-2.5 rounded border border-[#1e232d]">
+                    <label class="flex items-center gap-2 font-bold text-gray-200 cursor-pointer">
+                        <input type="checkbox" id="chkMA2" checked class="accent-amber-500"> MA 2
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-500">Length:</span>
+                        <input type="number" id="lenMA2" value="25" min="2" max="500" class="w-16 bg-[#161b26] border border-gray-700 rounded px-2 py-1 text-white terminal-font">
+                        <input type="color" id="colMA2" value="#f472b6" class="w-7 h-7 rounded bg-transparent border-0 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- MA3 Row -->
+                <div class="flex items-center justify-between gap-3 bg-[#0b0e14] p-2.5 rounded border border-[#1e232d]">
+                    <label class="flex items-center gap-2 font-bold text-gray-200 cursor-pointer">
+                        <input type="checkbox" id="chkMA3" checked class="accent-amber-500"> MA 3
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-500">Length:</span>
+                        <input type="number" id="lenMA3" value="99" min="2" max="500" class="w-16 bg-[#161b26] border border-gray-700 rounded px-2 py-1 text-white terminal-font">
+                        <input type="color" id="colMA3" value="#a855f7" class="w-7 h-7 rounded bg-transparent border-0 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- Bollinger Bands Row -->
+                <div class="flex items-center justify-between gap-3 bg-[#0b0e14] p-2.5 rounded border border-[#1e232d]">
+                    <label class="flex items-center gap-2 font-bold text-gray-200 cursor-pointer">
+                        <input type="checkbox" id="chkBOLL" class="accent-amber-500"> BOLL (Bollinger Bands 20, 2)
+                    </label>
+                    <span class="text-[10px] text-cyan-400 font-mono">Upper / Lower / Basis</span>
+                </div>
+            </div>
+            <div class="px-5 py-3 bg-[#10141d] border-t border-[#262c3a] flex justify-end gap-2">
+                <button onclick="applyIndicatorSettings()" class="bg-amber-500 hover:bg-amber-400 text-black font-extrabold px-4 py-1.5 rounded text-xs">Save & Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CORE APPLICATION & ENGINE SCRIPT           -->
+    <!-- ========================================== -->
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
+        // 1. SUPABASE AUTHENTICATION & CLOUD PERSISTENCE
         const supabaseUrl = 'https://gqdirctfbzlnnfctcdcy.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxZGlyY3RmYnpsbm5mY3RjZGN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4MzIxMjMsImV4cCI6MjEwODQwODEyM30.D12kInUr6jHHxCNTWLuoNGXUrxFPWFYdKHxw0cAfaWA';
         const supabaseClient = createClient(supabaseUrl, supabaseKey);
@@ -160,89 +469,786 @@
         let currentTimeframe = '1m';
         let currentChartType = 'Candlestick';
         let rawCandles = [];
+        let userDrawings = [];
+        let paperPositions = [];
+        let currentOrderType = 'Market';
+        let lastKnownPrice = 0;
 
-        const cryptoCatalog = [
-            { symbol: 'XRPUSDT', name: 'XRP / Tether', price: '1.28', change: '+4.2%' },
-            { symbol: 'BTCUSDT', name: 'Bitcoin / Tether', price: '92,450', change: '+1.8%' },
-            { symbol: 'ETHUSDT', name: 'Ethereum / Tether', price: '3,420', change: '-0.5%' },
-            { symbol: 'SOLUSDT', name: 'Solana / Tether', price: '184.20', change: '+6.1%' },
-            { symbol: 'DOGEUSDT', name: 'Dogecoin / Tether', price: '0.38', change: '+5.4%' },
-            { symbol: 'ADAUSDT', name: 'Cardano / Tether', price: '0.85', change: '-1.2%' },
-            { symbol: 'AVAXUSDT', name: 'Avalanche / Tether', price: '38.50', change: '+2.9%' },
-            { symbol: 'LINKUSDT', name: 'Chainlink / Tether', price: '18.20', change: '+1.1%' }
+        // Multi-Asset Catalog (Crypto routed to Binance API; TradFi routed to Synthetic Live Engine)
+        const multiAssetCatalog = [
+            { symbol: 'XRPUSDT', name: 'XRP Perpetual', category: 'crypto', isBinance: true, price: 1.2820, change: 4.25, high: 1.3100, low: 1.2200, vol: '482.5M' },
+            { symbol: 'BTCUSDT', name: 'Bitcoin Perpetual', category: 'crypto', isBinance: true, price: 92450.00, change: 2.15, high: 93200.00, low: 90100.00, vol: '3.82B' },
+            { symbol: 'ETHUSDT', name: 'Ethereum Perpetual', category: 'crypto', isBinance: true, price: 3420.50, change: -0.65, high: 3490.00, low: 3380.00, vol: '1.94B' },
+            { symbol: 'SOLUSDT', name: 'Solana Perpetual', category: 'crypto', isBinance: true, price: 184.20, change: 6.40, high: 188.00, low: 171.50, vol: '890.1M' },
+            { symbol: 'DOGEUSDT', name: 'Dogecoin Perpetual', category: 'crypto', isBinance: true, price: 0.3840, change: 5.12, high: 0.3950, low: 0.3600, vol: '412.0M' },
+            { symbol: 'PAXGUSDT', name: 'Gold Spot (XAU/USD Tokenized)', category: 'commodity', isBinance: true, price: 2748.00, change: 0.82, high: 2755.00, low: 2720.00, vol: '68.4M' },
+            { symbol: 'SPX500', name: 'S&P 500 Index CFD', category: 'stock', isBinance: false, price: 5884.50, change: 0.54, high: 5902.00, low: 5850.00, vol: '1.12B' },
+            { symbol: 'NVDA', name: 'NVIDIA Corporation', category: 'stock', isBinance: false, price: 141.80, change: 3.10, high: 143.50, low: 138.20, vol: '645.0M' },
+            { symbol: 'AAPL', name: 'Apple Inc. Equity', category: 'stock', isBinance: false, price: 235.40, change: 0.95, high: 236.80, low: 233.10, vol: '310.4M' },
+            { symbol: 'WTICOUSD', name: 'WTI Crude Oil Futures', category: 'commodity', isBinance: false, price: 71.35, change: -1.15, high: 72.80, low: 70.60, vol: '295.0M' },
+            { symbol: 'US10Y', name: 'US 10-Year Treasury Yield', category: 'bond', isBinance: false, price: 4.245, change: 0.48, high: 4.280, low: 4.210, vol: '92.0M' }
         ];
 
-        window.switchView = function(viewName) {
-            document.getElementById('view-home').classList.add('hidden');
-            document.getElementById('view-terminal').classList.add('hidden');
-            if(viewName === 'home') {
-                document.getElementById('view-home').classList.remove('hidden');
-                renderScreener();
+        // Live Binance 24h Screener Sync
+        async function syncLiveScreenerPrices() {
+            try {
+                const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+                if (!res.ok) return;
+                const tickers = await res.json();
+                const map = {};
+                tickers.forEach(t => map[t.symbol] = t);
+
+                multiAssetCatalog.forEach(asset => {
+                    if (asset.isBinance && map[asset.symbol]) {
+                        const d = map[asset.symbol];
+                        asset.price = parseFloat(d.lastPrice);
+                        asset.change = parseFloat(d.priceChangePercent);
+                        asset.high = parseFloat(d.highPrice);
+                        asset.low = parseFloat(d.lowPrice);
+                        const qv = parseFloat(d.quoteVolume);
+                        asset.vol = qv > 1e9 ? (qv / 1e9).toFixed(2) + 'B' : (qv / 1e6).toFixed(1) + 'M';
+                    }
+                });
+                if (!document.getElementById('view-home').classList.contains('hidden')) {
+                    renderScreenerTable(activeScreenerCategory);
+                }
+            } catch (e) {}
+        }
+        setInterval(syncLiveScreenerPrices, 8000);
+
+        let activeScreenerCategory = 'all';
+        window.filterScreener = function(cat, btnEl) {
+            activeScreenerCategory = cat;
+            document.querySelectorAll('#screenerTabs button').forEach(b => {
+                b.className = 'px-3 py-1 bg-[#161b26] text-gray-300 rounded text-xs font-bold hover:bg-gray-800';
+            });
+            if (btnEl) btnEl.className = 'px-3 py-1 bg-amber-500 text-black rounded text-xs font-extrabold';
+            renderScreenerTable(cat);
+        };
+
+        function renderScreenerTable(cat) {
+            const tbody = document.getElementById('screenerBody');
+            tbody.innerHTML = '';
+            const list = cat === 'all' ? multiAssetCatalog : multiAssetCatalog.filter(a => a.category === cat);
+            list.forEach(item => {
+                const isUp = item.change >= 0;
+                const pStr = item.price >= 10 ? item.price.toFixed(2) : item.price.toFixed(4);
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-[#161c28] cursor-pointer transition';
+                tr.onclick = () => {
+                    switchView('terminal');
+                    initSymbol(item.symbol, currentTimeframe);
+                };
+                tr.innerHTML = `
+                    <td class="py-3 px-4">
+                        <div class="font-bold text-white">${item.symbol}</div>
+                        <div class="text-[10px] text-gray-400 font-sans">${item.name}</div>
+                    </td>
+                    <td class="py-3 px-4"><span class="text-[10px] uppercase px-2 py-0.5 rounded bg-gray-800 text-gray-300 font-bold">${item.category}</span></td>
+                    <td class="py-3 px-4 text-right font-bold text-white">$${pStr}</td>
+                    <td class="py-3 px-4 text-right font-bold ${isUp ? 'text-emerald-400' : 'text-rose-400'}">${isUp ? '+' : ''}${item.change.toFixed(2)}%</td>
+                    <td class="py-3 px-4 text-right text-gray-400 hidden sm:table-cell">$${item.high >= 10 ? item.high.toFixed(2) : item.high.toFixed(4)}</td>
+                    <td class="py-3 px-4 text-right text-gray-400 hidden sm:table-cell">$${item.low >= 10 ? item.low.toFixed(2) : item.low.toFixed(4)}</td>
+                    <td class="py-3 px-4 text-right text-gray-300 hidden md:table-cell">$${item.vol}</td>
+                    <td class="py-3 px-4 text-right"><button class="bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-black font-bold px-2.5 py-1 rounded text-[11px] transition">Trade</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.switchView = function(view) {
+            const h = document.getElementById('view-home');
+            const t = document.getElementById('view-terminal');
+            if (view === 'home') {
+                h.classList.remove('hidden');
+                h.classList.add('flex');
+                t.classList.add('hidden');
+                renderScreenerTable(activeScreenerCategory);
+                syncLiveScreenerPrices();
             } else {
-                document.getElementById('view-terminal').classList.remove('hidden');
-                chart.timeScale().fitContent();
+                h.classList.add('hidden');
+                h.classList.remove('flex');
+                t.classList.remove('hidden');
+                setTimeout(() => {
+                    resizeChartsAndCanvas();
+                    chart.timeScale().fitContent();
+                }, 50);
             }
         };
 
-        function renderScreener() {
-            const grid = document.getElementById('assetGrid');
-            grid.innerHTML = '';
-            cryptoCatalog.forEach(item => {
-                const isPositive = !item.change.includes('-');
-                const card = document.createElement('div');
-                card.className = 'bg-[#0B0E14] border border-gray-800 hover:border-blue-500/50 p-4 rounded-xl cursor-pointer transition flex flex-col justify-between';
-                card.onclick = () => {
-                    currentSymbol = item.symbol;
-                    document.getElementById('symbolInput').value = currentSymbol;
-                    switchView('terminal');
-                    initSymbol(currentSymbol, currentTimeframe);
-                };
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <span class="text-xs font-bold text-blue-400 uppercase">Binance Spot</span>
-                            <h3 class="font-bold text-white text-base terminal-font">${item.symbol}</h3>
-                            <p class="text-xs text-gray-400">${item.name}</p>
-                        </div>
-                        <span class="text-xs font-bold px-2 py-0.5 rounded ${isPositive ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}">${item.change}</span>
-                    </div>
-                    <div class="flex justify-between items-end border-t border-gray-800/60 pt-3">
-                        <span class="text-xs text-gray-500">Live API Quote</span>
-                        <span class="font-bold text-lg text-white terminal-font">$${item.price}</span>
-                    </div>
-                `;
-                grid.appendChild(card);
+        // 2. CHART INITIALIZATION (WATERMARK-FREE)
+        const chartContainer = document.getElementById('chartContainer');
+        const chart = LightweightCharts.createChart(chartContainer, {
+            layout: { background: { type: 'solid', color: '#0b0e14' }, textColor: '#6b7280', attributionLogo: false },
+            watermark: { visible: false },
+            grid: { vertLines: { color: '#141923' }, horzLines: { color: '#141923' } },
+            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+            rightPriceScale: { borderColor: '#1e232d' },
+            timeScale: { borderColor: '#1e232d', timeVisible: true, secondsVisible: false }
+        });
+
+        // Indicator Series Overlays (MA1, MA2, MA3, Bollinger Bands)
+        let activeSeries = null;
+        let ma1Series = chart.addLineSeries({ color: '#facc15', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        let ma2Series = chart.addLineSeries({ color: '#f472b6', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        let ma3Series = chart.addLineSeries({ color: '#a855f7', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        let bollUpper = chart.addLineSeries({ color: 'rgba(34,211,238,0.5)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        let bollLower = chart.addLineSeries({ color: 'rgba(34,211,238,0.5)', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+
+        // RSI Sub-chart
+        const rsiContainer = document.getElementById('rsiContainer');
+        const rsiChart = LightweightCharts.createChart(rsiContainer, {
+            layout: { background: { type: 'solid', color: '#0b0e14' }, textColor: '#6b7280', attributionLogo: false },
+            watermark: { visible: false },
+            grid: { vertLines: { color: '#141923' }, horzLines: { color: '#141923' } },
+            rightPriceScale: { borderColor: '#1e232d' },
+            timeScale: { visible: false }
+        });
+        const rsiSeries = rsiChart.addLineSeries({ color: '#f59e0b', lineWidth: 1.5 });
+
+        chart.timeScale().subscribeVisibleLogicalRangeChange(range => {
+            if (range) rsiChart.timeScale().setVisibleLogicalRange(range);
+            renderDrawingsCanvas();
+        });
+
+        // Crosshair Legend Updates
+        chart.subscribeCrosshairMove(param => {
+            if (!param.time || !activeSeries) return;
+            const d = param.seriesData.get(activeSeries);
+            if (!d) return;
+            if (d.open !== undefined) {
+                document.getElementById('ohlcLegend').innerText = `O: ${d.open}   H: ${d.high}   L: ${d.low}   C: ${d.close}`;
+            } else if (d.value !== undefined) {
+                document.getElementById('ohlcLegend').innerText = `Price: ${d.value}`;
+            }
+        });
+
+        function setChartType(type) {
+            currentChartType = type;
+            if (activeSeries) chart.removeSeries(activeSeries);
+            if (type === 'Candlestick') {
+                activeSeries = chart.addCandlestickSeries({ upColor: '#10b981', downColor: '#f43f5e', borderVisible: false, wickUpColor: '#10b981', wickDownColor: '#f43f5e' });
+            } else if (type === 'Bar') {
+                activeSeries = chart.addBarSeries({ upColor: '#10b981', downColor: '#f43f5e' });
+            } else if (type === 'Line') {
+                activeSeries = chart.addLineSeries({ color: '#38bdf8', lineWidth: 2 });
+            } else if (type === 'Area') {
+                activeSeries = chart.addAreaSeries({ lineColor: '#38bdf8', topColor: 'rgba(56, 189, 248, 0.35)', bottomColor: 'rgba(56, 189, 248, 0.0)' });
+            }
+            if (rawCandles.length > 0) updateAllChartSeries();
+        }
+
+        function calculateSMA(data, period) {
+            let result = [];
+            for (let i = period - 1; i < data.length; i++) {
+                let sum = 0;
+                for (let j = 0; j < period; j++) sum += data[i - j].close;
+                result.push({ time: data[i].time, value: sum / period });
+            }
+            return result;
+        }
+
+        function calculateBollinger(data, period = 20, mult = 2) {
+            let upper = [], lower = [];
+            for (let i = period - 1; i < data.length; i++) {
+                let slice = data.slice(i - period + 1, i + 1).map(d => d.close);
+                let mean = slice.reduce((a, b) => a + b, 0) / period;
+                let variance = slice.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / period;
+                let sd = Math.sqrt(variance);
+                upper.push({ time: data[i].time, value: mean + mult * sd });
+                lower.push({ time: data[i].time, value: mean - mult * sd });
+            }
+            return { upper, lower };
+        }
+
+        function calculateRSI(data, period = 14) {
+            let rsiData = [];
+            if (data.length <= period) return rsiData;
+            let gains = 0, losses = 0;
+            for (let i = 1; i < data.length; i++) {
+                let change = data[i].close - data[i - 1].close;
+                if (i <= period) {
+                    if (change >= 0) gains += change; else losses -= change;
+                    if (i === period) {
+                        gains /= period; losses /= period;
+                        let rs = gains / (losses || 0.00001);
+                        rsiData.push({ time: data[i].time, value: 100 - (100 / (1 + rs)) });
+                    }
+                } else {
+                    gains = (gains * (period - 1) + (change > 0 ? change : 0)) / period;
+                    losses = (losses * (period - 1) + (change < 0 ? -change : 0)) / period;
+                    let rs = gains / (losses || 0.00001);
+                    rsiData.push({ time: data[i].time, value: 100 - (100 / (1 + rs)) });
+                }
+            }
+            return rsiData;
+        }
+
+        function updateAllChartSeries() {
+            if (!activeSeries || rawCandles.length === 0) return;
+            if (currentChartType === 'Line' || currentChartType === 'Area') {
+                activeSeries.setData(rawCandles.map(c => ({ time: c.time, value: c.close })));
+            } else {
+                activeSeries.setData(rawCandles);
+            }
+
+            // Indicators
+            const useMA1 = document.getElementById('chkMA1').checked;
+            const len1 = parseInt(document.getElementById('lenMA1').value) || 7;
+            const col1 = document.getElementById('colMA1').value;
+            ma1Series.applyOptions({ color: col1, visible: useMA1 });
+            if (useMA1) {
+                const s1 = calculateSMA(rawCandles, len1);
+                ma1Series.setData(s1);
+                if (s1.length) document.getElementById('legMA1').innerText = `MA(${len1}): ${s1[s1.length - 1].value.toFixed(4)}`;
+            }
+
+            const useMA2 = document.getElementById('chkMA2').checked;
+            const len2 = parseInt(document.getElementById('lenMA2').value) || 25;
+            const col2 = document.getElementById('colMA2').value;
+            ma2Series.applyOptions({ color: col2, visible: useMA2 });
+            if (useMA2) {
+                const s2 = calculateSMA(rawCandles, len2);
+                ma2Series.setData(s2);
+                if (s2.length) document.getElementById('legMA2').innerText = `MA(${len2}): ${s2[s2.length - 1].value.toFixed(4)}`;
+            }
+
+            const useMA3 = document.getElementById('chkMA3').checked;
+            const len3 = parseInt(document.getElementById('lenMA3').value) || 99;
+            const col3 = document.getElementById('colMA3').value;
+            ma3Series.applyOptions({ color: col3, visible: useMA3 });
+            if (useMA3) {
+                const s3 = calculateSMA(rawCandles, len3);
+                ma3Series.setData(s3);
+                if (s3.length) document.getElementById('legMA3').innerText = `MA(${len3}): ${s3[s3.length - 1].value.toFixed(4)}`;
+            }
+
+            const useBoll = document.getElementById('chkBOLL').checked;
+            bollUpper.applyOptions({ visible: useBoll });
+            bollLower.applyOptions({ visible: useBoll });
+            document.getElementById('legBOLL').classList.toggle('hidden', !useBoll);
+            if (useBoll) {
+                const b = calculateBollinger(rawCandles, 20, 2);
+                bollUpper.setData(b.upper);
+                bollLower.setData(b.lower);
+            }
+
+            const rsiArr = calculateRSI(rawCandles, 14);
+            rsiSeries.setData(rsiArr);
+            if (rsiArr.length) document.getElementById('rsiValLabel').innerText = rsiArr[rsiArr.length - 1].value.toFixed(2);
+            renderDrawingsCanvas();
+        }
+
+        window.toggleIndicatorModal = function() {
+            document.getElementById('indicatorModal').classList.toggle('hidden');
+        };
+
+        window.applyIndicatorSettings = function() {
+            updateAllChartSeries();
+            toggleIndicatorModal();
+        };
+
+        let rsiShown = false;
+        window.toggleRsiSubchart = function() {
+            rsiShown = !rsiShown;
+            rsiContainer.style.display = rsiShown ? 'block' : 'none';
+            resizeChartsAndCanvas();
+        };
+
+        // 3. INTERACTIVE CHART DRAWING OVERLAY ENGINE (TRENDLINE, H-LINE, FIB, BOX)
+        const drawingCanvas = document.getElementById('drawingCanvas');
+        const ctx = drawingCanvas.getContext('2d');
+        let currentTool = 'cursor';
+        let pendingAnchor = null;
+
+        function resizeChartsAndCanvas() {
+            const rect = chartContainer.getBoundingClientRect();
+            chart.applyOptions({ width: rect.width, height: rect.height });
+            drawingCanvas.width = rect.width;
+            drawingCanvas.height = rect.height;
+            const rsiRect = rsiContainer.getBoundingClientRect();
+            rsiChart.applyOptions({ width: rsiRect.width, height: rsiRect.height });
+            renderDrawingsCanvas();
+        }
+        new ResizeObserver(resizeChartsAndCanvas).observe(chartContainer);
+
+        window.setDrawingTool = function(tool) {
+            currentTool = tool;
+            pendingAnchor = null;
+            document.querySelectorAll('aside button[id^="draw-"]').forEach(b => b.classList.remove('tool-active'));
+            const activeBtn = document.getElementById('draw-' + tool);
+            if (activeBtn) activeBtn.classList.add('tool-active');
+
+            const isDraw = tool !== 'cursor';
+            drawingCanvas.style.pointerEvents = isDraw ? 'auto' : 'none';
+            drawingCanvas.style.cursor = isDraw ? 'crosshair' : 'default';
+            document.getElementById('drawingBanner').classList.toggle('hidden', !isDraw);
+        };
+
+        drawingCanvas.addEventListener('click', (e) => {
+            if (currentTool === 'cursor' || !activeSeries) return;
+            const rect = drawingCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const time = chart.timeScale().coordinateToTime(x);
+            const price = activeSeries.coordinateToPrice(y);
+            if (!price) return;
+
+            if (currentTool === 'hline') {
+                userDrawings.push({ type: 'hline', price });
+                setDrawingTool('cursor');
+                renderDrawingsCanvas();
+                return;
+            }
+
+            if (!pendingAnchor) {
+                pendingAnchor = { time: time || rawCandles[rawCandles.length - 1]?.time, price };
+            } else {
+                userDrawings.push({
+                    type: currentTool,
+                    p1: pendingAnchor,
+                    p2: { time: time || rawCandles[rawCandles.length - 1]?.time, price }
+                });
+                pendingAnchor = null;
+                setDrawingTool('cursor');
+                renderDrawingsCanvas();
+            }
+        });
+
+        window.clearAllDrawings = function() {
+            userDrawings = [];
+            pendingAnchor = null;
+            renderDrawingsCanvas();
+        };
+
+        function renderDrawingsCanvas() {
+            ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            if (!activeSeries || userDrawings.length === 0) return;
+
+            userDrawings.forEach(d => {
+                ctx.save();
+                if (d.type === 'hline') {
+                    const y = activeSeries.priceToCoordinate(d.price);
+                    if (y !== null) {
+                        ctx.strokeStyle = '#38bdf8';
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([5, 4]);
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(drawingCanvas.width, y);
+                        ctx.stroke();
+                        ctx.fillStyle = '#38bdf8';
+                        ctx.font = '10px Fira Code';
+                        ctx.fillText(`S/R ${d.price.toFixed(4)}`, 12, y - 4);
+                    }
+                } else if (d.p1 && d.p2) {
+                    const x1 = chart.timeScale().timeToCoordinate(d.p1.time) ?? 100;
+                    const y1 = activeSeries.priceToCoordinate(d.p1.price);
+                    const x2 = chart.timeScale().timeToCoordinate(d.p2.time) ?? (drawingCanvas.width - 100);
+                    const y2 = activeSeries.priceToCoordinate(d.p2.price);
+                    if (y1 === null || y2 === null) { ctx.restore(); return; }
+
+                    if (d.type === 'trendline') {
+                        ctx.strokeStyle = '#f59e0b';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                    } else if (d.type === 'rect') {
+                        ctx.fillStyle = 'rgba(59, 130, 246, 0.18)';
+                        ctx.strokeStyle = '#3b82f6';
+                        ctx.lineWidth = 1;
+                        ctx.fillRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+                        ctx.strokeRect(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1));
+                    } else if (d.type === 'fib') {
+                        const levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+                        const diff = d.p2.price - d.p1.price;
+                        levels.forEach(lvl => {
+                            const lvlPrice = d.p1.price + diff * lvl;
+                            const ly = activeSeries.priceToCoordinate(lvlPrice);
+                            if (ly !== null) {
+                                ctx.strokeStyle = lvl === 0.618 || lvl === 0.5 ? '#f59e0b' : 'rgba(156, 163, 175, 0.6)';
+                                ctx.lineWidth = 1;
+                                ctx.beginPath();
+                                ctx.moveTo(Math.min(x1, x2), ly);
+                                ctx.lineTo(Math.max(x1, x2, drawingCanvas.width - 60), ly);
+                                ctx.stroke();
+                                ctx.fillStyle = '#e5e7eb';
+                                ctx.font = '10px Fira Code';
+                                ctx.fillText(`Fib ${(lvl * 100).toFixed(1)}% (${lvlPrice.toFixed(4)})`, Math.min(x1, x2) + 4, ly - 3);
+                            }
+                        });
+                    }
+                }
+                ctx.restore();
             });
         }
-        renderScreener();
 
-        // --- AUTH & WORKSPACE PERSISTENCE ---
-        const loginBtn = document.getElementById('loginBtn'); 
+        // 4. BINANCE MULTIPLEXED WEBSOCKET ENGINE & SYNTHETIC FALLBACK
+        let wsMux = null;
+        let synthInterval = null;
+        let latestDepthMsg = null;
+
+        async function initSymbol(symbol, timeframe = '1m') {
+            currentSymbol = symbol.toUpperCase();
+            currentTimeframe = timeframe;
+            document.getElementById('symbolInput').value = currentSymbol;
+            document.getElementById('orderTape').innerHTML = '';
+
+            if (!activeSeries) setChartType(currentChartType);
+
+            const catalogEntry = multiAssetCatalog.find(a => a.symbol === currentSymbol);
+            const isBinanceAsset = catalogEntry ? catalogEntry.isBinance : currentSymbol.endsWith('USDT');
+
+            if (wsMux) { wsMux.close(); wsMux = null; }
+            if (synthInterval) { clearInterval(synthInterval); synthInterval = null; }
+
+            if (isBinanceAsset) {
+                document.getElementById('assetBadge').innerText = 'BINANCE API';
+                try {
+                    const [klinesRes, tickerRes] = await Promise.all([
+                        fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${timeframe}&limit=300`),
+                        fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${currentSymbol}`)
+                    ]);
+                    if (klinesRes.ok) {
+                        const data = await klinesRes.json();
+                        rawCandles = data.map(d => ({
+                            time: Math.floor(d[0] / 1000), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4])
+                        })).sort((a, b) => a.time - b.time);
+                        lastKnownPrice = rawCandles[rawCandles.length - 1].close;
+                        updateAllChartSeries();
+                        runAiAnalysis();
+                    }
+                    if (tickerRes.ok) {
+                        const tk = await tickerRes.json();
+                        updateTopRibbon(parseFloat(tk.lastPrice), parseFloat(tk.priceChangePercent), parseFloat(tk.highPrice), parseFloat(tk.lowPrice), parseFloat(tk.quoteVolume));
+                    }
+                } catch (e) { console.warn('REST Fetch Error:', e); }
+
+                // Combined Single-Connection Multiplexed Stream (Kline + Trade + Depth)
+                const s = currentSymbol.toLowerCase();
+                wsMux = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${s}@kline_${timeframe}/${s}@trade/${s}@depth20@100ms`);
+                wsMux.onmessage = (evt) => {
+                    const packet = JSON.parse(evt.data);
+                    if (!packet || !packet.data) return;
+                    const stream = packet.stream;
+                    const msg = packet.data;
+
+                    if (stream.includes('@kline_')) {
+                        const c = parseFloat(msg.k.c);
+                        lastKnownPrice = c;
+                        const bar = { time: Math.floor(msg.k.t / 1000), open: parseFloat(msg.k.o), high: parseFloat(msg.k.h), low: parseFloat(msg.k.l), close: c };
+                        if (rawCandles.length && rawCandles[rawCandles.length - 1].time === bar.time) {
+                            rawCandles[rawCandles.length - 1] = bar;
+                        } else {
+                            rawCandles.push(bar);
+                        }
+                        if (currentChartType === 'Line' || currentChartType === 'Area') {
+                            activeSeries.update({ time: bar.time, value: c });
+                        } else {
+                            activeSeries.update(bar);
+                        }
+                        updateLivePriceHeader(c, c >= bar.open);
+                        updatePaperPositionsPnL(c);
+                    } else if (stream.includes('@trade')) {
+                        appendTradeTape(parseFloat(msg.p), parseFloat(msg.q), !msg.m, msg.T);
+                    } else if (stream.includes('@depth20')) {
+                        latestDepthMsg = msg;
+                    }
+                };
+            } else {
+                // Non-crypto TradFi Asset (Stocks, S&P, Oil, Bonds) - Live Synthetic Generator
+                document.getElementById('assetBadge').innerText = catalogEntry ? catalogEntry.category.toUpperCase() : 'TRADFI';
+                const basePrice = catalogEntry ? catalogEntry.price : 100;
+                const nowSec = Math.floor(Date.now() / 1000);
+                rawCandles = [];
+                let p = basePrice * 0.985;
+                for (let i = 250; i >= 0; i--) {
+                    const o = p;
+                    const delta = (Math.random() - 0.492) * (basePrice * 0.0025);
+                    const c = +(o + delta).toFixed(4);
+                    const h = +(Math.max(o, c) + Math.random() * (basePrice * 0.0015)).toFixed(4);
+                    const l = +(Math.min(o, c) - Math.random() * (basePrice * 0.0015)).toFixed(4);
+                    rawCandles.push({ time: nowSec - i * 60, open: o, high: h, low: l, close: c });
+                    p = c;
+                }
+                lastKnownPrice = p;
+                updateAllChartSeries();
+                runAiAnalysis();
+                updateTopRibbon(p, catalogEntry?.change || 1.1, p * 1.012, p * 0.988, 450000000);
+
+                synthInterval = setInterval(() => {
+                    const last = rawCandles[rawCandles.length - 1];
+                    const tick = (Math.random() - 0.495) * (basePrice * 0.0008);
+                    const c = +(last.close + tick).toFixed(4);
+                    last.close = c;
+                    if (c > last.high) last.high = c;
+                    if (c < last.low) last.low = c;
+                    lastKnownPrice = c;
+                    if (currentChartType === 'Line' || currentChartType === 'Area') {
+                        activeSeries.update({ time: last.time, value: c });
+                    } else {
+                        activeSeries.update(last);
+                    }
+                    updateLivePriceHeader(c, tick >= 0);
+                    updatePaperPositionsPnL(c);
+                    appendTradeTape(c, +(Math.random() * 50 + 1).toFixed(2), tick >= 0, Date.now());
+
+                    // Synthetic Orderbook
+                    const asks = [], bids = [];
+                    for (let i = 1; i <= 12; i++) {
+                        asks.push([(c + i * 0.05).toFixed(4), (Math.random() * 120 + 10).toFixed(2)]);
+                        bids.push([(c - i * 0.05).toFixed(4), (Math.random() * 120 + 10).toFixed(2)]);
+                    }
+                    latestDepthMsg = { asks, bids };
+                }, 600);
+            }
+        }
+
+        function updateLivePriceHeader(price, isUp) {
+            const pStr = price >= 10 ? price.toFixed(2) : price.toFixed(4);
+            const el = document.getElementById('livePrice');
+            el.innerText = pStr;
+            el.className = `font-bold text-base leading-none ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
+            document.getElementById('subUsdPrice').innerText = `≈ $${pStr}`;
+            const mid = document.getElementById('obMidPrice');
+            mid.innerText = pStr;
+            mid.className = `font-bold text-sm ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
+        }
+
+        function updateTopRibbon(last, chgPct, high, low, vol) {
+            updateLivePriceHeader(last, chgPct >= 0);
+            const chgEl = document.getElementById('stat24hChange');
+            chgEl.innerText = `${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%`;
+            chgEl.className = `font-semibold ${chgPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            document.getElementById('stat24hHigh').innerText = high >= 10 ? high.toFixed(2) : high.toFixed(4);
+            document.getElementById('stat24hLow').innerText = low >= 10 ? low.toFixed(2) : low.toFixed(4);
+            document.getElementById('stat24hVol').innerText = vol > 1e9 ? (vol / 1e9).toFixed(2) + 'B' : (vol / 1e6).toFixed(1) + 'M';
+        }
+
+        // Throttled 100ms Orderbook Renderer with Precision Grouping
+        setInterval(() => {
+            if (!latestDepthMsg || !latestDepthMsg.asks || !latestDepthMsg.bids) return;
+            const step = parseFloat(document.getElementById('tickGrouping').value) || 0.0001;
+            const decimals = step < 1 ? Math.abs(Math.floor(Math.log10(step))) : 2;
+
+            const aggregateSide = (orders) => {
+                const map = new Map();
+                orders.forEach(o => {
+                    const rawP = parseFloat(o[0]);
+                    const rawQ = parseFloat(o[1]);
+                    const bucket = (Math.floor(rawP / step) * step).toFixed(decimals);
+                    map.set(bucket, (map.get(bucket) || 0) + rawQ);
+                });
+                return Array.from(map.entries()).slice(0, 8);
+            };
+
+            const asks = aggregateSide(latestDepthMsg.asks);
+            const bids = aggregateSide(latestDepthMsg.bids);
+
+            let askRunning = 0;
+            document.getElementById('orderBookAsks').innerHTML = asks.map(([p, q]) => {
+                askRunning += q;
+                const w = Math.min((q / 25000) * 100, 100);
+                return `<div class="flex justify-between px-2 py-0.5 relative">
+                    <div class="absolute right-0 top-0 bottom-0 bg-rose-500/15" style="width:${w}%"></div>
+                    <span class="relative z-10 text-rose-400 font-semibold">${p}</span>
+                    <span class="relative z-10 text-gray-300">${q > 1000 ? (q/1000).toFixed(1)+'K' : q.toFixed(1)}</span>
+                    <span class="relative z-10 text-gray-500">${askRunning > 1000 ? (askRunning/1000).toFixed(1)+'K' : askRunning.toFixed(0)}</span>
+                </div>`;
+            }).join('');
+
+            let bidRunning = 0;
+            document.getElementById('orderBookBids').innerHTML = bids.map(([p, q]) => {
+                bidRunning += q;
+                const w = Math.min((q / 25000) * 100, 100);
+                return `<div class="flex justify-between px-2 py-0.5 relative">
+                    <div class="absolute right-0 top-0 bottom-0 bg-emerald-500/15" style="width:${w}%"></div>
+                    <span class="relative z-10 text-emerald-400 font-semibold">${p}</span>
+                    <span class="relative z-10 text-gray-300">${q > 1000 ? (q/1000).toFixed(1)+'K' : q.toFixed(1)}</span>
+                    <span class="relative z-10 text-gray-500">${bidRunning > 1000 ? (bidRunning/1000).toFixed(1)+'K' : bidRunning.toFixed(0)}</span>
+                </div>`;
+            }).join('');
+
+            if (asks.length && bids.length) {
+                const sp = Math.abs(parseFloat(asks[0][0]) - parseFloat(bids[0][0])).toFixed(decimals);
+                document.getElementById('orderBookSpread').innerText = `Spread: ${sp}`;
+            }
+        }, 150);
+
+        function appendTradeTape(price, qty, isBuy, timestamp) {
+            const tape = document.getElementById('orderTape');
+            const notional = price * qty;
+            const isWhale = notional >= 25000;
+            const pStr = price >= 10 ? price.toFixed(2) : price.toFixed(4);
+            const qStr = qty >= 1000 ? (qty / 1000).toFixed(1) + 'K' : qty.toFixed(2);
+            const tStr = new Date(timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            const row = document.createElement('div');
+            row.className = `flex justify-between px-2 py-0.5 rounded ${isWhale ? 'bg-amber-500/20 border border-amber-500/40' : ''} ${isBuy ? 'text-emerald-400' : 'text-rose-400'}`;
+            row.innerHTML = `<span class="font-semibold">${isWhale ? '🐋 ' : ''}${pStr}</span><span>${qStr}</span><span class="text-gray-500">${tStr}</span>`;
+            tape.prepend(row);
+            if (tape.children.length > 35) tape.lastChild.remove();
+        }
+
+        // 5. PAPER TRADING & POSITION DOCK ENGINE
+        const levSlider = document.getElementById('leverageSlider');
+        levSlider.addEventListener('input', (e) => {
+            document.getElementById('levBadge').innerText = e.target.value + 'x';
+        });
+
+        window.setOrderType = function(type) {
+            currentOrderType = type;
+            document.getElementById('tabMarket').className = type === 'Market' ? 'flex-1 py-1 rounded bg-[#1e232d] text-white' : 'flex-1 py-1 rounded text-gray-400';
+            document.getElementById('tabLimit').className = type === 'Limit' ? 'flex-1 py-1 rounded bg-[#1e232d] text-white' : 'flex-1 py-1 rounded text-gray-400';
+            document.getElementById('limitPriceBox').classList.toggle('hidden', type === 'Market');
+            if (type === 'Limit') document.getElementById('orderPriceInput').value = lastKnownPrice;
+        };
+
+        window.placePaperOrder = function(side) {
+            if (!lastKnownPrice) return;
+            const margin = parseFloat(document.getElementById('orderMarginInput').value) || 1000;
+            const lev = parseInt(levSlider.value) || 20;
+            const entry = currentOrderType === 'Limit' ? (parseFloat(document.getElementById('orderPriceInput').value) || lastKnownPrice) : lastKnownPrice;
+            const tp = parseFloat(document.getElementById('orderTpInput').value) || null;
+            const sl = parseFloat(document.getElementById('orderSlInput').value) || null;
+
+            const notionalSize = margin * lev;
+            const liqPrice = side === 'LONG' ? entry * (1 - 0.9 / lev) : entry * (1 + 0.9 / lev);
+
+            paperPositions.push({
+                id: Date.now(),
+                symbol: currentSymbol,
+                side,
+                margin,
+                lev,
+                notionalSize,
+                entry,
+                liqPrice,
+                tp,
+                sl
+            });
+            renderPositionsDock();
+        };
+
+        window.closePaperPosition = function(id) {
+            paperPositions = paperPositions.filter(p => p.id !== id);
+            renderPositionsDock();
+        };
+
+        function updatePaperPositionsPnL(markPrice) {
+            if (paperPositions.length === 0) return;
+            renderPositionsDock(markPrice);
+        }
+
+        function renderPositionsDock(liveMark = lastKnownPrice) {
+            const tbody = document.getElementById('positionsTableBody');
+            document.getElementById('posCount').innerText = paperPositions.length;
+            tbody.innerHTML = '';
+            let totalPnl = 0;
+
+            paperPositions.forEach(pos => {
+                const mark = pos.symbol === currentSymbol ? liveMark : pos.entry;
+                const priceDiff = pos.side === 'LONG' ? (mark - pos.entry) / pos.entry : (pos.entry - mark) / pos.entry;
+                const pnl = pos.notionalSize * priceDiff;
+                const roe = (pnl / pos.margin) * 100;
+                totalPnl += pnl;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-[#161c28]';
+                tr.innerHTML = `
+                    <td class="py-2 px-4 font-bold text-white">${pos.symbol} <span class="text-[10px] text-amber-400">${pos.lev}x</span></td>
+                    <td class="py-2 px-4 font-bold ${pos.side === 'LONG' ? 'text-emerald-400' : 'text-rose-400'}">${pos.side}</td>
+                    <td class="py-2 px-4">$${pos.notionalSize.toLocaleString()}</td>
+                    <td class="py-2 px-4">${pos.entry >= 10 ? pos.entry.toFixed(2) : pos.entry.toFixed(4)}</td>
+                    <td class="py-2 px-4 text-gray-300">${mark >= 10 ? mark.toFixed(2) : mark.toFixed(4)}</td>
+                    <td class="py-2 px-4 text-amber-500">${pos.liqPrice >= 10 ? pos.liqPrice.toFixed(2) : pos.liqPrice.toFixed(4)}</td>
+                    <td class="py-2 px-4 text-[10px]">${pos.tp || '--'} / ${pos.sl || '--'}</td>
+                    <td class="py-2 px-4 font-bold ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${roe.toFixed(1)}%)</td>
+                    <td class="py-2 px-4 text-right"><button onclick="closePaperPosition(${pos.id})" class="bg-gray-800 hover:bg-rose-600 text-gray-200 hover:text-white px-2 py-0.5 rounded text-[10px] font-bold transition">Market Close</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const totEl = document.getElementById('totalUnrealizedPnl');
+            totEl.innerText = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
+            totEl.className = `font-bold ${totalPnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+        }
+
+        // 6. AI QUANT COPILOT & CHART PATTERN DETECTOR
+        let lastAiComputed = null;
+        window.runAiAnalysis = function() {
+            if (rawCandles.length < 30) return;
+            const slice = rawCandles.slice(-30);
+            const last = slice[slice.length - 1].close;
+            const high = Math.max(...slice.map(c => c.high));
+            const low = Math.min(...slice.map(c => c.low));
+            const rsiArr = calculateRSI(rawCandles, 14);
+            const currRsi = rsiArr.length ? rsiArr[rsiArr.length - 1].value : 50;
+
+            let pattern = 'Range Consolidation';
+            let isBull = last >= slice[0].close;
+
+            if (currRsi < 33) { pattern = 'Bullish RSI Divergence / Double Bottom'; isBull = true; }
+            else if (currRsi > 68) { pattern = 'Overbought Exhaustion Wedge'; isBull = false; }
+            else if (last > high * 0.996) { pattern = 'Ascending Triangle Breakout'; isBull = true; }
+            else if (last < low * 1.004) { pattern = 'Descending Support Breakdown'; isBull = false; }
+
+            const entry = last;
+            const tp = isBull ? +(last * 1.018).toFixed(4) : +(last * 0.982).toFixed(4);
+            const sl = isBull ? +(last * 0.991).toFixed(4) : +(last * 1.009).toFixed(4);
+            lastAiComputed = { isBull, entry, tp, sl };
+
+            document.getElementById('aiPattern').innerText = pattern;
+            const bEl = document.getElementById('aiBias');
+            bEl.innerText = isBull ? 'LONG / BULLISH 🚀' : 'SHORT / BEARISH 📉';
+            bEl.className = `font-bold ${isBull ? 'text-emerald-400' : 'text-rose-400'}`;
+            document.getElementById('aiEntry').innerText = `$${entry >= 10 ? entry.toFixed(2) : entry.toFixed(4)}`;
+            document.getElementById('aiTarget').innerText = `$${tp >= 10 ? tp.toFixed(2) : tp.toFixed(4)}`;
+            document.getElementById('aiStop').innerText = `$${sl >= 10 ? sl.toFixed(2) : sl.toFixed(4)}`;
+        };
+
+        window.applyAiSetupToOrder = function() {
+            if (!lastAiComputed) return;
+            document.getElementById('orderTpInput').value = lastAiComputed.tp;
+            document.getElementById('orderSlInput').value = lastAiComputed.sl;
+        };
+
+        // 7. SUPABASE CLOUD SYNC & CONTROLS
+        const loginBtn = document.getElementById('loginBtn');
         const saveWorkspaceBtn = document.getElementById('saveWorkspace');
 
-        if (loginBtn) {
-            loginBtn.addEventListener('click', async () => {
-                if (currentUser) {
-                    await supabaseClient.auth.signOut();
-                    window.location.reload();
-                } else {
-                    await supabaseClient.auth.signInWithOAuth({
-                        provider: 'google',
-                        options: { redirectTo: window.location.origin + '/index.html' }
-                    });
-                }
-            });
-        }
+        loginBtn.addEventListener('click', async () => {
+            if (currentUser) {
+                await supabaseClient.auth.signOut();
+                window.location.reload();
+            } else {
+                await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.origin + window.location.pathname }
+                });
+            }
+        });
 
         async function checkUser() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 currentUser = session.user;
                 loginBtn.innerText = 'LOG OUT';
-                loginBtn.classList.replace('bg-blue-600', 'bg-red-600');
-                loginBtn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
+                loginBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-extrabold px-3 py-1 rounded transition';
                 saveWorkspaceBtn.classList.remove('hidden');
-                loadWorkspace();
+                const { data } = await supabaseClient.from('workspaces').select('*').eq('user_id', currentUser.id).single();
+                if (data) {
+                    currentSymbol = data.symbol || 'XRPUSDT';
+                    currentTimeframe = data.timeframe || '1m';
+                    currentChartType = data.chart_type || 'Candlestick';
+                    userDrawings = Array.isArray(data.drawings) ? data.drawings : [];
+                    document.getElementById('chartTypeSelect').value = currentChartType;
+                    setChartType(currentChartType);
+                    initSymbol(currentSymbol, currentTimeframe);
+                }
             }
         }
         checkUser();
@@ -254,250 +1260,32 @@
                 symbol: currentSymbol,
                 timeframe: currentTimeframe,
                 chart_type: currentChartType,
+                drawings: userDrawings,
                 updated_at: new Date()
             }, { onConflict: 'user_id' });
-
-            if (error) {
-                alert('Workspace table configuration missing in Supabase! Error: ' + error.message);
-            } else {
-                saveWorkspaceBtn.innerText = 'SAVED! ✅';
-                setTimeout(() => saveWorkspaceBtn.innerText = '💾 SAVE LAYOUT', 2000);
-            }
+            saveWorkspaceBtn.innerText = error ? 'ERR!' : 'SAVED ✅';
+            setTimeout(() => saveWorkspaceBtn.innerText = '💾 Save Cloud', 2000);
         });
 
-        async function loadWorkspace() {
-            if (!currentUser) return;
-            const { data } = await supabaseClient.from('workspaces').select('*').eq('user_id', currentUser.id).single();
-            if (data) {
-                currentSymbol = data.symbol || 'XRPUSDT';
-                currentTimeframe = data.timeframe || '1m';
-                currentChartType = data.chart_type || 'Candlestick';
-                document.getElementById('symbolInput').value = currentSymbol;
-                document.getElementById('chartTypeSelect').value = currentChartType;
-                initSymbol(currentSymbol, currentTimeframe);
-            }
-        }
-
-        // --- CHARTING ENGINE ---
-        const chartContainer = document.getElementById('chartContainer');
-        const chart = LightweightCharts.createChart(chartContainer, {
-            layout: { background: { type: 'solid', color: '#030712' }, textColor: '#9ca3af' },
-            grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } },
-            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-            timeScale: { timeVisible: true, secondsVisible: false },
-        });
-
-        let activeSeries = null;
-        function setChartType(type) {
-            currentChartType = type;
-            if (activeSeries) chart.removeSeries(activeSeries);
-
-            if (type === 'Candlestick') {
-                activeSeries = chart.addCandlestickSeries({ upColor: '#22c55e', downColor: '#ef4444', borderVisible: false });
-            } else if (type === 'Line') {
-                activeSeries = chart.addLineSeries({ color: '#38bdf8', lineWidth: 2 });
-            } else if (type === 'Area') {
-                activeSeries = chart.addAreaSeries({ topLineColor: '#38bdf8', topColor: 'rgba(56, 189, 248, 0.4)', bottomColor: 'rgba(56, 189, 248, 0.0)' });
-            } else if (type === 'Bar') {
-                activeSeries = chart.addBarSeries({ upColor: '#22c55e', downColor: '#ef4444' });
-            }
-
-            if (rawCandles.length > 0) feedSeriesData();
-        }
-
-        function feedSeriesData() {
-            if (currentChartType === 'Line' || currentChartType === 'Area') {
-                activeSeries.setData(rawCandles.map(c => ({ time: c.time, value: c.close })));
-            } else {
-                activeSeries.setData(rawCandles);
-            }
-        }
-
-        document.getElementById('chartTypeSelect').addEventListener('change', (e) => {
-            setChartType(e.target.value);
-        });
-
-        // RSI Sub-chart
-        const rsiContainer = document.getElementById('rsiContainer');
-        const rsiChart = LightweightCharts.createChart(rsiContainer, {
-            layout: { background: { type: 'solid', color: '#030712' }, textColor: '#9ca3af' },
-            grid: { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } },
-            timeScale: { visible: false },
-        });
-        const rsiSeries = rsiChart.addLineSeries({ color: '#facc15', lineWidth: 2 });
-
-        chart.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
-            rsiChart.timeScale().setVisibleLogicalRange(timeRange);
-        });
-
-        new ResizeObserver(() => {
-            const rect = chartContainer.getBoundingClientRect();
-            chart.applyOptions({ height: rect.height, width: rect.width });
-            const rsiRect = rsiContainer.getBoundingClientRect();
-            rsiChart.applyOptions({ height: rsiRect.height, width: rsiRect.width });
-        }).observe(chartContainer);
-
-        let wsKline = null, wsTrade = null, wsDepth = null;
-        const livePriceEl = document.getElementById('livePrice');
-        const orderTape = document.getElementById('orderTape');
-        const asksEl = document.getElementById('orderBookAsks');
-        const bidsEl = document.getElementById('orderBookBids');
-        const spreadEl = document.getElementById('orderBookSpread');
-
-        function calculateRSI(data, period = 14) {
-            let rsiData = [];
-            let gains = 0, losses = 0;
-            for (let i = 1; i < data.length; i++) {
-                let change = data[i].close - data[i - 1].close;
-                if (i <= period) {
-                    if (change >= 0) gains += change; else losses -= change;
-                    if (i === period) {
-                        let rs = (gains / period) / ((losses / period) || 1);
-                        rsiData.push({ time: data[i].time, value: 100 - (100 / (1 + rs)) });
-                    }
-                } else {
-                    let avgGain = (gains * (period - 1) + (change >= 0 ? change : 0)) / period;
-                    let avgLoss = (losses * (period - 1) + (change < 0 ? -change : 0)) / period;
-                    gains = avgGain; losses = avgLoss;
-                    let rs = avgGain / (avgLoss || 1);
-                    rsiData.push({ time: data[i].time, value: 100 - (100 / (1 + rs)) });
-                }
-            }
-            return rsiData;
-        }
-
-        async function initSymbol(symbol, timeframe = '1m') {
-            currentSymbol = symbol.toUpperCase();
-            currentTimeframe = timeframe;
-            document.getElementById('symbolInput').value = currentSymbol;
-            orderTape.innerHTML = '';
-            asksEl.innerHTML = '';
-            bidsEl.innerHTML = '';
-            livePriceEl.innerText = 'Loading API...';
-
-            if(!activeSeries) setChartType(currentChartType);
-
-            try {
-                const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${timeframe}&limit=300`);
-                if (res.ok) {
-                    const data = await res.json();
-                    rawCandles = data.map(d => ({
-                        time: Math.floor(d[0] / 1000), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4])
-                    })).sort((a, b) => a.time - b.time);
-                    
-                    feedSeriesData();
-                    rsiSeries.setData(calculateRSI(rawCandles));
-                    runAiAnalysis();
-                }
-            } catch (err) { console.warn("Binance API fetch error."); }
-
-            const wsSymbol = currentSymbol.toLowerCase();
-
-            if (wsKline) wsKline.close();
-            wsKline = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@kline_${timeframe}`);
-            wsKline.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                const closePrice = parseFloat(msg.k.c);
-                const updated = { time: Math.floor(msg.k.t / 1000), open: parseFloat(msg.k.o), high: parseFloat(msg.k.h), low: parseFloat(msg.k.l), close: closePrice };
-                
-                if (currentChartType === 'Line' || currentChartType === 'Area') {
-                    activeSeries.update({ time: updated.time, value: closePrice });
-                } else {
-                    activeSeries.update(updated);
-                }
-
-                livePriceEl.innerText = closePrice >= 10 ? closePrice.toFixed(2) : closePrice.toFixed(4);
-                livePriceEl.className = closePrice >= parseFloat(msg.k.o) ? 'font-bold text-lg terminal-font leading-none text-green-500' : 'font-bold text-lg terminal-font leading-none text-red-500';
-            };
-
-            if (wsTrade) wsTrade.close();
-            wsTrade = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@trade`);
-            wsTrade.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                const isBuy = !msg.m; 
-                const price = parseFloat(msg.p);
-                const qty = parseFloat(msg.q);
-                
-                const formattedPrice = price >= 10 ? price.toFixed(2) : price.toFixed(4);
-                const formattedQty = qty > 1000 ? (qty/1000).toFixed(1) + 'K' : qty.toFixed(2);
-                const timeStr = new Date(msg.T).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' });
-
-                const div = document.createElement('div');
-                div.className = `flex justify-between px-3 py-1 rounded text-[11px] ${isBuy ? 'text-green-500 bg-green-500/5' : 'text-red-500 bg-red-500/5'} hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors`;
-                div.innerHTML = `<span class="w-1/3 font-bold">${formattedPrice}</span><span class="w-1/3 text-right">${formattedQty}</span><span class="w-1/3 text-right text-gray-500">${timeStr}</span>`;
-                orderTape.prepend(div);
-                if (orderTape.children.length > 30) orderTape.lastChild.remove();
-            };
-
-            if (wsDepth) wsDepth.close();
-            wsDepth = new WebSocket(`wss://stream.binance.com:9443/ws/${wsSymbol}@depth10@100ms`);
-            wsDepth.onmessage = (event) => {
-                const msg = JSON.parse(event.data);
-                const formatOrder = (order, type) => {
-                    const price = parseFloat(order[0]).toFixed(4);
-                    const qty = parseFloat(order[1]);
-                    const formattedQty = qty > 1000 ? (qty/1000).toFixed(1) + 'K' : qty.toFixed(2);
-                    const width = Math.min((qty / 40000) * 100, 100);
-                    const color = type === 'ask' ? 'red' : 'green';
-                    
-                    return `
-                        <div class="flex justify-between px-3 text-[11px] relative">
-                            <div class="absolute inset-0 bg-${color}-500 opacity-[0.15]" style="width: ${width}%"></div>
-                            ${type === 'ask' 
-                                ? `<span class="relative z-10 text-gray-400">${formattedQty}</span><span class="relative z-10 text-${color}-500 font-bold">${price}</span>`
-                                : `<span class="relative z-10 text-${color}-500 font-bold">${price}</span><span class="relative z-10 text-gray-400">${formattedQty}</span>`
-                            }
-                        </div>
-                    `;
-                };
-
-                if (msg.asks && msg.bids) {
-                    asksEl.innerHTML = msg.asks.slice(0, 7).map(ask => formatOrder(ask, 'ask')).join('');
-                    bidsEl.innerHTML = msg.bids.slice(0, 7).map(bid => formatOrder(bid, 'bid')).join('');
-                    spreadEl.innerText = `SPREAD: $${(parseFloat(msg.asks[0][0]) - parseFloat(msg.bids[0][0])).toFixed(4)}`;
-                }
-            };
-        }
-
-        window.runAiAnalysis = function() {
-            if (rawCandles.length < 20) return;
-            const recent = rawCandles.slice(-20);
-            const currentClose = recent[recent.length - 1].close;
-            const lowVal = Math.min(...recent.map(c => c.low));
-            
-            const biasEl = document.getElementById('aiBias');
-            const entryEl = document.getElementById('aiEntry');
-            const stopEl = document.getElementById('aiStop');
-
-            const isBullish = currentClose > recent[0].close;
-            biasEl.innerText = isBullish ? 'BULLISH MOMENTUM 🚀' : 'BEARISH PRESSURE 📉';
-            biasEl.className = isBullish ? 'font-bold text-green-400' : 'font-bold text-red-400';
-            
-            entryEl.innerText = `$${(lowVal * 1.002).toFixed(4)}`;
-            stopEl.innerText = `$${(lowVal * 0.995).toFixed(4)}`;
-        };
-
-        let rsiVisible = false;
-        document.getElementById('toggleRsi').addEventListener('click', () => {
-            rsiVisible = !rsiVisible;
-            rsiContainer.style.display = rsiVisible ? 'block' : 'none';
-        });
-
-        const tfButtons = document.querySelectorAll('#timeframeSelector button');
-        tfButtons.forEach(btn => {
+        // Timeframe & Symbol Listeners
+        document.querySelectorAll('#timeframeSelector button').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                tfButtons.forEach(b => { b.classList.remove('bg-blue-600', 'text-white'); b.classList.add('text-gray-400'); });
-                e.target.classList.add('bg-blue-600', 'text-white');
-                e.target.classList.remove('text-gray-400');
+                document.querySelectorAll('#timeframeSelector button').forEach(b => {
+                    b.className = 'px-2 py-0.5 rounded text-gray-400 hover:text-white';
+                });
+                e.target.className = 'px-2 py-0.5 rounded bg-amber-500 text-black';
                 initSymbol(currentSymbol, e.target.dataset.tf);
             });
         });
 
-        document.getElementById('symbolInput').addEventListener('keypress', (e) => { 
-            if(e.key === 'Enter') initSymbol(e.target.value, currentTimeframe); 
+        document.getElementById('chartTypeSelect').addEventListener('change', (e) => setChartType(e.target.value));
+        document.getElementById('symbolInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') initSymbol(e.target.value, currentTimeframe);
         });
 
-        switchView('home');
+        // Boot straight into the Trading Terminal with Live Binance API
+        initSymbol('XRPUSDT', '1m');
+        syncLiveScreenerPrices();
     </script>
 </body>
 </html>
