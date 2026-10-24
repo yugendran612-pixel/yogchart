@@ -94,17 +94,20 @@
     </div>
     
     <script>
-        // ==========================================
+       // ==========================================
         // 1. SUPABASE AUTHENTICATION
         // ==========================================
         const supabaseUrl = 'https://gqdirctfbzlnnfctcdcy.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxZGlyY3RmYnpsbm5mY3RjZGN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4MzIxMjMsImV4cCI6MjEwODQwODEyM30.D12kInUr6jHHxCNTWLuoNGXUrxFPWFYdKHxw0cAfaWA';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // RENAMED from 'supabase' to 'supabaseClient' to avoid collision
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         const loginBtn = document.getElementById('loginBtn'); 
         if (loginBtn) {
             loginBtn.addEventListener('click', async () => {
-                const { data, error } = await supabase.auth.signInWithOAuth({
+                // UPDATED to use supabaseClient
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'google',
                     options: { redirectTo: window.location.origin + '/index.html' }
                 });
@@ -113,7 +116,8 @@
         }
 
         async function checkUser() {
-            const { data: { session } } = await supabase.auth.getSession();
+            // UPDATED to use supabaseClient
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session && loginBtn) {
                 loginBtn.innerText = 'LOGGED IN';
                 loginBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
