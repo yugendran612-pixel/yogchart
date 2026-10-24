@@ -384,12 +384,12 @@
         <div class="h-10 bg-yog-900/90 border-b border-yog-700 px-2 sm:px-3 flex items-center justify-between gap-2 text-xs z-20 flex-shrink-0 overflow-x-auto no-scrollbar">
             <div class="flex items-center gap-2 flex-shrink-0">
                 <div id="timeframeSelector" class="flex bg-yog-950 border border-yog-700 rounded-md p-0.5 text-[11px] font-bold terminal-font">
-                    <button data-tf="1m" class="px-2 py-0.5 rounded bg-blue-600 text-white">1m</button>
-                    <button data-tf="5m" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">5m</button>
-                    <button data-tf="15m" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">15m</button>
-                    <button data-tf="1h" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">1h</button>
-                    <button data-tf="4h" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">4h</button>
-                    <button data-tf="1d" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">1D</button>
+                    <button data-tf="1m" class="tf-btn px-2 py-0.5 rounded bg-blue-600 text-white">1m</button>
+                    <button data-tf="5m" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">5m</button>
+                    <button data-tf="15m" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">15m</button>
+                    <button data-tf="1h" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">1h</button>
+                    <button data-tf="4h" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">4h</button>
+                    <button data-tf="1d" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">1D</button>
                 </div>
 
                 <select id="chartTypeSelect" class="bg-yog-950 border border-yog-700 text-[11px] font-bold rounded-md px-2 py-1 text-slate-200 terminal-font focus:outline-none">
@@ -694,39 +694,188 @@
     </div>
 
     <!-- ========================================================= -->
-    <!-- MODAL 2: DEDICATED ACCOUNT LOGIN / SIGNUP                 -->
+    <!-- v2: FULL-PAGE DEDICATED ACCOUNT LOGIN / CREATE ACCOUNT    -->
     <!-- ========================================================= -->
-    <div id="authModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-yog-900 border border-yog-600 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div class="px-5 py-3.5 border-b border-yog-700 flex items-center justify-between bg-yog-800">
-                <h3 class="font-extrabold text-white text-sm">👤 Yogchart Dedicated Account</h3>
-                <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white text-lg leading-none">&times;</button>
+    <div id="view-auth" class="hidden fixed inset-0 z-[80] bg-yog-950 overflow-y-auto">
+        <div class="min-h-[100dvh] w-full flex flex-col lg:flex-row">
+
+            <!-- Left Brand Panel (Desktop) -->
+            <div class="hidden lg:flex lg:w-[44%] bg-gradient-to-br from-yog-900 via-yog-800 to-yog-950 border-r border-yog-700 p-10 xl:p-14 flex-col justify-between relative overflow-hidden">
+                <div class="absolute -top-24 -left-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl"></div>
+                <div class="absolute bottom-10 -right-20 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                <div class="relative">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[2px] shadow-lg">
+                            <div class="w-full h-full bg-yog-950 rounded-[10px] flex items-center justify-center">
+                                <svg class="w-6 h-6 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M17 7h4v4"/></svg>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-black text-xl tracking-tight text-white leading-none">YOG<span class="text-cyan-400">CHART</span></div>
+                            <div class="text-[9px] font-bold tracking-[0.25em] text-blue-400 uppercase mt-1">Quant Terminal</div>
+                        </div>
+                    </div>
+                    <h1 class="mt-14 text-3xl xl:text-4xl font-black text-white leading-tight">Trade like an<br><span class="text-cyan-400">institution.</span></h1>
+                    <p class="mt-4 text-sm text-slate-400 max-w-sm leading-relaxed">One free account syncs your supercharts, drawings, paper portfolio and quant scans across every device — phone, tablet, desktop and TV.</p>
+                    <ul class="mt-8 space-y-3.5 text-sm text-slate-300">
+                        <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/30 text-cyan-300 flex items-center justify-center text-xs font-bold">⚡</span> Real-time Binance market streams &amp; orderbook</li>
+                        <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/30 text-cyan-300 flex items-center justify-center text-xs font-bold">$</span> $100,000 paper trading account with up to 100x leverage</li>
+                        <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/30 text-cyan-300 flex items-center justify-center text-xs font-bold">☁</span> Cloud-synced workspaces &amp; drawings (Supabase)</li>
+                        <li class="flex items-center gap-3"><span class="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/30 text-cyan-300 flex items-center justify-center text-xs font-bold">🧠</span> AI quant copilot scans on every chart</li>
+                    </ul>
+                </div>
+                <div class="relative grid grid-cols-3 gap-3 terminal-font text-[11px] text-slate-400">
+                    <div class="bg-yog-950/70 border border-yog-700 rounded-lg p-3"><div class="text-cyan-400 font-bold text-sm">20</div>Global Instruments</div>
+                    <div class="bg-yog-950/70 border border-yog-700 rounded-lg p-3"><div class="text-cyan-400 font-bold text-sm">1m–1D</div>Live Timeframes</div>
+                    <div class="bg-yog-950/70 border border-yog-700 rounded-lg p-3"><div class="text-cyan-400 font-bold text-sm">100x</div>Paper Leverage</div>
+                </div>
             </div>
-            <div class="p-5 space-y-4 text-xs">
-                <button onclick="triggerGoogleOAuth()" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-extrabold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow transition">
-                    <span>🌐</span> Continue with Google SSO
-                </button>
-                <div class="flex items-center gap-2 text-slate-500 text-[10px] uppercase font-bold">
-                    <div class="h-px flex-1 bg-yog-700"></div><span>Or Individual Email Account</span><div class="h-px flex-1 bg-yog-700"></div>
-                </div>
-                <div class="space-y-2.5">
-                    <div>
-                        <label class="text-slate-400 font-bold block mb-1">Trader Display Name</label>
-                        <input id="authNameInput" type="text" placeholder="e.g. Yogi Quant" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white font-semibold focus:border-cyan-400 focus:outline-none">
+
+            <!-- Right Form Panel -->
+            <div class="flex-1 flex items-center justify-center p-5 sm:p-8 relative">
+                <button onclick="hideAuthPage()" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl leading-none transition" title="Close and continue as guest">&times;</button>
+                <div class="w-full max-w-md">
+
+                    <!-- Mobile mini logo -->
+                    <div class="flex lg:hidden items-center gap-2.5 mb-8 justify-center">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[2px] shadow-lg">
+                            <div class="w-full h-full bg-yog-950 rounded-[10px] flex items-center justify-center">
+                                <svg class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M17 7h4v4"/></svg>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="font-black text-lg tracking-tight text-white leading-none">YOG<span class="text-cyan-400">CHART</span></div>
+                            <div class="text-[8px] font-bold tracking-[0.25em] text-blue-400 uppercase mt-0.5">Quant Terminal</div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="text-slate-400 font-bold block mb-1">Email Address</label>
-                        <input id="authEmailInput" type="email" placeholder="trader@yogchart.com" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white font-semibold focus:border-cyan-400 focus:outline-none">
+
+                    <!-- Tabs: Sign In / Create Account -->
+                    <div class="flex bg-yog-900 border border-yog-700 rounded-xl p-1 mb-6">
+                        <button id="tabSignin" onclick="switchAuthTab('signin')" class="flex-1 py-2 rounded-lg text-xs font-extrabold bg-blue-600 text-white shadow transition">Sign In</button>
+                        <button id="tabSignup" onclick="switchAuthTab('signup')" class="flex-1 py-2 rounded-lg text-xs font-extrabold text-slate-400 hover:text-white transition">Create Account</button>
                     </div>
-                    <div>
-                        <label class="text-slate-400 font-bold block mb-1">Password</label>
-                        <input id="authPassInput" type="password" placeholder="••••••••" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-3 py-2 text-white font-semibold focus:border-cyan-400 focus:outline-none">
+
+                    <!-- Panel: SIGN IN -->
+                    <form id="authPanelSignin" onsubmit="event.preventDefault(); handleSignIn();" class="space-y-4" novalidate>
+                        <div>
+                            <h2 class="text-xl font-extrabold text-white">Welcome back, trader.</h2>
+                            <p class="text-xs text-slate-400 mt-1">Sign in to sync your paper portfolio, charts and drawings to the cloud.</p>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1.5 text-xs">Email Address</label>
+                            <input id="signinEmail" type="email" autocomplete="email" autocapitalize="none" placeholder="trader@yogchart.com" class="w-full bg-yog-950 border border-yog-700 rounded-xl px-3.5 py-2.5 text-white font-semibold text-sm focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition">
+                        </div>
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-slate-400 font-bold block text-xs">Password</label>
+                                <button type="button" onclick="switchAuthTab('forgot')" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-bold">Forgot password?</button>
+                            </div>
+                            <div class="relative">
+                                <input id="signinPass" type="password" autocomplete="current-password" placeholder="••••••••" class="w-full bg-yog-950 border border-yog-700 rounded-xl px-3.5 py-2.5 pr-11 text-white font-semibold text-sm focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition">
+                                <button type="button" onclick="togglePwVisibility('signinPass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-300" title="Show / hide password">👁</button>
+                            </div>
+                        </div>
+                        <div id="signinErr" class="hidden text-xs font-bold bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg px-3 py-2.5 leading-relaxed"></div>
+                        <button id="signinBtn" type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold py-3 rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2 text-sm">
+                            Sign In to Yogchart
+                        </button>
+                        <p class="text-center text-xs text-slate-500">No account yet? <button type="button" onclick="switchAuthTab('signup')" class="text-cyan-400 font-bold hover:text-cyan-300">Create one free</button></p>
+                        <p class="text-center text-[11px] text-slate-600">Just browsing? <button type="button" onclick="hideAuthPage()" class="text-slate-400 font-bold hover:text-slate-200 underline">Continue as guest</button> — your data stays on this device.</p>
+                    </form>
+
+                    <!-- Panel: CREATE ACCOUNT -->
+                    <form id="authPanelSignup" onsubmit="event.preventDefault(); handleSignUp();" class="space-y-4 hidden" novalidate>
+                        <div>
+                            <h2 class="text-xl font-extrabold text-white">Create your trading account.</h2>
+                            <p class="text-xs text-slate-400 mt-1">Free forever — starts with a $100,000 paper portfolio. No card required.</p>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1.5 text-xs">Trader Display Name</label>
+                            <input id="signupName" type="text" autocomplete="name" placeholder="e.g. Yogi Quant" class="w-full bg-yog-950 border border-yog-700 rounded-xl px-3.5 py-2.5 text-white font-semibold text-sm focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1.5 text-xs">Email Address</label>
+                            <input id="signupEmail" type="email" autocomplete="email" autocapitalize="none" placeholder="trader@yogchart.com" class="w-full bg-yog-950 border border-yog-700 rounded-xl px-3.5 py-2.5 text-white font-semibold text-sm focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1.5 text-xs">Password</label>
+                            <div class="relative">
+                                <input id="signupPass" type="password" autocomplete="new-password" oninput="updatePwStrength()" placeholder="At least 6 characters" class="w-full bg-yog-950 border border-yog-700 rounded-xl px-3.5 py-2.5 pr-11 text-white font-semibold text-sm focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition">
+                                <button type="button" onclick="togglePwVisibility('signupPass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-300" title="Show / hide password">👁</button>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2">
+                                <div class="flex-1 h-1.5 bg-yog-800 rounded-full overflow-hidden"><div id="pwStrengthBar" class="h-full w-0 rounded-full transition-all duration-300"></div></div>
+                                <span id="pwStrengthText" class="text-[10px] font-bold text-slate-500 w-14 text-right">--</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1.5 text-xs">Confirm Password</label>
+                            <div class="relative">
+                                <input id="signupPass2" type="password" autocomplete="new-password" placeholder="Repeat your password" class="w-full bg-yog-950 border border-yog-700 rounded-xl px-3.5 py-2.5 pr-11 text-white font-semibold text-sm focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition">
+                                <button type="button" onclick="togglePwVisibility('signupPass2', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-300" title="Show / hide password">👁</button>
+                            </div>
+                        </div>
+                        <div id="signupErr" class="hidden text-xs font-bold bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg px-3 py-2.5 leading-relaxed"></div>
+                        <button id="signupBtn" type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold py-3 rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2 text-sm">
+                            Create Account
+                        </button>
+                        <p class="text-center text-xs text-slate-500">Already registered? <button type="button" onclick="switchAuthTab('signin')" class="text-cyan-400 font-bold hover:text-cyan-300">Sign in instead</button></p>
+                        <p class="text-[10px] text-slate-600 leading-relaxed">By creating an account you agree that Yogchart is a simulation &amp; research terminal for educational paper trading only — not financial advice.</p>
+                    </form>
+
+                    <!-- Panel: FORGOT PASSWORD -->
+                    <form id="authPanelForgot" onsubmit="event.preventDefault(); handleForgotPassword();" class="space-y-4 hidden" novalidate>
+                        <div>
+                            <h2 class="text-xl font-extrabold text-white">Reset your password.</h2>
+                            <p class="text-xs text-slate-400 mt-1">Enter your account email and we'll send you a secure reset link.</p>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1.5 text-xs">Email Address</label>
+                            <input id="forgotEmail" type="email" autocomplete="email" autocapitalize="none" placeholder="trader@yogchart.com" class="w-full bg-yog-950 border border-yog-700 rounded-xl px-3.5 py-2.5 text-white font-semibold text-sm focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition">
+                        </div>
+                        <div id="forgotErr" class="hidden text-xs font-bold bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg px-3 py-2.5 leading-relaxed"></div>
+                        <div id="forgotOk" class="hidden text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-lg px-3 py-2.5 leading-relaxed"></div>
+                        <button id="forgotBtn" type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold py-3 rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2 text-sm">
+                            Send Reset Link
+                        </button>
+                        <p class="text-center text-xs text-slate-500"><button type="button" onclick="switchAuthTab('signin')" class="text-cyan-400 font-bold hover:text-cyan-300">← Back to sign in</button></p>
+                    </form>
+
+                    <!-- Panel: SET NEW PASSWORD (opened from email reset link) -->
+                    <form id="authPanelReset" onsubmit="event.preventDefault(); handleSetNewPassword();" class="space-y-4 hidden" novalidate>
+                        <div>
+                            <h2 class="text-xl font-extrabold text-white">Choose a new password.</h2>
+                            <p class="text-xs text-slate-400 mt-1">You're verified via the reset link — set your new password below.</p>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1.5 text-xs">New Password</label>
+                            <div class="relative">
+                                <input id="resetPass" type="password" autocomplete="new-password" placeholder="At least 6 characters" class="w-full bg-yog-950 border border-yog-700 rounded-xl px-3.5 py-2.5 pr-11 text-white font-semibold text-sm focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition">
+                                <button type="button" onclick="togglePwVisibility('resetPass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-300" title="Show / hide password">👁</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-bold block mb-1.5 text-xs">Confirm New Password</label>
+                            <input id="resetPass2" type="password" autocomplete="new-password" placeholder="Repeat new password" class="w-full bg-yog-950 border border-yog-700 rounded-xl px-3.5 py-2.5 text-white font-semibold text-sm focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/40 transition">
+                        </div>
+                        <div id="resetErr" class="hidden text-xs font-bold bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg px-3 py-2.5 leading-relaxed"></div>
+                        <button id="resetBtn" type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold py-3 rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2 text-sm">
+                            Update Password &amp; Sign In
+                        </button>
+                    </form>
+
+                    <!-- Panel: CHECK YOUR EMAIL (after signup when confirmation is required) -->
+                    <div id="authPanelCheck" class="hidden text-center py-6 space-y-4">
+                        <div class="w-16 h-16 mx-auto rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-2xl">📧</div>
+                        <h2 class="text-xl font-extrabold text-white">Check your inbox</h2>
+                        <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">We sent a confirmation link to <strong id="checkEmailLabel" class="text-cyan-300"></strong>. Click it to activate your account, then sign in here.</p>
+                        <p class="text-[11px] text-slate-500">Didn't get it? Check your spam folder, or <button onclick="switchAuthTab('signup')" class="text-cyan-400 font-bold">try signing up again</button>.</p>
+                        <button onclick="switchAuthTab('signin')" class="bg-yog-800 hover:bg-yog-700 text-slate-200 font-bold px-5 py-2.5 rounded-xl border border-yog-600 text-xs transition">Back to Sign In</button>
                     </div>
-                </div>
-                <div id="authMsg" class="text-[11px] font-bold text-cyan-400 hidden"></div>
-                <div class="grid grid-cols-2 gap-2 pt-1">
-                    <button onclick="handleEmailAuth('signin')" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-2 rounded-lg transition">Sign In</button>
-                    <button onclick="handleEmailAuth('signup')" class="bg-yog-700 hover:bg-yog-600 text-cyan-300 font-extrabold py-2 rounded-lg border border-cyan-500/30 transition">Create Account</button>
+
+                    <div class="hidden lg:flex justify-center mt-10">
+                        <button onclick="hideAuthPage()" class="text-[11px] text-slate-600 hover:text-slate-400 font-bold">← Back to terminal (guest mode)</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -803,6 +952,9 @@
         </div>
     </div>
 
+    <!-- v2: Global toast notification -->
+    <div id="appToast" class="px-4 py-2.5 rounded-xl border text-xs font-bold shadow-2xl bg-yog-800 border-yog-600 text-slate-200 backdrop-blur-md"></div>
+
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -858,7 +1010,9 @@
         // 1. SUPABASE CLIENT & STATE
         const supabaseUrl = 'https://gqdirctfbzlnnfctcdcy.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxZGlyY3RmYnpsbm5mY3RjZGN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4MzIxMjMsImV4cCI6MjEwODQwODEyM30.D12kInUr6jHHxCNTWLuoNGXUrxFPWFYdKHxw0cAfaWA';
-        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = createClient(supabaseUrl, supabaseKey, {
+            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        });
 
         let currentUser = null;
         let userProfileData = JSON.parse(localStorage.getItem('yog_profile_meta') || '{"display_name":"Yogchart Guest Trader","username":"guest_quant","bio":"Multi-Asset Quant & Technical Analyst","avatar_color":"#2563EB","preferred_leverage":20,"risk_tolerance":"Moderate"}');
@@ -1365,10 +1519,18 @@
         new ResizeObserver(resizeChartsAndCanvas).observe(chartContainer);
         window.addEventListener('orientationchange', () => setTimeout(resizeChartsAndCanvas, 200));
 
+        // v2: Tool metadata shared by sidebar + floating tray
+        const TOOL_META = {
+            cursor: { icon: '➕', label: 'Crosshair' }, trendline: { icon: '📏', label: 'Trendline' }, ray: { icon: '↗️', label: 'Ray' },
+            hline: { icon: '➖', label: 'H-Line' }, vline: { icon: '┃', label: 'V-Line' }, fib: { icon: '📐', label: 'Fibonacci' },
+            rect: { icon: '🔲', label: 'Zone Box' }, brush: { icon: '✏️', label: 'Brush' }, text: { icon: '🔤', label: 'Text' }
+        };
+
         window.setDrawingTool = function(tool) {
             currentTool = tool; pendingAnchor = null; mousePreviewPoint = null;
-            document.querySelectorAll('aside button[id^="draw-"]').forEach(b => b.classList.remove('tool-active'));
-            document.getElementById('draw-' + tool)?.classList.add('tool-active');
+            document.querySelectorAll('.js-draw-btn').forEach(b => b.classList.toggle('tool-active', b.dataset.tool === tool));
+            const trayIconEl = document.getElementById('toolTrayIcon');
+            if (trayIconEl && TOOL_META[tool]) trayIconEl.innerText = TOOL_META[tool].icon;
             const isDraw = tool !== 'cursor';
             drawingCanvas.style.pointerEvents = isDraw ? 'auto' : 'none';
             drawingCanvas.style.cursor = isDraw ? 'crosshair' : 'default';
@@ -1510,6 +1672,8 @@
             currentSymbol = symbol.toUpperCase(); currentTimeframe = timeframe;
             document.getElementById('symbolInput').value = currentSymbol;
             document.getElementById('chartTitleSymbol').innerText = `${currentSymbol} · ${timeframe}`;
+            const fsBadge = document.getElementById('fsSymbolBadge');
+            if (fsBadge) fsBadge.innerText = `${currentSymbol} · ${timeframe}`;
             document.getElementById('orderTape').innerHTML = '';
             await loadSymbolWorkspace(currentSymbol);
             if (!activeSeries) setChartType(currentChartType);
@@ -1592,6 +1756,8 @@
             el.innerText = pStr; el.className = `font-bold text-base leading-none ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
             const mobEl = document.getElementById('mobileLivePriceBadge');
             mobEl.innerText = pStr; mobEl.className = `font-bold xl:hidden ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
+            const fsEl = document.getElementById('fsLivePrice');
+            if (fsEl) { fsEl.innerText = pStr; fsEl.className = `font-bold text-xs terminal-font whitespace-nowrap ${isUp ? 'text-emerald-400' : 'text-rose-400'}`; }
             const mid = document.getElementById('obMidPrice');
             mid.innerText = pStr; mid.className = `font-bold text-sm ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
         }
@@ -1832,56 +1998,172 @@
             }
         }
 
-        window.openAuthModal = () => document.getElementById('authModal').classList.remove('hidden');
-        window.closeAuthModal = () => document.getElementById('authModal').classList.add('hidden');
-
-        window.handleAuthClick = async function() {
-            if (currentUser) {
-                await supabaseClient.auth.signOut();
-                currentUser = null;
-                window.location.reload();
-            } else {
-                openAuthModal();
+        // ================================================================
+        // 9b. v2 FULL-PAGE ACCOUNT AUTH SYSTEM (Sign In / Create Account / Recovery)
+        // ================================================================
+        function authPanelShow(name) {
+            ['Signin', 'Signup', 'Forgot', 'Reset', 'Check'].forEach(p => document.getElementById('authPanel' + p)?.classList.add('hidden'));
+            document.getElementById('authPanel' + name)?.classList.remove('hidden');
+            const tabSignin = document.getElementById('tabSignin');
+            const tabSignup = document.getElementById('tabSignup');
+            if (tabSignin && tabSignup) {
+                tabSignin.className = 'flex-1 py-2 rounded-lg text-xs font-extrabold transition ' + (name === 'Signin' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white');
+                tabSignup.className = 'flex-1 py-2 rounded-lg text-xs font-extrabold transition ' + (name === 'Signup' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white');
             }
+        }
+        window.switchAuthTab = function(mode) {
+            authPanelShow(mode === 'signup' ? 'Signup' : mode === 'forgot' ? 'Forgot' : mode === 'reset' ? 'Reset' : mode === 'check' ? 'Check' : 'Signin');
+            ['signinErr', 'signupErr', 'forgotErr', 'forgotOk', 'resetErr'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+        };
+        window.showAuthPage = function(mode = 'signin') {
+            switchAuthTab(mode);
+            document.getElementById('view-auth').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+        window.hideAuthPage = function() {
+            document.getElementById('view-auth').classList.add('hidden');
+            document.body.style.overflow = '';
         };
 
-        window.triggerGoogleOAuth = async function() {
-            await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin + window.location.pathname }
+        function authShowError(id, msg) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerText = msg;
+            el.classList.remove('hidden');
+        }
+        function authBusy(btnId, busy) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            if (busy) {
+                btn.dataset.origLabel = btn.innerHTML;
+                btn.disabled = true;
+                btn.classList.add('opacity-60', 'cursor-wait');
+                btn.innerHTML = '<span class="auth-spinner"></span>&nbsp; Please wait...';
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-60', 'cursor-wait');
+                if (btn.dataset.origLabel) btn.innerHTML = btn.dataset.origLabel;
+            }
+        }
+        function friendlyAuthError(err) {
+            const m = String(err?.message || err || '').toLowerCase();
+            if (m.includes('invalid login credentials')) return 'Incorrect email or password. Please try again.';
+            if (m.includes('email not confirmed')) return 'Your email is not confirmed yet — open the verification link we sent you, then sign in.';
+            if (m.includes('already registered')) return 'An account with this email already exists. Try signing in instead.';
+            if (m.includes('password should be') || m.includes('at least 6')) return 'Password too weak — use at least 6 characters.';
+            if (m.includes('rate limit') || m.includes('too many')) return 'Too many attempts. Please wait a minute and try again.';
+            if (m.includes('valid email') || m.includes('validate email')) return 'Please enter a valid email address.';
+            if (m.includes('fetch') || m.includes('network')) return 'Network error — check your connection and Supabase project URL.';
+            return err?.message || 'Unexpected error. Please try again.';
+        }
+        window.togglePwVisibility = function(inputId, btnEl) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            input.type = input.type === 'password' ? 'text' : 'password';
+            if (btnEl) btnEl.innerText = input.type === 'password' ? '👁' : '🙈';
+        };
+        window.updatePwStrength = function() {
+            const pw = document.getElementById('signupPass').value;
+            const bar = document.getElementById('pwStrengthBar');
+            const txt = document.getElementById('pwStrengthText');
+            let score = 0;
+            if (pw.length >= 6) score++;
+            if (pw.length >= 10) score++;
+            if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+            if (/\d/.test(pw)) score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+            const levels = [
+                { w: '0%', c: 'transparent', t: '--', tc: 'text-slate-500' },
+                { w: '25%', c: '#f43f5e', t: 'Weak', tc: 'text-rose-400' },
+                { w: '50%', c: '#fb923c', t: 'Fair', tc: 'text-amber-400' },
+                { w: '75%', c: '#eab308', t: 'Good', tc: 'text-yellow-400' },
+                { w: '100%', c: '#10b981', t: 'Strong', tc: 'text-emerald-400' },
+                { w: '100%', c: '#10b981', t: 'Fortress', tc: 'text-emerald-400' }
+            ];
+            const lvl = levels[Math.min(score, 5)];
+            bar.style.width = lvl.w; bar.style.backgroundColor = lvl.c;
+            txt.innerText = lvl.t; txt.className = 'text-[10px] font-bold w-14 text-right ' + lvl.tc;
+        };
+
+        window.handleAuthClick = function() {
+            if (currentUser) toggleUserMenu();
+            else showAuthPage('signin');
+        };
+
+        window.handleSignIn = async function() {
+            const email = document.getElementById('signinEmail').value.trim();
+            const password = document.getElementById('signinPass').value;
+            document.getElementById('signinErr').classList.add('hidden');
+            if (!email || !password) { authShowError('signinErr', 'Please enter both your email and password.'); return; }
+            authBusy('signinBtn', true);
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            authBusy('signinBtn', false);
+            if (error) { authShowError('signinErr', friendlyAuthError(error)); return; }
+            // Success → onAuthStateChange (SIGNED_IN) activates the account & closes this page.
+        };
+
+        window.handleSignUp = async function() {
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPass').value;
+            const confirm = document.getElementById('signupPass2').value;
+            document.getElementById('signupErr').classList.add('hidden');
+            if (name.length < 2) { authShowError('signupErr', 'Please enter a display name (at least 2 characters).'); return; }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { authShowError('signupErr', 'Please enter a valid email address.'); return; }
+            if (password.length < 6) { authShowError('signupErr', 'Password must be at least 6 characters.'); return; }
+            if (password !== confirm) { authShowError('signupErr', 'Passwords do not match.'); return; }
+            authBusy('signupBtn', true);
+            const { data, error } = await supabaseClient.auth.signUp({
+                email, password,
+                options: { data: { full_name: name }, emailRedirectTo: window.location.origin + window.location.pathname }
             });
+            authBusy('signupBtn', false);
+            if (error) { authShowError('signupErr', friendlyAuthError(error)); return; }
+            if (data?.session && data?.user) {
+                userProfileData.display_name = name;
+                localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
+                // Signed in immediately (email confirmation disabled) — onAuthStateChange takes over.
+            } else if (data?.user) {
+                document.getElementById('checkEmailLabel').innerText = email;
+                switchAuthTab('check');
+            } else {
+                authShowError('signupErr', 'Signup returned no user. Please try again.');
+            }
         };
 
-        window.handleEmailAuth = async function(mode) {
-            const name = document.getElementById('authNameInput').value.trim() || 'Yogchart Pro Trader';
-            const email = document.getElementById('authEmailInput').value.trim();
-            const password = document.getElementById('authPassInput').value;
-            const msgEl = document.getElementById('authMsg');
-            if (!email || !password) {
-                msgEl.innerText = 'Please enter both email and password.';
-                msgEl.classList.remove('hidden');
-                return;
-            }
-            msgEl.innerText = 'Authenticating with Yogchart Cloud...';
-            msgEl.classList.remove('hidden');
+        window.handleForgotPassword = async function() {
+            const email = document.getElementById('forgotEmail').value.trim();
+            document.getElementById('forgotErr').classList.add('hidden');
+            document.getElementById('forgotOk').classList.add('hidden');
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { authShowError('forgotErr', 'Please enter a valid email address.'); return; }
+            authBusy('forgotBtn', true);
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+            authBusy('forgotBtn', false);
+            if (error) { authShowError('forgotErr', friendlyAuthError(error)); return; }
+            const ok = document.getElementById('forgotOk');
+            ok.innerText = '📧 Reset link sent to ' + email + ' — open it on this device to choose a new password.';
+            ok.classList.remove('hidden');
+        };
 
-            if (mode === 'signup') {
-                const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
-                if (error) { msgEl.innerText = error.message; return; }
-                if (data?.user) {
-                    userProfileData.display_name = name;
-                    userProfileData.username = name.toLowerCase().replace(/[^a-z0-9]/g, '') || 'trader';
-                    await activateUserAccount(data.user);
-                    closeAuthModal();
-                }
-            } else {
-                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (error) { msgEl.innerText = error.message; return; }
-                if (data?.user) {
-                    await activateUserAccount(data.user);
-                    closeAuthModal();
-                }
-            }
+        window.handleSetNewPassword = async function() {
+            const password = document.getElementById('resetPass').value;
+            const confirm = document.getElementById('resetPass2').value;
+            document.getElementById('resetErr').classList.add('hidden');
+            if (password.length < 6) { authShowError('resetErr', 'Password must be at least 6 characters.'); return; }
+            if (password !== confirm) { authShowError('resetErr', 'Passwords do not match.'); return; }
+            authBusy('resetBtn', true);
+            const { error } = await supabaseClient.auth.updateUser({ password });
+            authBusy('resetBtn', false);
+            if (error) { authShowError('resetErr', friendlyAuthError(error)); return; }
+            showToast('✅ Password updated — you are signed in.', 'success');
+            hideAuthPage();
+        };
+
+        window.handleSignOut = async function() {
+            await supabaseClient.auth.signOut();
+            currentUser = null;
+            ['yog_profile_meta', 'yog_paper_balance', 'yog_realized_pnl', 'yog_positions'].forEach(k => localStorage.removeItem(k));
+            window.location.reload();
         };
 
         async function saveSymbolWorkspaceLocalAndCloud() {
@@ -1919,8 +2201,8 @@
                     preferred_leverage: prof.preferred_leverage || 20,
                     risk_tolerance: prof.risk_tolerance || 'Moderate'
                 };
-                paperBalance = parseFloat(prof.paper_balance);
-                realizedPnl = parseFloat(prof.realized_pnl || 0);
+                paperBalance = parseFloat(prof.paper_balance) || 100000.00;
+                realizedPnl = parseFloat(prof.realized_pnl) || 0.00;
                 localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
             } else {
                 userProfileData.display_name = user.user_metadata?.full_name || userProfileData.display_name || user.email.split('@')[0];
@@ -1930,10 +2212,7 @@
 
             renderProfileUI();
             document.getElementById('profileStatus').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Cloud Account (${user.email}) · <strong class="text-emerald-400">Synced ✅</strong>`;
-
-            const loginBtn = document.getElementById('loginBtn');
-            loginBtn.innerText = 'SIGN OUT';
-            loginBtn.className = 'bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-extrabold px-2.5 sm:px-3.5 py-1.5 rounded-lg transition';
+            updateUserChip();
 
             const { data: posData } = await supabaseClient.from('paper_positions').select('*').eq('user_id', user.id).eq('is_open', true);
             if (posData && posData.length > 0) {
@@ -1945,8 +2224,13 @@
             renderPositionsDock();
         }
 
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (session?.user) activateUserAccount(session.user);
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'PASSWORD_RECOVERY') { showAuthPage('reset'); return; }
+            if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+                await activateUserAccount(session.user);
+                hideAuthPage();
+                if (event === 'SIGNED_IN') showToast(`Welcome back, ${userProfileData.display_name}! Cloud workspace synced.`, 'success');
+            }
         });
 
         document.getElementById('saveWorkspace').addEventListener('click', async (e) => {
@@ -1956,18 +2240,130 @@
             setTimeout(() => e.target.innerText = '💾 Sync', 2000);
         });
 
-        document.querySelectorAll('#timeframeSelector button').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('#timeframeSelector button').forEach(b => b.className = 'px-2 py-0.5 rounded text-slate-400 hover:text-white');
-                e.target.className = 'px-2 py-0.5 rounded bg-blue-600 text-white';
-                initSymbol(currentSymbol, e.target.dataset.tf);
+        // v2: Unified timeframe buttons (main bar + fullscreen bar) & chart type selects
+        function setTimeframeActive(tf) {
+            document.querySelectorAll('.tf-btn').forEach(b => {
+                b.className = 'tf-btn px-2 py-0.5 rounded ' + (b.dataset.tf === tf ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white');
+            });
+        }
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTimeframeActive(btn.dataset.tf);
+                initSymbol(currentSymbol, btn.dataset.tf);
             });
         });
 
-        document.getElementById('chartTypeSelect').addEventListener('change', (e) => {
-            setChartType(e.target.value);
+        window.onChartTypeChange = function(val) {
+            document.getElementById('chartTypeSelect').value = val;
+            document.getElementById('chartTypeSelectFs').value = val;
+            setChartType(val);
             saveSymbolWorkspaceLocalAndCloud();
+        };
+        document.getElementById('chartTypeSelect').addEventListener('change', (e) => onChartTypeChange(e.target.value));
+        document.getElementById('chartTypeSelectFs').addEventListener('change', (e) => onChartTypeChange(e.target.value));
+
+        // ================================================================
+        // 10. v2 HEADER USER CHIP, OVERFLOW MENUS & GLOBAL TOASTS
+        // ================================================================
+        function updateUserChip() {
+            const loginBtn = document.getElementById('loginBtn');
+            const wrap = document.getElementById('userMenuWrap');
+            if (currentUser) {
+                loginBtn.classList.add('hidden');
+                wrap.classList.remove('hidden');
+                document.getElementById('userChipAvatar').innerText = (userProfileData.display_name || 'YG').substring(0, 2).toUpperCase();
+                document.getElementById('userChipAvatar').style.backgroundColor = userProfileData.avatar_color || '#2563EB';
+                document.getElementById('userChipName').innerText = userProfileData.display_name || 'Trader';
+                document.getElementById('userMenuEmail').innerText = currentUser.email || '';
+            } else {
+                loginBtn.classList.remove('hidden');
+                wrap.classList.add('hidden');
+            }
+        }
+        window.toggleUserMenu = () => document.getElementById('userMenuDropdown').classList.toggle('hidden');
+        window.toggleHeaderMenu = () => document.getElementById('headerMenuDropdown').classList.toggle('hidden');
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#userMenuWrap')) document.getElementById('userMenuDropdown')?.classList.add('hidden');
+            if (!e.target.closest('#headerMenuWrap')) document.getElementById('headerMenuDropdown')?.classList.add('hidden');
         });
+
+        let toastTimer = null;
+        window.showToast = function(msg, type = 'info') {
+            const t = document.getElementById('appToast');
+            if (!t) return;
+            t.innerText = msg;
+            t.className = 'px-4 py-2.5 rounded-xl border text-xs font-bold shadow-2xl backdrop-blur-md show ' +
+                (type === 'success' ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+                 : type === 'error' ? 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+                 : 'bg-yog-800/95 border-yog-600 text-slate-200');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove('show'), 3400);
+        };
+
+        // ================================================================
+        // 11. v2 FULLSCREEN CHART MODE (PC / Phone / Tablet / Landscape)
+        //     Native Fullscreen API with CSS pseudo-fullscreen fallback (iPhone)
+        // ================================================================
+        const fsRoot = document.getElementById('chart-wrapper');
+        let pseudoFs = false;
+        const fsActive = () => document.body.classList.contains('chart-fs');
+
+        window.toggleToolTray = function(forceOpen) {
+            const panel = document.getElementById('toolTrayPanel');
+            if (forceOpen === true) panel.classList.add('fs-open');
+            else panel.classList.toggle('fs-open');
+        };
+        window.closeToolTray = () => document.getElementById('toolTrayPanel').classList.remove('fs-open');
+
+        function cleanupChartFullscreen() {
+            pseudoFs = false;
+            document.body.classList.remove('chart-fs', 'fs-zen');
+            fsRoot.classList.remove('pseudo-fs');
+            closeToolTray();
+            setTimeout(resizeChartsAndCanvas, 300);
+        }
+        function enablePseudoFs() {
+            if (!fsActive()) return;
+            pseudoFs = true;
+            fsRoot.classList.add('pseudo-fs');
+            setTimeout(resizeChartsAndCanvas, 120);
+        }
+        window.exitChartFullscreen = function() {
+            try {
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                }
+            } catch (e) {}
+            cleanupChartFullscreen();
+        };
+        window.enterChartFullscreen = function() {
+            document.body.classList.add('chart-fs');
+            closeToolTray();
+            const reqFs = fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen;
+            if (reqFs) {
+                try {
+                    const res = reqFs.call(fsRoot);
+                    if (res && typeof res.then === 'function') res.then(() => setTimeout(resizeChartsAndCanvas, 150)).catch(() => enablePseudoFs());
+                } catch (e) { enablePseudoFs(); }
+            } else {
+                enablePseudoFs(); // iPhone Safari & unsupported browsers → CSS fullscreen
+            }
+            setTimeout(resizeChartsAndCanvas, 350);
+            showToast('⛶ Fullscreen — drawing tools dock on the left, 👁 = pure view', 'info');
+        };
+        window.toggleChartFullscreen = function() { fsActive() ? exitChartFullscreen() : enterChartFullscreen(); };
+        window.toggleFsZen = function() { document.body.classList.toggle('fs-zen'); setTimeout(resizeChartsAndCanvas, 60); };
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && fsActive()) cleanupChartFullscreen();
+            else setTimeout(resizeChartsAndCanvas, 120);
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            if (!document.webkitFullscreenElement && fsActive()) cleanupChartFullscreen();
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pseudoFs) exitChartFullscreen(); });
+        let fsResizeTimer = null;
+        window.addEventListener('resize', () => { clearTimeout(fsResizeTimer); fsResizeTimer = setTimeout(resizeChartsAndCanvas, 180); });
 
         renderFeaturedCards();
         renderScreenerTable();
@@ -1975,6 +2371,8 @@
         renderPositionsDock();
         syncLiveMarketQuotes();
         initSymbol('XRPUSDT', '1m');
+        updateUserChip();
+        window.addEventListener('load', () => setTimeout(resizeChartsAndCanvas, 500));
     </script>
 </body>
 </html>
