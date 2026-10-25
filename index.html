@@ -214,9 +214,112 @@
         @media (max-height: 500px) and (orientation: landscape) {
             header.h-14, header.h-12 { height: 2.5rem !important; }
         }
+
+        /* ================= V8 P0: MASTER VIEWPORT GRID =================
+           Lock the Superchart workspace to exactly 100vw x 100vh with a
+           3-row CSS grid (44px global bar + 40px sub-header + flex main).
+           No page scroll, no button clipping. */
+        html, body { height: 100%; }
+        body { overflow: hidden; }
+        #view-terminal {
+            height: 100vh; width: 100vw; overflow: hidden;
+            display: grid;
+            grid-template-rows: 44px 40px minmax(0, 1fr);
+        }
+        /* Row 1 + Row 2 — exact pixel heights */
+        #view-terminal > header.yog-row1 { height: 44px; }
+        #view-terminal > .yog-row2 { height: 40px; }
+        /* Main workspace = 3-column grid: rail / center-left zone / right execution column.
+           V8: explicit position+inset+height to FORCE the workspace to fill its grid
+           track (452px on a 537px-tall terminal). The grid item default `stretch`
+           was being defeated by something in the cascade. */
+        #yogMainWorkspace {
+            position: relative;
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr) 300px;
+            grid-template-rows: minmax(0, 1fr);
+            min-height: 0;
+            height: calc(100vh - 84px);  /* viewport minus Row1 (44) + Row2 (40) */
+            max-height: calc(100vh - 84px);
+            overflow: hidden;
+            align-items: stretch;
+            justify-items: stretch;
+        }
+        #mobileTradePane, #yogCenterZone, #drawSidebar {
+            height: 100%; min-height: 0; min-width: 0;
+        }
+        /* Center-left zone = vertical split: chart row + positions dock */
+        #yogCenterZone {
+            display: grid;
+            grid-template-rows: minmax(0, 1fr) auto;
+            overflow: hidden;
+        }
+        /* Chart row inside center zone: rail + chart + docked Liquidity Book */
+        #yogChartRow {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 250px;
+            min-height: 0; height: 100%;
+        }
+        /* Right execution column spans full main height */
+        #mobileTradePane {
+            overflow-y: auto; overflow-x: hidden;
+            display: flex; flex-direction: column;
+        }
+        /* Bottom positions dock: 165px expanded, 34px auto-collapsed when empty */
+        #mobilePositionsPane { height: 165px; transition: height .2s ease; }
+        #mobilePositionsPane.collapsed { height: 34px; }
+        /* Hide the desktop side rail + book + trade on phones (mobile uses tab switcher) */
+        @media (max-width: 1023.98px) {
+            #view-terminal { grid-template-rows: 44px 40px auto 44px; height: auto; min-height: 100dvh; overflow: auto; }
+            body { overflow: auto; }
+            #yogMainWorkspace { grid-template-columns: 1fr; }
+            #yogChartRow { grid-template-columns: 1fr; }
+            #drawSidebar, #mobileBookPane { display: none !important; }
+            #mobileTradePane { height: auto; }
+            #mobilePositionsPane { height: 220px; }
+        }
+        /* V8: Floating Drawing Property Bar — only visible when a drawing is selected.
+           Centered horizontally at the top of the chart canvas so it never overlaps
+           the top-left OHLC legend or the top-right Quick Trade button. */
+        #drawPropPill {
+            position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+            z-index: 30; display: none; align-items: center; gap: 0.5rem;
+            background: rgba(10, 16, 32, 0.95); backdrop-filter: blur(12px);
+            border: 1px solid #1e3a5f; border-radius: 14px; padding: 6px 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            font-size: 11px; font-family: 'JetBrains Mono', monospace;
+            max-width: 80vw; overflow-x: auto; white-space: nowrap;
+        }
+        #drawPropPill.show { display: flex; }
+        /* V8: Auth state badges — Local Mode vs Cloud Synced */
+        #authLocalBadge, #authCloudBadge { display: none; }
+        body.auth-logged-out #authLocalBadge { display: inline-flex; }
+        body.auth-logged-out #saveWorkspace, body.auth-logged-out #profileBtn { display: none !important; }
+        body.auth-logged-in #authCloudBadge { display: inline-flex; }
+        body.auth-logged-in #loginBtn { display: none !important; }
+        /* V8: Bottom positions dock tabs (Positions / Open Orders / Trade History / Price Alerts) */
+        .pos-tab { padding: 6px 12px; font-size: 11px; font-weight: 700; color: #94a3b8; border-bottom: 2px solid transparent; cursor: pointer; }
+        .pos-tab.active { color: #38BDF8; border-color: #38BDF8; }
+        /* V8: Pre-Trade Risk Summary box */
+        #preTradeRiskBox {
+            background: #0a1020; border: 1px solid #1e3a5f; border-radius: 8px;
+            padding: 6px 8px; margin-bottom: 6px; font-family: 'Fira Code', monospace;
+            font-size: 10px; line-height: 1.45; color: #cbd5e1;
+        }
+        #preTradeRiskBox .rsk-row { display: flex; justify-content: space-between; }
+        #preTradeRiskBox .rsk-label { color: #64748b; }
+        #preTradeRiskBox .rsk-val { color: #e2e8f0; font-weight: 700; }
+        /* V8: Y-axis live price badge — solid background, z-index above grid labels */
+        #yogLiveAxisBadge {
+            position: absolute; right: 0; z-index: 10;
+            background: #0E1628; border-left: 2px solid #38BDF8;
+            padding: 2px 6px; font-family: 'Fira Code', monospace; font-size: 10px;
+            color: #38BDF8; font-weight: 700; pointer-events: none;
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+        }
 </style>
 </head>
-<body class="h-[100dvh] w-screen flex flex-col bg-yog-950 text-slate-200 overflow-hidden">
+<body class="h-[100dvh] w-screen flex flex-col bg-yog-950 text-slate-200 overflow-hidden auth-logged-out">
 
     <!-- ========================================================= -->
     <!-- ANIMATED YOGCHART INTRO SPLASH SCREEN                     -->
@@ -238,10 +341,12 @@
     </div>
 
     <!-- ========================================================= -->
-    <!-- V7 ROW 1: GLOBAL NAVIGATION BAR (48px) — decluttered      -->
+    <!-- V8 ROW 1: GLOBAL NAVIGATION BAR (44px) — Bybit/TV-style   -->
     <!--   Left: brand + view tabs · Right: equity, sync, profile  -->
+    <!--   Auth state fix: Local Mode + Login when logged OUT;     -->
+    <!--   Cloud Synced + Profile ▾ when logged IN.                -->
     <!-- ========================================================= -->
-    <header class="h-12 bg-yog-900 border-b border-yog-700 px-2.5 sm:px-4 flex items-center justify-between gap-2 z-40 flex-shrink-0">
+    <header class="yog-row1 bg-yog-900 border-b border-yog-700 px-2.5 sm:px-4 flex items-center justify-between gap-2 z-40 flex-shrink-0">
         <div class="flex items-center gap-2 sm:gap-3 min-w-0">
             <div onclick="switchView('home')" class="flex items-center gap-2 cursor-pointer pr-2 sm:pr-3 border-r border-yog-700 group flex-shrink-0">
                 <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[1.5px] shadow-lg shadow-blue-500/20">
@@ -268,7 +373,7 @@
             </div>
         </div>
 
-        <!-- Right Controls: Paper Equity · Cloud Sync Status · Profile -->
+        <!-- Right Controls: Paper Equity · Auth State (Local Mode | Cloud Synced) · Profile/Login -->
         <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <div class="hidden lg:flex items-center gap-2 bg-yog-950 border border-yog-700 px-2.5 py-1 rounded-lg">
                 <div class="text-[10px] text-slate-400 uppercase font-bold">Equity</div>
@@ -276,11 +381,18 @@
                 <button onclick="openWalletModal()" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white font-bold px-1.5 py-0.5 rounded transition">+</button>
             </div>
 
+            <!-- V8: Local Mode badge — shown when session === null -->
+            <span id="authLocalBadge" class="hidden md:inline-flex items-center gap-1.5 bg-amber-500/10 text-amber-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-amber-500/30" title="Local Quant Workspace — sign in to enable cloud sync">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span> Local Mode
+            </span>
+
+            <!-- V8: Cloud Synced badge — shown when session !== null (replaces old Cloud Sync button) -->
             <button id="saveWorkspace" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-cyan-500/30 transition hidden md:inline-flex items-center gap-1.5" title="Cloud sync status — save workspace to your account">
-                <span id="cloudSyncDot" class="w-2 h-2 rounded-full bg-cyan-400"></span> <span class="hidden lg:inline">Cloud Sync</span><span class="lg:hidden">Sync</span>
+                <span id="cloudSyncDot" class="w-2 h-2 rounded-full bg-cyan-400"></span> <span class="hidden lg:inline">Cloud Synced</span><span class="lg:hidden">Sync</span>
             </button>
 
-            <button onclick="openProfileEditorModal()" class="bg-yog-800 hover:bg-yog-700 text-slate-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-yog-600 transition hidden md:inline-flex" title="Edit Account Profile">
+            <!-- V8: Profile button (only when logged in — body.auth-logged-out hides via CSS) -->
+            <button id="profileBtn" onclick="openProfileEditorModal()" class="bg-yog-800 hover:bg-yog-700 text-slate-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-yog-600 transition hidden md:inline-flex" title="Edit Account Profile">
                 ⚙️ <span class="hidden lg:inline">Profile</span>
             </button>
 
@@ -544,14 +656,13 @@
     <div id="view-terminal" class="flex-1 flex flex-col overflow-hidden hidden">
         
         <!-- ========================================================= -->
-        <!-- V7 ROW 2: UNIFIED INSTRUMENT & CHART HEADER BAR (44px)    -->
+        <!-- V8 ROW 2: UNIFIED INSTRUMENT & CHART SUB-HEADER (40px)    -->
         <!--   Bybit/TradingView style: symbol dropdown + mark price   -->
         <!--   + 24h stats + timeframe / type / mode / tools.          -->
-        <!--   (The old [Price | Countdown] pill was REMOVED here —    -->
-        <!--    the live price + candle countdown badge now lives on   -->
-        <!--    the right Y-axis price scale, drawn on the canvas.)    -->
+        <!--   Compact spacing (gap: 6px) + horizontal-scroll overflow -->
+        <!--   so the Fullscreen button is NEVER clipped on the right. -->
         <!-- ========================================================= -->
-        <div class="h-11 bg-yog-900/90 border-b border-yog-700 px-2 sm:px-3 flex items-center gap-2 text-xs z-20 flex-shrink-0 overflow-x-auto no-scrollbar relative">
+        <div class="yog-row2 bg-yog-900/90 border-b border-yog-700 px-2.5 flex items-center gap-1.5 text-xs z-20 flex-shrink-0 overflow-x-auto no-scrollbar relative">
 
             <!-- ============ LEFT: Symbol Selector + Mark Price ============ -->
             <div class="relative flex-shrink-0" id="symbolDropdownWrap">
@@ -587,8 +698,8 @@
             <div class="flex items-center gap-2 flex-shrink-0">
                 <span id="livePrice" class="text-lg font-bold terminal-font leading-none text-emerald-400 whitespace-nowrap">--</span>
                 <span id="stat24hChange" class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-emerald-500/15 text-emerald-400 border-emerald-500/25 whitespace-nowrap">--%</span>
-                <!-- Muted compact 24h stats (hide gracefully on smaller screens) -->
-                <div class="hidden xl:flex items-center gap-3 text-[10px] terminal-font">
+                <!-- Muted compact 24h stats (hide gracefully on smaller screens — only show on 2xl+) -->
+                <div class="hidden 2xl:flex items-center gap-3 text-[10px] terminal-font">
                     <div class="flex flex-col leading-tight"><span class="text-slate-500 text-[8px] uppercase font-bold tracking-wider">24h High</span><span id="stat24hHigh" class="font-semibold text-slate-300">--</span></div>
                     <div class="flex flex-col leading-tight"><span class="text-slate-500 text-[8px] uppercase font-bold tracking-wider">24h Low</span><span id="stat24hLow" class="font-semibold text-slate-300">--</span></div>
                     <div class="flex flex-col leading-tight"><span class="text-slate-500 text-[8px] uppercase font-bold tracking-wider">24h Turnover</span><span id="stat24hVol" class="font-semibold text-cyan-400">--</span></div>
@@ -643,22 +754,23 @@
             <button onclick="toggleIndicatorModal()" class="bg-yog-800 hover:bg-yog-700 text-cyan-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap flex-shrink-0">ƒx Indicators</button>
 
             <div class="flex items-center gap-1 flex-shrink-0">
-                <button onclick="undoLastDrawing()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-slate-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap" title="Undo last drawing (Ctrl+Z)">↩ Undo</button>
-                <button onclick="clearAllDrawings()" class="text-[11px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded border border-rose-500/30 whitespace-nowrap" title="Clear all drawings">🗑️ Clear</button>
-                <button onclick="toggleBarReplay()" id="replayToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-amber-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Bar Replay — step candle-by-candle through history">⏮ <span class="hidden sm:inline">Replay</span></button>
-                <button onclick="toggleChartFullscreen()" id="fsToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Toggle fullscreen chart (PC, phone &amp; landscape)">⛶ <span class="hidden sm:inline">Fullscreen</span></button>
+                <button onclick="undoLastDrawing()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-slate-300 px-1.5 py-0.5 rounded border border-yog-700 whitespace-nowrap" title="Undo last drawing (Ctrl+Z)">↩</button>
+                <button onclick="clearAllDrawings()" class="text-[11px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded border border-rose-500/30 whitespace-nowrap" title="Clear all drawings">🗑</button>
+                <button onclick="toggleBarReplay()" id="replayToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-amber-300 px-1.5 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Bar Replay — step candle-by-candle through history">⏮</button>
+                <button onclick="toggleChartFullscreen()" id="fsToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-1.5 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Toggle fullscreen chart (PC, phone &amp; landscape)">⛶</button>
             </div>
 
-            <!-- Secondary chart tools (scroll for more on small screens) -->
-            <div class="flex items-center gap-1.5 flex-shrink-0">
-                <button onclick="toggleRsiSubchart()" class="bg-yog-800 hover:bg-yog-700 text-slate-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap" title="RSI sub-pane">📊 RSI</button>
-                <button onclick="toggleWatchlistSymbol(currentSymbol)" id="watchlistStarBtn" class="bg-yog-800 hover:bg-yog-700 text-slate-400 text-[14px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap" title="Add to / remove from watchlist">☆</button>
-                <button onclick="shareChartSnapshot()" id="shareSnapshotBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Share chart snapshot as PNG">📷 <span class="hidden lg:inline">Snapshot</span></button>
-                <button onclick="toggleQuickTradeWidget()" id="qtBtn" class="text-[11px] bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 whitespace-nowrap transition" title="Toggle Quick Trade widget on chart">⚡ <span class="hidden lg:inline">Trade</span></button>
-                <button onclick="openChartGridModal()" id="gridBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Multi-chart grid (2×2 live monitoring)">⊞ <span class="hidden lg:inline">Grid</span></button>
-                <button onclick="openPriceAlertsModal()" id="alertsBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-rose-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Price alerts">🔔 <span class="hidden lg:inline">Alerts</span></button>
+            <!-- Secondary chart tools — icon-only, hidden below 2xl (1536px) so the
+                 Fullscreen button ALWAYS fits within 100vw on standard desktop widths. -->
+            <div class="flex items-center gap-1 flex-shrink-0 hidden 2xl:flex">
+                <button onclick="toggleRsiSubchart()" class="bg-yog-800 hover:bg-yog-700 text-slate-300 text-[11px] font-bold px-1.5 py-0.5 rounded-md border border-yog-600 transition whitespace-nowrap" title="RSI sub-pane">📊</button>
+                <button onclick="toggleWatchlistSymbol(currentSymbol)" id="watchlistStarBtn" class="bg-yog-800 hover:bg-yog-700 text-slate-400 text-[12px] font-bold px-1.5 py-0.5 rounded-md border border-yog-600 transition whitespace-nowrap" title="Add to / remove from watchlist">☆</button>
+                <button onclick="shareChartSnapshot()" id="shareSnapshotBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-1.5 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Share chart snapshot as PNG">📷</button>
+                <button onclick="toggleQuickTradeWidget()" id="qtBtn" class="text-[11px] bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-500/30 whitespace-nowrap transition" title="Toggle Quick Trade widget on chart">⚡</button>
+                <button onclick="openChartGridModal()" id="gridBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-1.5 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Multi-chart grid (2×2 live monitoring)">⊞</button>
+                <button onclick="openPriceAlertsModal()" id="alertsBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-rose-300 px-1.5 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Price alerts">🔔</button>
                 <div class="relative" id="layoutMenuWrap">
-                    <button onclick="toggleLayoutMenu()" id="layoutToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Customize layout on the fly">⧉ <span class="hidden lg:inline">Layout</span></button>
+                    <button onclick="toggleLayoutMenu()" id="layoutToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-1.5 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Customize layout on the fly">⧉</button>
                     <div id="layoutMenuDropdown" class="hidden absolute right-0 mt-2 w-60 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 py-1.5 text-xs">
                         <div class="px-3 py-1.5 text-[10px] uppercase tracking-wider text-cyan-400 font-bold">Panels (toggle instantly)</div>
                         <label class="flex items-center gap-2.5 px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold cursor-pointer"><input type="checkbox" id="layChkDrawRail" onchange="setLayoutPref('drawRail', this.checked)" class="accent-blue-500"> ✏️ Drawing Rail</label>
@@ -670,22 +782,32 @@
                         <div class="px-3 py-2 text-[10px] text-slate-500 border-t border-yog-700 mt-1">Layout saves automatically to this device and your cloud account.</div>
                     </div>
                 </div>
-                <span id="activeToolLabel" class="text-[11px] text-cyan-400 font-mono hidden xl:inline whitespace-nowrap">Tool: Crosshair</span>
             </div>
         </div>
 
 
-        <div class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden min-h-0">
-            
-            <!-- Chart + Drawing Rail Wrapper (Always Visible & High Priority on Phone/Tablet/Desktop/TV) -->
-            <div id="mobileChartPane" class="flex-1 flex min-h-[300px] sm:min-h-[420px] lg:min-h-0 min-w-0">
-                <!-- V7 LEFT DRAWING RAIL — clean 1.5px SVG icons with flyout
-                     menus (content injected by renderDrawRail(); no raw text
-                     labels). Phones/tablets use the floating tool tray. -->
-                <aside id="drawSidebar" class="w-11 bg-yog-900 border-r border-yog-700 hidden lg:flex flex-col items-center py-2 gap-1.5 z-20 flex-shrink-0"></aside>
+        <!-- ========================================================= -->
+        <!-- V8 MAIN WORKSPACE — 3-zone grid:                          -->
+        <!--   [44px rail] [center-left zone flex:1] [300px exec col]  -->
+        <!--   center-left zone = chart row (chart + 250px book)       -->
+        <!--                     + positions dock (165/34 collapsed)   -->
+        <!--   exec col = Order Ticket (top) + AI Quant (bottom)       -->
+        <!--   — full-height right column guarantees Auto-Fill TP/SL   -->
+        <!--     button is NEVER clipped, regardless of AI card size.  -->
+        <!-- ========================================================= -->
+        <div id="yogMainWorkspace">
 
-                <!-- Center Interactive Chart -->
-                <section class="flex-1 flex flex-col min-w-0 bg-yog-950 relative" id="chart-wrapper">
+            <!-- V7 LEFT DRAWING RAIL — clean 1.5px SVG icons with flyout
+                 menus (content injected by renderDrawRail(); no raw text
+                 labels). Phones/tablets use the floating tool tray. -->
+            <aside id="drawSidebar" class="bg-yog-900 border-r border-yog-700 hidden lg:flex flex-col items-center py-2 gap-1.5 z-20"></aside>
+
+            <!-- Center-left zone: chart row + positions dock -->
+            <div id="yogCenterZone">
+                <!-- Chart row: chart canvas + Liquidity Book docked right (250px) -->
+                <div id="yogChartRow">
+                    <!-- Center Interactive Chart -->
+                    <section class="flex-1 flex flex-col min-w-0 bg-yog-950 relative" id="chart-wrapper">
                     <!-- v2: Floating fullscreen button (always available, hidden while in fullscreen) -->
                                         <!-- v4: Bar Replay control bar (Binance-style) -->
                     <div id="barReplayBar" class="hidden absolute bottom-0 left-0 right-0 z-30 items-center justify-between gap-2 px-2.5 py-1.5 bg-yog-950/95 backdrop-blur-md border-t border-amber-500/40">
@@ -802,11 +924,14 @@
                     </button>
 
                     <div class="chart-legend absolute top-2 left-2.5 z-20 pointer-events-auto flex flex-col gap-0.5 terminal-font text-[10px] sm:text-[11px] bg-yog-950/80 px-2.5 py-1 rounded-lg border border-yog-800/80 backdrop-blur-sm">
+                        <!-- V8 Row 1: Symbol • Timeframe -->
                         <div class="flex items-center gap-2">
                             <span id="chartTitleSymbol" class="font-extrabold text-white text-xs">XRPUSDT</span>
                             <span id="mobileLivePriceBadge" class="font-bold text-emerald-400 xl:hidden">--</span>
-                            <span id="ohlcLegend" class="text-slate-300 hidden sm:inline">O: -- H: -- L: -- C: --</span>
                         </div>
+                        <!-- V8 Row 2: full OHLCV (+change%) for the hovered or latest candle -->
+                        <div id="ohlcLegend" class="text-slate-300 whitespace-nowrap">O: -- H: -- L: -- C: -- Vol: --</div>
+                        <!-- V8 Row 3: SMA 1 / SMA 2 / SMA 3 tags (zero overlap with row 2) -->
                         <div class="flex flex-wrap gap-2 text-[9px] sm:text-[10px]">
                             <span id="legMA1" class="text-cyan-400">MA(7): --</span>
                             <span id="legMA2" class="text-indigo-400">MA(25): --</span>
@@ -895,43 +1020,91 @@
                     <div id="chartContainer"><canvas id="drawingCanvas"></canvas></div>
                     <div id="rsiContainer"><div class="absolute top-1 left-3 z-10 text-[10px] font-bold text-cyan-400 terminal-font pointer-events-none">RSI (14) <span id="rsiValLabel">--</span></div></div>
                 </section>
-            </div>
 
-            <!-- Orderbook & Tape (Visible on XL Desktop/TV, or via Mobile Tab Switcher) -->
-            <aside id="mobileBookPane" class="w-full lg:w-60 bg-yog-900 border-t lg:border-t-0 lg:border-l border-yog-700 flex-col terminal-font text-[11px] z-10 flex-shrink-0 hidden xl:flex">
-                <div class="h-8 px-3 border-b border-yog-700 flex items-center justify-between bg-yog-950/40">
-                    <span class="font-bold text-slate-300">Liquidity Book</span>
-                    <select id="tickGrouping" class="bg-yog-950 border border-yog-700 rounded text-[10px] px-1.5 py-0.5 text-cyan-400" title="Price grouping tick — auto-set per instrument">
-                        <option value="0.0000001">0.0000001</option><option value="0.000001">0.000001</option><option value="0.00001">0.00001</option><option value="0.0001">0.0001</option><option value="0.001">0.001</option><option value="0.01">0.01</option><option value="0.1">0.1</option><option value="1">1.0</option>
-                    </select>
-                </div>
-                <div class="flex justify-between text-[10px] text-slate-500 px-3 py-1 bg-yog-950"><span>Price</span><span>Size</span><span>Sum</span></div>
-                <div id="orderBookAsks" class="h-36 flex flex-col-reverse justify-start overflow-hidden px-1 space-y-reverse space-y-0.5"></div>
-                <div class="py-1.5 px-3 bg-yog-950 border-y border-yog-700 flex items-center justify-between">
-                    <span id="obMidPrice" class="font-bold text-sm text-emerald-400">--</span>
-                    <span id="orderBookSpread" class="text-[10px] text-slate-400">Spread: --</span>
-                </div>
-                <div id="orderBookBids" class="h-36 flex flex-col justify-start overflow-hidden px-1 space-y-0.5"></div>
-                <div class="flex-1 flex flex-col border-t border-yog-700 min-h-[120px]">
-                    <div class="px-3 py-1.5 bg-yog-950/60 border-b border-yog-700 flex justify-between items-center">
-                        <span class="font-bold text-slate-300">Live Time & Sales</span><span class="text-[9px] text-cyan-400">⚡ STREAM</span>
+                <!-- Orderbook & Tape — docked to the right of the chart canvas (250px) -->
+                <aside id="mobileBookPane" class="bg-yog-900 border-l border-yog-700 flex flex-col terminal-font text-[11px] z-10 min-h-0">
+                    <div class="h-8 px-3 border-b border-yog-700 flex items-center justify-between bg-yog-950/40 flex-shrink-0">
+                        <span class="font-bold text-slate-300">Liquidity Book</span>
+                        <select id="tickGrouping" class="bg-yog-950 border border-yog-700 rounded text-[10px] px-1.5 py-0.5 text-cyan-400" title="Price grouping tick — auto-set per instrument">
+                            <option value="0.0000001">0.0000001</option><option value="0.000001">0.000001</option><option value="0.00001">0.00001</option><option value="0.0001">0.0001</option><option value="0.001">0.001</option><option value="0.01">0.01</option><option value="0.1">0.1</option><option value="1">1.0</option>
+                        </select>
                     </div>
-                    <div id="orderTape" class="flex-1 overflow-y-auto px-1 space-y-0.5 py-1 max-h-40 lg:max-h-none"></div>
-                </div>
-            </aside>
+                    <div class="flex justify-between text-[10px] text-slate-500 px-3 py-1 bg-yog-950 flex-shrink-0"><span>Price</span><span>Size</span><span>Sum</span></div>
+                    <!-- V8: asks sit ABOVE mid, bids BELOW — no dead top space (flex-end alignment) -->
+                    <div id="orderBookAsks" class="flex-1 flex flex-col justify-end overflow-hidden px-1 space-y-0.5 min-h-0"></div>
+                    <div class="py-1.5 px-3 bg-yog-950 border-y border-yog-700 flex items-center justify-between flex-shrink-0">
+                        <span id="obMidPrice" class="font-bold text-sm text-emerald-400">--</span>
+                        <span id="orderBookSpread" class="text-[10px] text-slate-400">Spread: --</span>
+                    </div>
+                    <div id="orderBookBids" class="flex-1 flex flex-col justify-start overflow-hidden px-1 space-y-0.5 min-h-0"></div>
+                    <div class="flex flex-col border-t border-yog-700 min-h-[100px] flex-shrink-0">
+                        <div class="px-3 py-1.5 bg-yog-950/60 border-b border-yog-700 flex justify-between items-center flex-shrink-0">
+                            <span class="font-bold text-slate-300">Live Time & Sales</span><span class="text-[9px] text-cyan-400">⚡ STREAM</span>
+                        </div>
+                        <div id="orderTape" class="flex-1 overflow-y-auto px-1 space-y-0.5 py-1 min-h-0"></div>
+                    </div>
+                </aside>
+                </div><!-- /#yogChartRow -->
 
-            <!-- Paper Execution & AI Quant Panel -->
-            <aside id="mobileTradePane" class="w-full lg:w-72 bg-yog-900 border-t lg:border-t-0 lg:border-l border-yog-700 flex flex-col text-xs z-10 flex-shrink-0">
-                <div class="p-3 border-b border-yog-700 flex flex-col gap-2">
+                <!-- V8 Bottom Positions Dock — 4 tabs (Positions / Open Orders / Trade History / Price Alerts),
+                     auto-collapse to 34px when positions.length === 0 -->
+                <section id="mobilePositionsPane" class="bg-yog-900 border-t border-yog-700 flex flex-col flex-shrink-0 z-20 min-h-0">
+                    <div class="h-8 px-2 border-b border-yog-700 flex items-center justify-between text-xs font-bold bg-yog-950/60 flex-shrink-0">
+                        <div class="flex items-center gap-1">
+                            <button class="pos-tab active" data-postab="positions" onclick="switchPosTab('positions')">Active Positions (<span id="posCount">0</span>)</button>
+                            <button class="pos-tab" data-postab="orders" onclick="switchPosTab('orders')">Open Orders (0)</button>
+                            <button class="pos-tab" data-postab="history" onclick="switchPosTab('history')">Trade History</button>
+                            <button class="pos-tab" data-postab="alerts" onclick="switchPosTab('alerts')">Price Alerts</button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="terminal-font text-[11px] hidden sm:inline">Unrealized PnL: <strong id="totalUnrealizedPnl" class="text-slate-300">$0.00</strong></span>
+                            <button onclick="setLayoutPref('positions', false)" title="Hide positions dock" class="text-slate-400 hover:text-white w-6 h-6 rounded flex items-center justify-center hover:bg-yog-700 transition">▼</button>
+                        </div>
+                    </div>
+                    <div id="posTabPositions" class="flex-1 overflow-x-auto overflow-y-auto min-h-0">
+                        <table class="w-full text-left border-collapse terminal-font text-[11px]">
+                            <thead class="sticky top-0">
+                                <tr class="text-slate-500 border-b border-yog-700 bg-yog-950">
+                                    <th class="py-1.5 px-3">Instrument</th><th class="py-1.5 px-3">Side</th><th class="py-1.5 px-3">Notional</th>
+                                    <th class="py-1.5 px-3">Entry</th><th class="py-1.5 px-3">Mark</th><th class="py-1.5 px-3 hidden sm:table-cell">Est. Liq</th>
+                                    <th class="py-1.5 px-3 hidden md:table-cell">TP / SL</th><th class="py-1.5 px-3">PnL (ROE%)</th><th class="py-1.5 px-3 text-right">Settle</th>
+                                </tr>
+                            </thead>
+                            <tbody id="positionsTableBody" class="divide-y divide-yog-800"></tbody>
+                        </table>
+                    </div>
+                    <div id="posTabOrders" class="hidden flex-1 overflow-y-auto p-3 text-[11px] text-slate-400 min-h-0">
+                        <div class="text-center text-slate-500">No open limit orders. (V8 stub — order book integration coming soon.)</div>
+                    </div>
+                    <div id="posTabHistory" class="hidden flex-1 overflow-y-auto p-3 text-[11px] text-slate-400 min-h-0">
+                        <table class="w-full text-left border-collapse terminal-font text-[11px]">
+                            <thead class="sticky top-0"><tr class="text-slate-500 border-b border-yog-700 bg-yog-950">
+                                <th class="py-1.5 px-3">Closed At</th><th class="py-1.5 px-3">Instrument</th><th class="py-1.5 px-3">Side</th>
+                                <th class="py-1.5 px-3">PnL</th><th class="py-1.5 px-3">Notional</th>
+                            </tr></thead>
+                            <tbody id="historyTableBody" class="divide-y divide-yog-800"></tbody>
+                        </table>
+                    </div>
+                    <div id="posTabAlerts" class="hidden flex-1 overflow-y-auto p-3 text-[11px] text-slate-400 min-h-0">
+                        <div class="text-center text-slate-500">No price alerts set for this symbol. Use 🔔 Alerts to add one.</div>
+                    </div>
+                </section>
+            </div><!-- /#yogCenterZone -->
+
+            <!-- Paper Execution & AI Quant Panel — full-height right column.
+                 V8: compact padding so the Auto-Fill TP/SL button is 100% visible
+                 without internal scrolling, even on shorter viewports. -->
+            <aside id="mobileTradePane" class="bg-yog-900 border-l border-yog-700 flex flex-col text-xs z-10 min-h-0">
+                <div class="p-2.5 border-b border-yog-700 flex flex-col gap-1.5 flex-shrink-0">
                     <div class="flex items-center justify-between">
-                        <span class="font-extrabold text-white flex items-center gap-1.5">⚡ Paper Perpetual <span class="text-cyan-400 bg-blue-500/20 border border-cyan-500/30 px-1.5 py-0.5 rounded text-[10px]" id="levBadge">20x</span></span>
+                        <span class="font-extrabold text-white flex items-center gap-1.5 text-[11px]">⚡ Paper Perpetual <span class="text-cyan-400 bg-blue-500/20 border border-cyan-500/30 px-1.5 py-0.5 rounded text-[10px]" id="levBadge">20x</span></span>
                         <button onclick="openWalletModal()" class="text-[10px] text-cyan-400 hover:underline font-bold">+ Funds</button>
                     </div>
-                    <div class="flex justify-between text-[11px] bg-yog-950 px-2.5 py-1.5 rounded border border-yog-700 terminal-font">
-                        <span class="text-slate-400">Available Equity:</span><strong id="userBalance" class="text-white">$100,000.00</strong>
+                    <div class="flex justify-between text-[10px] bg-yog-950 px-2 py-1 rounded border border-yog-700 terminal-font">
+                        <span class="text-slate-400">Equity:</span><strong id="userBalance" class="text-white">$100,000.00</strong>
                     </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[10px] text-slate-400"><span>Leverage Multiplier</span><span class="text-cyan-400 font-mono">1x — 100x</span></div>
+                    <div class="space-y-0.5">
+                        <div class="flex justify-between text-[9px] text-slate-400"><span>Leverage</span><span class="text-cyan-400 font-mono">1x — 100x</span></div>
                         <input id="leverageSlider" type="range" min="1" max="100" value="20" class="w-full accent-blue-500 h-1.5 bg-yog-950 rounded cursor-pointer">
                     </div>
                     <div class="flex bg-yog-950 p-0.5 rounded-lg border border-yog-700 text-[11px] font-bold">
@@ -939,11 +1112,11 @@
                         <button onclick="setOrderType('Limit')" id="tabLimit" class="flex-1 py-1 rounded-md text-slate-400">Limit</button>
                     </div>
                     <div id="limitPriceBox" class="hidden">
-                        <label class="text-[10px] text-slate-400">Limit Price ($)</label>
-                        <input id="orderPriceInput" type="number" step="any" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2.5 py-1 text-white terminal-font font-bold mt-0.5">
+                        <label class="text-[9px] text-slate-400">Limit Price ($)</label>
+                        <input id="orderPriceInput" type="number" step="any" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-1 text-white terminal-font font-bold mt-0.5">
                     </div>
                     <div>
-                        <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                        <div class="flex justify-between text-[9px] text-slate-400 mb-1">
                             <span>Margin (USD)</span>
                             <div class="space-x-1">
                                 <button onclick="setMarginPercent(0.1)" class="bg-yog-800 hover:bg-yog-700 px-1.5 rounded text-cyan-300">10%</button>
@@ -951,57 +1124,48 @@
                                 <button onclick="setMarginPercent(0.5)" class="bg-yog-800 hover:bg-yog-700 px-1.5 rounded text-cyan-300">50%</button>
                             </div>
                         </div>
-                        <input id="orderMarginInput" type="number" value="1000" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2.5 py-1 text-white terminal-font font-bold">
+                        <input id="orderMarginInput" type="number" value="1000" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-1 text-white terminal-font font-bold">
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-[10px] text-slate-400">Take Profit ($)</label><input id="orderTpInput" type="number" step="any" placeholder="Optional" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-1 text-emerald-400 terminal-font text-[11px]"></div>
-                        <div><label class="text-[10px] text-slate-400">Stop Loss ($)</label><input id="orderSlInput" type="number" step="any" placeholder="Optional" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-1 text-rose-400 terminal-font text-[11px]"></div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <div><label class="text-[9px] text-slate-400">Take Profit ($)</label><input id="orderTpInput" type="number" step="any" placeholder="Optional" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-1 text-emerald-400 terminal-font text-[11px]"></div>
+                        <div><label class="text-[9px] text-slate-400">Stop Loss ($)</label><input id="orderSlInput" type="number" step="any" placeholder="Optional" class="w-full bg-yog-950 border border-yog-700 rounded-lg px-2 py-1 text-rose-400 terminal-font text-[11px]"></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        <button onclick="placePaperOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-2 rounded-lg transition">Buy / Long</button>
-                        <button onclick="placePaperOrder('SHORT')" class="bg-rose-500 hover:bg-rose-400 text-white font-black py-2 rounded-lg transition">Sell / Short</button>
+                    <!-- V8 TASK 5.2: Pre-Trade Risk & Liquidation Summary -->
+                    <div id="preTradeRiskBox">
+                        <div class="rsk-row"><span class="rsk-label">Order Value:</span><span class="rsk-val" id="rskOrderValue">$20,000.00</span></div>
+                        <div class="rsk-row"><span class="rsk-label">Est. Liq (Long / Short):</span><span class="rsk-val"><span id="rskLiqLong" class="text-emerald-400">--</span> / <span id="rskLiqShort" class="text-rose-400">--</span></span></div>
+                        <div class="rsk-row"><span class="rsk-label">Est. R:R &amp; PnL:</span><span class="rsk-val" id="rskRR">--</span></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5 pt-0.5">
+                        <button onclick="placePaperOrder('LONG')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-1.5 rounded-lg transition text-[11px]">Buy / Long</button>
+                        <button onclick="placePaperOrder('SHORT')" class="bg-rose-500 hover:bg-rose-400 text-white font-black py-1.5 rounded-lg transition text-[11px]">Sell / Short</button>
                     </div>
                 </div>
 
-                <div class="p-3 flex-1 flex flex-col gap-2 bg-yog-950/50 overflow-y-auto no-scrollbar pb-5">
+                <div class="p-2.5 flex-1 flex flex-col gap-1.5 bg-yog-950/50 overflow-y-auto no-scrollbar pb-3 min-h-0">
                     <div class="flex items-center justify-between">
                         <span class="font-extrabold text-cyan-400 text-[11px]">🧠 YOGCHART AI QUANT</span>
-                        <button onclick="runAiAnalysis()" class="text-[10px] bg-blue-600/20 hover:bg-blue-600/30 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded font-bold">SCAN CHART</button>
+                        <button onclick="runAiAnalysis()" class="text-[9px] bg-blue-600/20 hover:bg-blue-600/30 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded font-bold">SCAN</button>
                     </div>
-                    <div class="bg-yog-950 border border-yog-700 rounded-lg p-2.5 space-y-1 terminal-font text-[11px]">
+                    <div class="bg-yog-950 border border-yog-700 rounded-lg p-2 space-y-0.5 terminal-font text-[10px]">
                         <div class="flex justify-between"><span class="text-slate-500">Structure:</span><span id="aiPattern" class="font-bold text-cyan-400">Scanning...</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Bias:</span><span id="aiBias" class="font-bold text-slate-300">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Entry Zone:</span><span id="aiEntry" class="font-bold text-emerald-400">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Target (TP):</span><span id="aiTarget" class="font-bold text-cyan-300">--</span></div>
                         <div class="flex justify-between"><span class="text-slate-500">Stop (SL):</span><span id="aiStop" class="font-bold text-rose-400">--</span></div>
-                        <button onclick="applyAiSetupToOrder()" class="w-full mt-2 mb-1 bg-yog-800 hover:bg-blue-600 text-white text-[11px] py-2 rounded-lg font-bold transition border border-yog-600">⚡ Auto-Fill TP/SL Into Ticket</button>
+                        <!-- V8: explicit min-height + margins per directive so button is NEVER clipped -->
+                        <button onclick="applyAiSetupToOrder()" class="w-full mt-1.5 mb-2 bg-yog-800 hover:bg-blue-600 text-white text-[11px] py-1.5 rounded-lg font-bold transition border border-yog-600" style="min-height: 34px; margin-top: 8px; margin-bottom: 12px;">⚡ Auto-Fill TP/SL Into Ticket</button>
+                        <!-- V8: ICT/SMC quick toggle (also in ƒx Indicators) -->
+                        <div class="flex items-center justify-between pt-1 border-t border-yog-700/60">
+                            <span class="text-slate-500 text-[9px]">ICT/SMC overlay:</span>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-[9px] font-bold text-cyan-300">
+                                <input type="checkbox" id="chkICTSMCQuick" onchange="onICTSMCToggle(this.checked)" class="accent-blue-500"> FVG / OB / BOS
+                            </label>
+                        </div>
                     </div>
                 </div>
             </aside>
-        </div>
-
-        <!-- Bottom Positions Dock -->
-        <section id="mobilePositionsPane" class="h-36 sm:h-40 bg-yog-900 border-t border-yog-700 flex flex-col flex-shrink-0 z-20">
-            <div class="h-8 px-4 border-b border-yog-700 flex items-center justify-between text-xs font-bold bg-yog-950/60">
-                <span class="text-cyan-400 border-b-2 border-cyan-400 py-1.5">Active Paper Positions (<span id="posCount">0</span>)</span>
-                <div class="flex items-center gap-2">
-                    <span class="terminal-font text-[11px] hidden sm:inline">Unrealized PnL: <strong id="totalUnrealizedPnl" class="text-slate-300">$0.00</strong></span>
-                    <button onclick="setLayoutPref('positions', false)" title="Hide positions dock" class="text-slate-400 hover:text-white w-6 h-6 rounded flex items-center justify-center hover:bg-yog-700 transition">▼</button>
-                </div>
-            </div>
-            <div class="flex-1 overflow-x-auto overflow-y-auto">
-                <table class="w-full text-left border-collapse terminal-font text-[11px]">
-                    <thead>
-                        <tr class="text-slate-500 border-b border-yog-700 bg-yog-950">
-                            <th class="py-1.5 px-3">Instrument</th><th class="py-1.5 px-3">Side</th><th class="py-1.5 px-3">Notional</th>
-                            <th class="py-1.5 px-3">Entry</th><th class="py-1.5 px-3">Mark</th><th class="py-1.5 px-3 hidden sm:table-cell">Est. Liq</th>
-                            <th class="py-1.5 px-3 hidden md:table-cell">TP / SL</th><th class="py-1.5 px-3">PnL (ROE%)</th><th class="py-1.5 px-3 text-right">Settle</th>
-                        </tr>
-                    </thead>
-                    <tbody id="positionsTableBody" class="divide-y divide-yog-800"></tbody>
-                </table>
-            </div>
-        </section>
+        </div><!-- /#yogMainWorkspace -->
 
         <!-- v5: Floating pill to restore the positions dock when hidden -->
         <button id="positionsRestorePill" onclick="setLayoutPref('positions', true)" class="fixed bottom-16 lg:bottom-4 left-1/2 -translate-x-1/2 z-40 items-center gap-2 bg-yog-900/95 backdrop-blur-md border border-cyan-500/40 text-cyan-300 text-[11px] font-bold px-4 py-2 rounded-full shadow-2xl hover:border-cyan-400 transition">
@@ -1742,6 +1906,25 @@
                         </div>
                         <div class="ind-row flex items-center justify-between bg-yog-950 p-2.5 rounded-lg border border-yog-700" data-cat="trend" data-name="Ichimoku Cloud (9, 26, 52)"><label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkICH"<label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkICH" class="accent-blue-500"> Ichimoku Cloud (9, 26, 52)</label>
                             <span class="text-[10px] text-slate-400 font-mono">Tenkan, Kijun, Senkou A/B, cloud</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- V8 TASK 5.1: Smart Money Concepts (ICT / SMC) overlay -->
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-cyan-400 font-bold mb-2">Smart Money Concepts (ICT / SMC)</div>
+                    <div class="space-y-2">
+                        <div class="ind-row flex items-center justify-between bg-yog-950 p-2.5 rounded-lg border border-yog-700" data-cat="overlay" data-name="ICT / SMC Overlay"><label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkICTSMC" onchange="onICTSMCToggle(this.checked)" class="accent-blue-500"> ICT / SMC Overlay</label>
+                            <span class="text-[10px] text-slate-400 font-mono">FVG + Order Blocks + BOS/CHoCH labels</span>
+                        </div>
+                        <div class="ind-row flex items-center justify-between bg-yog-950 p-2.5 rounded-lg border border-yog-700" data-cat="overlay" data-name="Fair Value Gaps (FVG)"><label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkFVG" class="accent-blue-500"> Fair Value Gaps (FVG)</label>
+                            <span class="text-[10px] text-slate-400 font-mono">3-candle imbalance zones</span>
+                        </div>
+                        <div class="ind-row flex items-center justify-between bg-yog-950 p-2.5 rounded-lg border border-yog-700" data-cat="overlay" data-name="Order Blocks (OB)"><label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkOB" class="accent-blue-500"> Order Blocks (OB)</label>
+                            <span class="text-[10px] text-slate-400 font-mono">Institutional supply / demand zones</span>
+                        </div>
+                        <div class="ind-row flex items-center justify-between bg-yog-950 p-2.5 rounded-lg border border-yog-700" data-cat="overlay" data-name="Market Structure (BOS / CHoCH)"><label class="flex items-center gap-2 font-bold text-slate-200 cursor-pointer"><input type="checkbox" id="chkMS" class="accent-blue-500"> Market Structure (BOS / CHoCH)</label>
+                            <span class="text-[10px] text-slate-400 font-mono">Dashed break lines + swing labels</span>
                         </div>
                     </div>
                 </div>
@@ -2729,7 +2912,8 @@
             grid: { vertLines: { color: '#0c1424' }, horzLines: { color: '#0c1424' } },
             crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
             rightPriceScale: { borderColor: '#16223B' },
-            timeScale: { borderColor: '#16223B', timeVisible: true, secondsVisible: false }
+            // V8: 10-bar right offset so the live candle isn't jammed against the Y-axis.
+            timeScale: { borderColor: '#16223B', timeVisible: true, secondsVisible: false, rightOffset: 10, barSpacing: 8 }
         });
 
         let activeSeries = null;
@@ -2822,13 +3006,33 @@
         });
 
         chart.subscribeCrosshairMove(param => {
-            if (!param.time || !activeSeries) return;
-            const d = param.seriesData.get(activeSeries);
+            // V8: Always show full OHLCV legend for hovered (or latest) candle.
+            if (!activeSeries || !rawCandles.length) return;
+            let d = null, time = null;
+            if (param.time && param.seriesData) {
+                d = param.seriesData.get(activeSeries);
+                time = param.time;
+            }
+            // Fall back to latest candle when not hovering
+            if (!d) {
+                const last = rawCandles[rawCandles.length - 1];
+                d = { open: last.open, high: last.high, low: last.low, close: last.close };
+                time = last.time;
+            }
             if (!d) return;
-            // V7: tick-size aware legend formatting (never raw float soup)
-            document.getElementById('ohlcLegend').innerText = d.open !== undefined
-                ? `O: ${formatPrice(d.open)}  H: ${formatPrice(d.high)}  L: ${formatPrice(d.low)}  C: ${formatPrice(d.close)}`
-                : `Price: ${formatPrice(d.value)}`;
+            // Find the candle in rawCandles to compute change% vs previous close + volume
+            const idx = rawCandles.findIndex(c => c.time === time);
+            const prevClose = idx > 0 ? rawCandles[idx - 1].close : (d.open ?? 0);
+            const change = prevClose ? ((d.close - prevClose) / prevClose) * 100 : 0;
+            const vol = (idx >= 0 && rawCandles[idx].volume) ? rawCandles[idx].volume : 0;
+            const sign = change >= 0 ? '+' : '';
+            const chgColor = change >= 0 ? 'text-emerald-400' : 'text-rose-400';
+            const ohlcEl = document.getElementById('ohlcLegend');
+            if (d.open !== undefined) {
+                ohlcEl.innerHTML = `O: ${formatPrice(d.open)}  H: ${formatPrice(d.high)}  L: ${formatPrice(d.low)}  C: ${formatPrice(d.close)} <span class="${chgColor}">(${sign}${change.toFixed(2)}%)</span> Vol: ${fmtSize(vol)}`;
+            } else {
+                ohlcEl.innerHTML = `Price: ${formatPrice(d.value)}`;
+            }
         });
 
 
@@ -2838,6 +3042,8 @@
         // ================================================================
 
         // V6: Chart modes — Standard | TradingView | Depth
+        // V8: chartMode is the SINGLE source of truth — button highlight is bound
+        //     strictly to it; default on load = 'Standard' (Candles + Auto scale).
         let currentChartMode = 'Standard';
         window.setChartMode = function(mode) {
             currentChartMode = mode;
@@ -2847,9 +3053,20 @@
                     (m === mode ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white');
             });
             if (mode === 'Depth') {
-                // Show depth overlay on the chart — render a depth curve using current order book.
+                // V8: hide the candle/line series so the canvas becomes a pure depth chart
+                if (activeSeries) try { activeSeries.applyOptions({ visible: false }); } catch(e) {}
+                [ma1Series, ma2Series, ma3Series, bollUpper, bollLower, emaSeries, vwapSeries, psarSeries,
+                 ichTenkan, ichKijun, ichSenkouA, ichSenkouB].forEach(s => { if (s) try { s.applyOptions({ visible: false }); } catch(e) {} });
                 drawDepthOverlay(true);
+                showToast('Depth mode — two-sided cumulative Bid/Ask depth chart', 'info');
             } else {
+                // Restore series visibility in Standard / TradingView modes
+                if (activeSeries) try { activeSeries.applyOptions({ visible: true }); } catch(e) {}
+                [ma1Series, ma2Series, ma3Series].forEach((s, i) => {
+                    if (!s) return;
+                    const chk = document.getElementById('chkMA' + (i+1))?.checked;
+                    try { s.applyOptions({ visible: !!chk }); } catch(e) {}
+                });
                 drawDepthOverlay(false);
             }
             if (mode === 'TradingView') {
@@ -2865,9 +3082,10 @@
                     layout: { background: { type: 'solid', color: '#040711' } }
                 });
             }
+            renderDrawingsCanvas();
         };
 
-        // V6: Depth overlay — draws a depth curve on the drawing canvas.
+        // V6: Depth overlay — toggles whether the depth curve is drawn on the canvas.
         let depthOverlayOn = false;
         window.drawDepthOverlay = function(on) {
             depthOverlayOn = on;
@@ -3354,6 +3572,8 @@
             // V7: main series never draws its own native price line/label —
             //     the custom Y-axis badge (price + countdown) replaces it.
             try { activeSeries.applyOptions({ priceLineVisible: false, lastValueVisible: false }); } catch (e) {}
+            // V8 TASK 5.1: recompute SMC cache whenever candles update.
+            try { smcCache = calculateSMC(rawCandles); } catch (e) { /* ignore */ }
             if (currentChartType === 'HeikinAshi') { activeSeries.setData(calcHeikinAshi(rawCandles)); }
             else if (currentChartType === 'HighLow') {
                 const hl = [];
@@ -3486,6 +3706,263 @@
             setTimeout(resizeChartsAndCanvas, 50);
         }
         let volumeProfileCache = null;
+
+        // ================================================================
+        // V8 TASK 5.1: Smart Money Concepts (ICT / SMC) Overlay Engine
+        //   • Fair Value Gaps (FVG): 3-candle imbalance. Bullish FVG forms
+        //     when candle[i-1].high < candle[i+1].low (gap up). Bearish FVG
+        //     forms when candle[i-1].low > candle[i+1].high (gap down).
+        //     Zones are extended to the right until mitigated (price re-enters).
+        //   • Order Blocks (OB): the origin candle of an impulsive BOS move.
+        //     Bullish OB = last down-candle before a bullish impulse that
+        //     breaks structure. Bearish OB = last up-candle before bearish impulse.
+        //   • Market Structure (BOS / CHoCH):
+        //     - BOS = continuation break (in trend direction).
+        //     - CHoCH = reversal break (counter-trend).
+        //     Computed via swing-high / swing-low pivots (5-bar fractal).
+        // ================================================================
+        let smcCache = { fvgs: [], obs: [], structure: [] };
+        function calculateSMC(candles) {
+            if (!candles || candles.length < 10) return { fvgs: [], obs: [], structure: [] };
+            const fvgs = [], obs = [], structure = [];
+            // Fair Value Gaps — scan 3-candle windows
+            for (let i = 1; i < candles.length - 1; i++) {
+                const prev = candles[i - 1], cur = candles[i], next = candles[i + 1];
+                // Bullish FVG: gap between prev.high and next.low
+                if (prev.high < next.low) {
+                    fvgs.push({ type: 'bull', time: cur.time, top: next.low, bottom: prev.high, mitigated: false });
+                }
+                // Bearish FVG: gap between prev.low and next.high
+                if (prev.low > next.high) {
+                    fvgs.push({ type: 'bear', time: cur.time, top: prev.low, bottom: next.high, mitigated: false });
+                }
+            }
+            // Mark mitigation: a later candle whose range overlaps the FVG zone
+            for (const fvg of fvgs) {
+                for (let i = candles.findIndex(c => c.time === fvg.time) + 2; i < candles.length; i++) {
+                    if (candles[i].low <= fvg.top && candles[i].high >= fvg.bottom) {
+                        fvg.mitigatedTime = candles[i].time;
+                        fvg.mitigated = true;
+                        break;
+                    }
+                }
+            }
+            // Swing highs / lows (5-bar fractal pivot)
+            const findPivots = (idx) => {
+                if (idx < 2 || idx > candles.length - 3) return null;
+                const c = candles[idx];
+                let isHigh = true, isLow = true;
+                for (let k = idx - 2; k <= idx + 2; k++) {
+                    if (k === idx) continue;
+                    if (candles[k].high >= c.high) isHigh = false;
+                    if (candles[k].low <= c.low) isLow = false;
+                }
+                if (isHigh) return { type: 'high', time: c.time, price: c.high };
+                if (isLow) return { type: 'low', time: c.time, price: c.low };
+                return null;
+            };
+            const pivots = [];
+            for (let i = 2; i < candles.length - 2; i++) {
+                const p = findPivots(i);
+                if (p) pivots.push(p);
+            }
+            // Market structure: BOS / CHoCH from pivot breaks
+            let lastTrend = null; // 'up' or 'down'
+            for (let i = 1; i < pivots.length; i++) {
+                const prev = pivots[i - 1], cur = pivots[i];
+                if (cur.type === 'high' && prev.type === 'high') {
+                    if (cur.price > prev.price) {
+                        // Higher high → uptrend continuation (BOS up)
+                        structure.push({ type: 'BOS', direction: 'up', time: cur.time, price: cur.price });
+                        lastTrend = 'up';
+                    } else if (lastTrend === 'up') {
+                        // Lower high after uptrend → potential CHoCH
+                        structure.push({ type: 'CHoCH', direction: 'down', time: cur.time, price: cur.price });
+                        lastTrend = 'down';
+                    }
+                } else if (cur.type === 'low' && prev.type === 'low') {
+                    if (cur.price < prev.price) {
+                        // Lower low → downtrend continuation (BOS down)
+                        structure.push({ type: 'BOS', direction: 'down', time: cur.time, price: cur.price });
+                        lastTrend = 'down';
+                    } else if (lastTrend === 'down') {
+                        // Higher low after downtrend → potential CHoCH
+                        structure.push({ type: 'CHoCH', direction: 'up', time: cur.time, price: cur.price });
+                        lastTrend = 'up';
+                    }
+                }
+            }
+            // Order Blocks — last opposite-color candle before a strong impulse
+            for (let i = 5; i < candles.length - 1; i++) {
+                const c = candles[i];
+                const isBull = c.close >= c.open;
+                // Look for an impulse: 3 consecutive same-direction candles after this one
+                let impulse = true;
+                for (let k = 1; k <= 3; k++) {
+                    const n = candles[i + k];
+                    if (!n) { impulse = false; break; }
+                    if (isBull && n.close < n.open) impulse = false;
+                    if (!isBull && n.close > n.open) impulse = false;
+                }
+                if (!impulse) continue;
+                // Find the last opposite candle in the previous 3
+                for (let k = 1; k <= 3; k++) {
+                    const prev = candles[i - k];
+                    if (!prev) break;
+                    const prevBull = prev.close >= prev.open;
+                    if (prevBull !== isBull) {
+                        obs.push({
+                            type: isBull ? 'bull' : 'bear',
+                            time: prev.time,
+                            top: Math.max(prev.open, prev.close, prev.high),
+                            bottom: Math.min(prev.open, prev.close, prev.low)
+                        });
+                        break;
+                    }
+                }
+            }
+            return { fvgs, obs, structure };
+        }
+        // V8: ICT/SMC master toggle — when ON, enables FVG + OB + MS together
+        window.onICTSMCToggle = function(on) {
+            const master = document.getElementById('chkICTSMC');
+            if (master) master.checked = on;
+            ['chkFVG', 'chkOB', 'chkMS'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = on;
+            });
+            updateAllChartSeries();
+            renderIndicatorLegend();
+            showToast(on ? 'ICT/SMC overlay enabled' : 'ICT/SMC overlay disabled', 'info');
+        };
+        // V8: render SMC overlays on the drawing canvas
+        function drawSMCOverlays(ctx) {
+            if (!activeSeries || !rawCandles.length) return;
+            const useMaster = document.getElementById('chkICTSMC')?.checked;
+            const useFVG = useMaster || document.getElementById('chkFVG')?.checked;
+            const useOB = useMaster || document.getElementById('chkOB')?.checked;
+            const useMS = useMaster || document.getElementById('chkMS')?.checked;
+            if (!useFVG && !useOB && !useMS) return;
+            const w = drawingCanvas.width;
+            const ts = chart.timeScale();
+            const lastTime = rawCandles[rawCandles.length - 1].time;
+            // FVG zones
+            if (useFVG) {
+                smcCache.fvgs.forEach(fvg => {
+                    const x1 = ts.timeToCoordinate(fvg.time);
+                    if (x1 === null) return;
+                    const endTime = fvg.mitigated ? fvg.mitigatedTime : lastTime;
+                    const x2 = ts.timeToCoordinate(endTime);
+                    if (x2 === null) return;
+                    const yTop = activeSeries.priceToCoordinate(fvg.top);
+                    const yBot = activeSeries.priceToCoordinate(fvg.bottom);
+                    if (yTop === null || yBot === null) return;
+                    ctx.save();
+                    ctx.fillStyle = fvg.type === 'bull' ? 'rgba(16, 185, 129, 0.18)' : 'rgba(244, 63, 94, 0.18)';
+                    ctx.fillRect(x1, Math.min(yTop, yBot), Math.max(2, x2 - x1), Math.abs(yBot - yTop));
+                    ctx.strokeStyle = fvg.type === 'bull' ? 'rgba(16, 185, 129, 0.5)' : 'rgba(244, 63, 94, 0.5)';
+                    ctx.lineWidth = 0.8;
+                    ctx.strokeRect(x1, Math.min(yTop, yBot), Math.max(2, x2 - x1), Math.abs(yBot - yTop));
+                    // Label
+                    ctx.font = 'bold 9px Fira Code, monospace';
+                    ctx.fillStyle = fvg.type === 'bull' ? '#10b981' : '#f43f5e';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(fvg.type === 'bull' ? 'BULL FVG' : 'BEAR FVG', x1 + 3, Math.min(yTop, yBot) + 11);
+                    ctx.restore();
+                });
+            }
+            // Order Blocks
+            if (useOB) {
+                smcCache.obs.forEach(ob => {
+                    const x1 = ts.timeToCoordinate(ob.time);
+                    if (x1 === null) return;
+                    const x2 = ts.timeToCoordinate(lastTime);
+                    if (x2 === null) return;
+                    const yTop = activeSeries.priceToCoordinate(ob.top);
+                    const yBot = activeSeries.priceToCoordinate(ob.bottom);
+                    if (yTop === null || yBot === null) return;
+                    ctx.save();
+                    ctx.fillStyle = ob.type === 'bull' ? 'rgba(56, 189, 248, 0.12)' : 'rgba(245, 158, 11, 0.12)';
+                    ctx.fillRect(x1, Math.min(yTop, yBot), Math.max(2, x2 - x1), Math.abs(yBot - yTop));
+                    ctx.strokeStyle = ob.type === 'bull' ? 'rgba(56, 189, 248, 0.6)' : 'rgba(245, 158, 11, 0.6)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([3, 2]);
+                    ctx.strokeRect(x1, Math.min(yTop, yBot), Math.max(2, x2 - x1), Math.abs(yBot - yTop));
+                    ctx.setLineDash([]);
+                    ctx.font = 'bold 9px Fira Code, monospace';
+                    ctx.fillStyle = ob.type === 'bull' ? '#38BDF8' : '#f59e0b';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(ob.type === 'bull' ? 'OB↑' : 'OB↓', x1 + 3, Math.min(yTop, yBot) + 11);
+                    ctx.restore();
+                });
+            }
+            // Market structure — BOS / CHoCH dashed horizontal lines + labels
+            if (useMS) {
+                smcCache.structure.forEach(s => {
+                    const x = ts.timeToCoordinate(s.time);
+                    if (x === null) return;
+                    const y = activeSeries.priceToCoordinate(s.price);
+                    if (y === null) return;
+                    ctx.save();
+                    ctx.strokeStyle = s.type === 'BOS' ? 'rgba(56, 189, 248, 0.6)' : 'rgba(245, 158, 11, 0.7)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 3]);
+                    ctx.beginPath();
+                    ctx.moveTo(x, y); ctx.lineTo(w, y); ctx.stroke();
+                    ctx.setLineDash([]);
+                    // Label box on the right end
+                    const label = s.type + (s.direction === 'up' ? ' ↑' : ' ↓');
+                    ctx.font = 'bold 9px Fira Code, monospace';
+                    const tw = ctx.measureText(label).width + 8;
+                    ctx.fillStyle = s.type === 'BOS' ? '#2563EB' : '#f59e0b';
+                    ctx.fillRect(w - tw - 2, y - 8, tw, 14);
+                    ctx.fillStyle = '#fff';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, w - tw / 2 - 2, y + 2);
+                    ctx.restore();
+                });
+            }
+        }
+
+        // V8: Position dock tab switcher — Positions / Open Orders / Trade History / Price Alerts
+        window.switchPosTab = function(tab) {
+            ['positions', 'orders', 'history', 'alerts'].forEach(t => {
+                const el = document.getElementById('posTab' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (el) el.classList.toggle('hidden', t !== tab);
+            });
+            document.querySelectorAll('.pos-tab').forEach(b => {
+                b.classList.toggle('active', b.dataset.postab === tab);
+            });
+            // Populate history tab when opened
+            if (tab === 'history') renderHistoryTab();
+        };
+        function renderHistoryTab() {
+            const tbody = document.getElementById('historyTableBody');
+            if (!tbody) return;
+            const hist = JSON.parse(localStorage.getItem('yog_closed_trades') || '[]');
+            if (!hist.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-slate-500 py-3">No closed trades yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = hist.slice(-50).reverse().map(t => {
+                const date = t.closed_at ? new Date(t.closed_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '--';
+                const pnl = parseFloat(t.closed_pnl || 0);
+                return `<tr class="hover:bg-yog-800/60">
+                    <td class="py-1.5 px-3 text-slate-400">${date}</td>
+                    <td class="py-1.5 px-3 text-white font-bold">${t.symbol || '--'}</td>
+                    <td class="py-1.5 px-3 font-bold ${t.side === 'LONG' ? 'text-emerald-400' : 'text-rose-400'}">${t.side || '--'}</td>
+                    <td class="py-1.5 px-3 font-bold ${pnl >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}</td>
+                    <td class="py-1.5 px-3 text-slate-300">$${(t.notional_size || 0).toLocaleString()}</td>
+                </tr>`;
+            }).join('');
+        }
+        // V8: auto-collapse the positions dock to 34px when there are no open positions
+        function autoCollapsePositionsDock() {
+            const dock = document.getElementById('mobilePositionsPane');
+            if (!dock) return;
+            const collapsed = paperPositions.length === 0;
+            dock.classList.toggle('collapsed', collapsed);
+        }
 
         window.toggleIndicatorModal = () => document.getElementById('indicatorModal').classList.toggle('hidden');
 
@@ -4183,6 +4660,41 @@
             pointerDownTime = Date.now();
             if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
 
+            // V8 TASK 5.3: Position-line interaction —
+            // 1) Click on [× Close] hit zone → close the position
+            // 2) Drag a TP / SL handle → adjust the position's TP/SL price
+            if (currentTool === 'cursor' && paperPositions.length > 0) {
+                for (const pos of paperPositions) {
+                    if (pos.symbol !== currentSymbol) continue;
+                    // [× Close] button on the entry-line label
+                    if (pos._closeBtnRect) {
+                        const r = pos._closeBtnRect;
+                        if (pt.x >= r.bx && pt.x <= r.bx + r.bw && pt.y >= r.by && pt.y <= r.by + r.bh) {
+                            closePaperPosition(pos.id);
+                            return;
+                        }
+                    }
+                    // TP drag handle
+                    if (pos._tpHandle) {
+                        const h = pos._tpHandle;
+                        if (Math.hypot(pt.x - h.x, pt.y - h.y) <= h.r + 4) {
+                            v6DraggingPosLine = { posId: pos.id, type: 'tp', startY: pt.y, startVal: parseFloat(pos.take_profit) };
+                            chart.applyOptions({ handleScroll: { mouseWheel: true, pressedMouseMove: false, horzTouchDrag: false, vertTouchDrag: false } });
+                            return;
+                        }
+                    }
+                    // SL drag handle
+                    if (pos._slHandle) {
+                        const h = pos._slHandle;
+                        if (Math.hypot(pt.x - h.x, pt.y - h.y) <= h.r + 4) {
+                            v6DraggingPosLine = { posId: pos.id, type: 'sl', startY: pt.y, startVal: parseFloat(pos.stop_loss) };
+                            chart.applyOptions({ handleScroll: { mouseWheel: true, pressedMouseMove: false, horzTouchDrag: false, vertTouchDrag: false } });
+                            return;
+                        }
+                    }
+                }
+            }
+
             if (currentTool === 'cursor') {
                 if (drawSettings.locked) return;
                 // Hit-test existing drawings for move / long-press delete
@@ -4267,6 +4779,21 @@
                 const moved = Math.hypot(pt.x - pointerDownPos.x, pt.y - pointerDownPos.y);
                 if (moved > 6) { clearTimeout(longPressTimer); longPressTimer = null; }
             }
+            // V8 TASK 5.3: dragging a position line's TP/SL handle
+            if (currentTool === 'cursor' && v6DraggingPosLine) {
+                const pos = paperPositions.find(p => String(p.id) === String(v6DraggingPosLine.posId));
+                if (pos) {
+                    // Convert pointer Y → price, update the position's TP/SL
+                    const newPrice = activeSeries.coordinateToPrice(pt.y);
+                    if (isFinite(newPrice) && newPrice > 0) {
+                        if (v6DraggingPosLine.type === 'tp') pos.take_profit = newPrice;
+                        else if (v6DraggingPosLine.type === 'sl') pos.stop_loss = newPrice;
+                        showMagnifier(pt, (v6DraggingPosLine.type === 'tp' ? 'TP: $' : 'SL: $') + formatPrice(newPrice));
+                        renderDrawingsCanvas();
+                    }
+                }
+                return;
+            }
             // Cursor move mode: dragging an existing drawing
             if (currentTool === 'cursor' && movingDrawingIdx >= 0) {
                 const d = userDrawings[movingDrawingIdx];
@@ -4322,6 +4849,24 @@
             if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
             // v5: restore chart interaction (re-enables panning after moving a drawing)
             updateChartInteractionMode();
+            // V8 TASK 5.3: finalize a TP/SL handle drag — persist new TP/SL to position
+            if (v6DraggingPosLine) {
+                const pos = paperPositions.find(p => String(p.id) === String(v6DraggingPosLine.posId));
+                if (pos) {
+                    localStorage.setItem('yog_positions', JSON.stringify(paperPositions));
+                    if (currentUser) {
+                        const upd = {};
+                        if (v6DraggingPosLine.type === 'tp') upd.take_profit = pos.take_profit;
+                        else upd.stop_loss = pos.stop_loss;
+                        supabaseClient.from('paper_positions').update(upd).eq('id', pos.id).then(() => {}, () => {});
+                    }
+                    renderPositionsDock();
+                    showToast((v6DraggingPosLine.type === 'tp' ? '🎯 TP' : '🛑 SL') + ' updated: $' + formatPrice(v6DraggingPosLine.type === 'tp' ? pos.take_profit : pos.stop_loss), 'success');
+                }
+                v6DraggingPosLine = null;
+                hideMagnifier();
+                return;
+            }
             if (currentTool === 'cursor') {
                 if (movingDrawingIdx >= 0) {
                     movingDrawingIdx = -1;
@@ -4977,6 +5522,8 @@
             _origRenderPosDock(liveMark);
             const pillCount = document.getElementById('pillPosCount');
             if (pillCount) pillCount.innerText = paperPositions.length;
+            // V8: auto-collapse the positions dock to 34px when there are no open positions
+            if (typeof autoCollapsePositionsDock === 'function') autoCollapsePositionsDock();
         };
 
         // ================================================================
@@ -5337,7 +5884,16 @@
                     last.close = c; if (c > last.high) last.high = c; if (c < last.low) last.low = c; lastKnownPrice = c;
                     if (['Line', 'Area', 'Baseline'].includes(currentChartType)) activeSeries.update({ time: last.time, value: c }); else activeSeries.update(last);
                     updateLivePriceHeader(c, tk2 >= 0); renderPositionsDock(c); checkPositionTriggers(c); checkPriceAlerts(c);
-                    appendTradeTape(c, +(Math.random() * 45 + 1).toFixed(2), tk2 >= 0, Date.now());
+                    // V8: Time & Sales — varied trade size, oscillating price around lastPrice, distinct timestamps
+                    const tradePrice = +(c + (Math.random() - 0.5) * tick * 2).toFixed(dec);
+                    const tradeQty = +(Math.random() * 145 + 0.5).toFixed(3);
+                    appendTradeTape(tradePrice, tradeQty, tk2 >= 0, Date.now());
+                    // V8: 1-2 extra phantom trades to keep the tape lively
+                    if (Math.random() < 0.55) {
+                        const p2 = +(c + (Math.random() - 0.5) * tick * 3).toFixed(dec);
+                        const q2 = +(Math.random() * 95 + 0.3).toFixed(3);
+                        appendTradeTape(p2, q2, Math.random() >= 0.5, Date.now());
+                    }
                     const asks = [], bids = [];
                     for (let i = 1; i <= 10; i++) {
                         asks.push([(c + i * tick).toFixed(dec), (Math.random() * 90 + 12).toFixed(2)]);
@@ -5377,51 +5933,96 @@
             document.getElementById('stat24hVol').innerText = (isFinite(vol) && vol > 0) ? formatVol(vol) : '--';
         }
 
+        // V8 TASK 4: Liquidity Book — strict spread math + dead-space removal.
+        //   • 8 visible Ask rows + 8 visible Bid rows.
+        //   • Asks (Red) sorted HIGHEST at TOP to LOWEST at BOTTOM (just above
+        //     center banner). All Ask prices are strictly ABOVE lastPrice:
+        //       ask_i = lastPrice + (i * tickSize)  for i = 8 (top) down to 1 (bottom)
+        //   • Bids (Green) sorted HIGHEST at TOP (just below center) to LOWEST
+        //     at BOTTOM. All Bid prices are strictly BELOW lastPrice:
+        //       bid_i = lastPrice - (i * tickSize)  for i = 1 (top) to 8 (bottom)
+        //   • Center banner: $lastPrice + Spread = (ask1 - bid1) = 2 * tickSize.
+        //   • Real exchange depth is used to populate the SIZE column for each
+        //     synthetic level; if no real data exists, varied non-zero sizes
+        //     are generated so Size and Sum columns are NEVER 0.0.
         setInterval(() => {
-            if (!latestDepthMsg?.asks || !latestDepthMsg?.bids) return;
+            const asksEl = document.getElementById('orderBookAsks');
+            const bidsEl = document.getElementById('orderBookBids');
+            if (!asksEl || !bidsEl) return;
+            if (!lastKnownPrice || !isFinite(lastKnownPrice) || lastKnownPrice <= 0) return;
             const step = parseFloat(document.getElementById('tickGrouping').value) || 0.0001;
             const decimals = step < 1 ? Math.abs(Math.floor(Math.log10(step))) : 2;
-            const aggregate = (orders) => {
-                const map = new Map();
-                orders.forEach(o => {
-                    const bucket = (Math.floor(parseFloat(o[0]) / step) * step).toFixed(decimals);
-                    map.set(bucket, (map.get(bucket) || 0) + parseFloat(o[1]));
-                });
-                return Array.from(map.entries()).slice(0, 10); // V6: 10 rows instead of 7
+            const fmt = (p) => p.toFixed(decimals);
+            // V8: 8 levels on each side, strictly above / below lastPrice.
+            const NUM_LEVELS = 8;
+            // Pull real depth data (if any) to source realistic sizes per price level.
+            const realAsks = (latestDepthMsg?.asks || []).map(o => ({ p: parseFloat(o[0]), q: parseFloat(o[1]) })).filter(o => isFinite(o.p) && isFinite(o.q) && o.q > 0);
+            const realBids = (latestDepthMsg?.bids || []).map(o => ({ p: parseFloat(o[0]), q: parseFloat(o[1]) })).filter(o => isFinite(o.p) && isFinite(o.q) && o.q > 0);
+            // Find the closest real size for a given synthetic price (within 1 tick).
+            const lookupSize = (arr, target) => {
+                let best = null, bestDist = Infinity;
+                for (const o of arr) {
+                    const d = Math.abs(o.p - target);
+                    if (d < bestDist) { bestDist = d; best = o; }
+                }
+                if (best && bestDist <= step * 1.5) return best.q;
+                // Fallback: generate varied non-zero size (5 – 120)
+                const seed = Math.abs(Math.sin(target * 13.37 + Date.now() / 5000));
+                return Math.max(0.5, +(5 + seed * 115).toFixed(2));
             };
-            const asks = aggregate(latestDepthMsg.asks), bids = aggregate(latestDepthMsg.bids);
-            // V6: compute max cumulative for depth-bar scaling
-            let askSum = 0, bidSum = 0;
-            const askCum = asks.map(([p, q]) => (askSum += q));
-            const bidCum = bids.map(([p, q]) => (bidSum += q));
-            const maxCum = Math.max(askCum[askCum.length-1] || 1, bidCum[bidCum.length-1] || 1);
-            // V6: also expose for depth chart mode
-            window._v6Asks = asks; window._v6Bids = bids;
-            document.getElementById('orderBookAsks').innerHTML = asks.map(([p, q], i) => {
-                const cum = askCum[i];
-                const pct = Math.min(100, (cum / maxCum) * 100);
-                return `<div onclick="fillLimitFromBook('${p}')" class="flex justify-between px-2 py-0.5 relative cursor-pointer hover:bg-yog-800/60" title="Click to fill limit price">
-                    <div class="absolute right-0 top-0 h-full bg-rose-500/10" style="width:${pct}%"></div>
-                    <span class="text-rose-400 font-semibold relative">${p}</span>
-                    <span class="text-slate-300 relative">${fmtSize(q)}</span>
-                    <span class="text-slate-500 relative">${fmtSize(cum)}</span>
-                </div>`;
-            }).join('');
-            document.getElementById('orderBookBids').innerHTML = bids.map(([p, q], i) => {
-                const cum = bidCum[i];
-                const pct = Math.min(100, (cum / maxCum) * 100);
-                return `<div onclick="fillLimitFromBook('${p}')" class="flex justify-between px-2 py-0.5 relative cursor-pointer hover:bg-yog-800/60" title="Click to fill limit price">
-                    <div class="absolute right-0 top-0 h-full bg-emerald-500/10" style="width:${pct}%"></div>
-                    <span class="text-emerald-400 font-semibold relative">${p}</span>
-                    <span class="text-slate-300 relative">${fmtSize(q)}</span>
-                    <span class="text-slate-500 relative">${fmtSize(cum)}</span>
-                </div>`;
-            }).join('');
-            if (asks.length && bids.length) {
-                const spread = Math.abs(parseFloat(asks[0][0]) - parseFloat(bids[0][0]));
-                const spreadPct = (spread / parseFloat(bids[0][0])) * 100;
-                document.getElementById('orderBookSpread').innerText = `Spread: ${spread.toFixed(decimals)} (${spreadPct.toFixed(3)}%)`;
+            // Build 8 ask levels: i=8 (highest) at top → i=1 (lowest, just above mid) at bottom
+            const askRows = [];
+            for (let i = NUM_LEVELS; i >= 1; i--) {
+                const p = lastKnownPrice + i * step;
+                const q = lookupSize(realAsks, p);
+                askRows.push([p, q]);
             }
+            // Build 8 bid levels: i=1 (highest, just below mid) at top → i=8 (lowest) at bottom
+            const bidRows = [];
+            for (let i = 1; i <= NUM_LEVELS; i++) {
+                const p = lastKnownPrice - i * step;
+                const q = lookupSize(realBids, p);
+                bidRows.push([p, q]);
+            }
+            // Cumulative sums for depth-bar scaling (sum grows away from mid)
+            let askCum = 0, bidCum = 0;
+            // For asks displayed top→bottom (i=8→1), cumulative should grow from top (far) to bottom (near mid)
+            // so that the bar width represents total size from this level outward (away from mid).
+            // Sum direction: top ask has the largest cumulative (all sizes above it + itself).
+            const askCumArr = askRows.map(([_, q]) => (askCum += q));
+            const bidCumArr = bidRows.map(([_, q]) => (bidCum += q));
+            const maxCum = Math.max(askCumArr[askCumArr.length - 1] || 1, bidCumArr[bidCumArr.length - 1] || 1);
+            // Expose for depth chart mode
+            window._v6Asks = askRows.map(([p, q]) => [fmt(p), q]);
+            window._v6Bids = bidRows.map(([p, q]) => [fmt(p), q]);
+            // Render Asks (top to bottom: highest at top, lowest at bottom)
+            asksEl.innerHTML = askRows.map(([p, q], i) => {
+                const cum = askCumArr[i];
+                const pct = Math.min(100, (cum / maxCum) * 100);
+                return `<div onclick="fillLimitFromBook('${fmt(p)}')" class="flex justify-between px-2 py-0.5 relative cursor-pointer hover:bg-yog-800/60" title="Click to fill limit price">
+                    <div class="absolute right-0 top-0 h-full bg-rose-500/10" style="width:${pct}%"></div>
+                    <span class="text-rose-400 font-semibold relative">${fmt(p)}</span>
+                    <span class="text-slate-300 relative">${fmtSize(q)}</span>
+                    <span class="text-slate-500 relative">${fmtSize(cum)}</span>
+                </div>`;
+            }).join('');
+            // Render Bids (top to bottom: highest at top, lowest at bottom)
+            bidsEl.innerHTML = bidRows.map(([p, q], i) => {
+                const cum = bidCumArr[i];
+                const pct = Math.min(100, (cum / maxCum) * 100);
+                return `<div onclick="fillLimitFromBook('${fmt(p)}')" class="flex justify-between px-2 py-0.5 relative cursor-pointer hover:bg-yog-800/60" title="Click to fill limit price">
+                    <div class="absolute right-0 top-0 h-full bg-emerald-500/10" style="width:${pct}%"></div>
+                    <span class="text-emerald-400 font-semibold relative">${fmt(p)}</span>
+                    <span class="text-slate-300 relative">${fmtSize(q)}</span>
+                    <span class="text-slate-500 relative">${fmtSize(cum)}</span>
+                </div>`;
+            }).join('');
+            // Spread = lowest ask - highest bid = (lastPrice + step) - (lastPrice - step) = 2 * step
+            const lowestAsk = lastKnownPrice + step;
+            const highestBid = lastKnownPrice - step;
+            const spread = lowestAsk - highestBid;
+            const spreadPct = (spread / lastKnownPrice) * 100;
+            document.getElementById('orderBookSpread').innerText = `Spread: ${fmt(spread)} (${spreadPct.toFixed(3)}%)`;
         }, 160);
 
 
@@ -5443,11 +6044,15 @@
             const tape = document.getElementById('orderTape');
             if (!tape) return;
             const pStr = formatPrice(price);
-            const tStr = new Date(timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            // V8: ms-precision time so trades in the same second are distinguishable.
+            //     Format: HH:MM:SS.mmm — guarantees no two rows are "5 identical clones".
+            const d = new Date(timestamp);
+            const pad = (n, w = 2) => String(n).padStart(w, '0');
+            const tStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`;
             // V6: stronger color coding — green bg for buys, red bg for sells
             const row = document.createElement('div');
             row.className = `flex justify-between px-2 py-0.5 rounded text-[11px] font-bold ${isBuy ? 'bg-emerald-500/10 text-emerald-300' : 'bg-rose-500/10 text-rose-300'}`;
-            row.innerHTML = `<span class="font-extrabold">${isBuy ? '▲' : '▼'} ${pStr}</span><span class="text-slate-200">${qty.toFixed(3)}</span><span class="text-slate-500 text-[10px]">${tStr}</span>`;
+            row.innerHTML = `<span class="font-extrabold">${isBuy ? '▲' : '▼'} ${pStr}</span><span class="text-slate-200">${(qty ?? 0).toFixed(3)}</span><span class="text-slate-500 text-[10px]">${tStr}</span>`;
             tape.prepend(row);
             if (tape.children.length > 50) tape.lastChild.remove();
         }
@@ -5472,8 +6077,55 @@
             const val = parseFloat(document.getElementById('customBalanceInput').value);
             if (!isNaN(val) && val >= 0) { paperBalance = val; await persistProfileToCloud(); updateWalletDisplays(); closeWalletModal(); }
         };
-        window.setMarginPercent = (pct) => { document.getElementById('orderMarginInput').value = Math.floor(paperBalance * pct); };
-        document.getElementById('leverageSlider').addEventListener('input', (e) => { document.getElementById('levBadge').innerText = e.target.value + 'x'; });
+        window.setMarginPercent = (pct) => { document.getElementById('orderMarginInput').value = Math.floor(paperBalance * pct); updatePreTradeRisk(); };
+        document.getElementById('leverageSlider').addEventListener('input', (e) => { document.getElementById('levBadge').innerText = e.target.value + 'x'; updatePreTradeRisk(); });
+        // V8 TASK 5.2: Pre-Trade Risk & Liquidation Summary — recompute on input changes
+        ['orderMarginInput', 'orderTpInput', 'orderSlInput', 'orderPriceInput'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', updatePreTradeRisk);
+        });
+        function updatePreTradeRisk() {
+            const box = document.getElementById('preTradeRiskBox');
+            if (!box) return;
+            const margin = parseFloat(document.getElementById('orderMarginInput').value) || 0;
+            const lev = parseInt(document.getElementById('leverageSlider').value) || 1;
+            const orderVal = margin * lev;
+            const entry = lastKnownPrice || 0;
+            // Estimated liquidation prices (90% maintenance margin)
+            // Long liquidates DOWN: entry * (1 - 0.9 / lev)
+            // Short liquidates UP: entry * (1 + 0.9 / lev)
+            const liqLong = entry > 0 ? entry * (1 - 0.9 / lev) : 0;
+            const liqShort = entry > 0 ? entry * (1 + 0.9 / lev) : 0;
+            // R:R and projected PnL based on TP/SL inputs (assume LONG direction by default;
+            // for SHORT, PnL is inverse — we show both directions in the line below).
+            const tp = parseFloat(document.getElementById('orderTpInput').value);
+            const sl = parseFloat(document.getElementById('orderSlInput').value);
+            let rrStr = '--';
+            if (entry > 0 && isFinite(tp) && isFinite(sl) && tp > 0 && sl > 0) {
+                const reward = Math.abs(tp - entry);
+                const risk = Math.abs(entry - sl);
+                const rr = risk > 0 ? (reward / risk).toFixed(2) : '∞';
+                const longPnl = orderVal * ((tp - entry) / entry);
+                const shortPnl = orderVal * ((entry - tp) / entry);
+                rrStr = `1:${rr} · L +$${longPnl.toFixed(0)} / S +$${Math.abs(shortPnl).toFixed(0)}`;
+            } else if (entry > 0 && isFinite(tp)) {
+                const longPnl = orderVal * ((tp - entry) / entry);
+                rrStr = `TP only · L ${longPnl >= 0 ? '+' : ''}$${longPnl.toFixed(0)}`;
+            } else if (entry > 0 && isFinite(sl)) {
+                const longPnl = orderVal * ((sl - entry) / entry);
+                rrStr = `SL only · L ${longPnl >= 0 ? '+' : ''}$${longPnl.toFixed(0)}`;
+            }
+            const valEl = document.getElementById('rskOrderValue');
+            const liqLEl = document.getElementById('rskLiqLong');
+            const liqSEl = document.getElementById('rskLiqShort');
+            const rrEl = document.getElementById('rskRR');
+            if (valEl) valEl.innerText = '$' + orderVal.toLocaleString('en-US', { maximumFractionDigits: 2 });
+            if (liqLEl) liqLEl.innerText = liqLong > 0 ? '$' + formatPrice(liqLong) : '--';
+            if (liqSEl) liqSEl.innerText = liqShort > 0 ? '$' + formatPrice(liqShort) : '--';
+            if (rrEl) rrEl.innerText = rrStr;
+        }
+        // Initial render once data is available
+        setTimeout(updatePreTradeRisk, 500);
 
         window.setOrderType = function(type) {
             currentOrderType = type;
@@ -5502,6 +6154,9 @@
             localStorage.setItem('yog_positions', JSON.stringify(paperPositions));
             await persistProfileToCloud();
             if (currentUser) await supabaseClient.from('paper_positions').insert({ ...newPos, user_id: currentUser.id });
+            // V8 TASK 5.3: clear the order ticket preview lines once the position is opened
+            // (the live position line + TP/SL handles now take over on the chart).
+            orderTicketPreview = null;
             updateWalletDisplays(); renderPositionsDock();
             logActivity('Opened ' + side + ' ' + currentSymbol + ' · ' + lev + 'x · $' + (margin * lev).toLocaleString() + ' notional', '⚡');
             showToast('⚡ ' + side + ' ' + currentSymbol + ' opened (' + lev + 'x)', 'success');
@@ -5680,7 +6335,7 @@
                 ctx.strokeStyle = color; ctx.lineWidth = 1.5;
                 ctx.setLineDash([]);
                 ctx.beginPath(); ctx.moveTo(0, yEntry); ctx.lineTo(w, yEntry); ctx.stroke();
-                // Label tag (left side)
+                // Label tag (left side) — includes inline [× Close] button (right edge of label)
                 const label = `${isLong ? '🟢 LONG' : '🔴 SHORT'} ${notional.toFixed(0)} | ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${roe.toFixed(1)}%) | ⇄ ⇱×`;
                 ctx.font = 'bold 10px JetBrains Mono, monospace';
                 const labelW = ctx.measureText(label).width + 14;
@@ -5688,9 +6343,21 @@
                 ctx.fillRect(0, yEntry - 8, labelW, 16);
                 ctx.fillStyle = '#0a0e1a';
                 ctx.fillText(label, 7, yEntry + 3);
+                // V8 TASK 5.3: inline [× Close] hit zone on the right end of the label
+                // (clicking it calls closePaperPosition). The click handler in the
+                // pointer-events layer maps canvas clicks within this zone to the close action.
+                ctx.fillStyle = 'rgba(255,255,255,0.18)';
+                ctx.fillRect(labelW - 18, yEntry - 8, 18, 16);
+                ctx.fillStyle = '#0a0e1a';
+                ctx.font = 'bold 11px JetBrains Mono, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('×', labelW - 9, yEntry + 3);
+                ctx.textAlign = 'left';
+                // Stash the close-button hit-rect for the click handler
+                pos._closeBtnRect = { x: 0, y: yEntry - 8, w: labelW, h: 16, bx: labelW - 18, by: yEntry - 8, bw: 18, bh: 16 };
                 ctx.restore();
 
-                // TP line — dashed green
+                // TP line — dashed green (with [TP] drag handle on right)
                 if (pos.take_profit) {
                     const tp = parseFloat(pos.take_profit);
                     if (!isNaN(tp)) {
@@ -5702,14 +6369,19 @@
                             ctx.beginPath(); ctx.moveTo(0, yTP); ctx.lineTo(w, yTP); ctx.stroke();
                             ctx.setLineDash([]);
                             ctx.fillStyle = 'rgba(52, 211, 153, 0.95)';
-                            ctx.fillRect(0, yTP - 7, 28, 14);
+                            ctx.fillRect(0, yTP - 7, 32, 14);
                             ctx.fillStyle = '#0a0e1a'; ctx.font = 'bold 9px JetBrains Mono, monospace';
                             ctx.fillText('TP', 6, yTP + 3);
+                            // V8: draggable handle on right end (5px circle)
+                            ctx.beginPath(); ctx.arc(w - 10, yTP, 5, 0, 2 * Math.PI);
+                            ctx.fillStyle = '#34d399'; ctx.fill();
+                            ctx.lineWidth = 1.5; ctx.strokeStyle = '#0a0e1a'; ctx.stroke();
+                            pos._tpHandle = { x: w - 10, y: yTP, r: 6 };
                             ctx.restore();
                         }
                     }
                 }
-                // SL line — dashed red
+                // SL line — dashed red (with [SL] drag handle on right)
                 if (pos.stop_loss) {
                     const sl = parseFloat(pos.stop_loss);
                     if (!isNaN(sl)) {
@@ -5721,9 +6393,14 @@
                             ctx.beginPath(); ctx.moveTo(0, ySL); ctx.lineTo(w, ySL); ctx.stroke();
                             ctx.setLineDash([]);
                             ctx.fillStyle = 'rgba(251, 113, 133, 0.95)';
-                            ctx.fillRect(0, ySL - 7, 28, 14);
+                            ctx.fillRect(0, ySL - 7, 32, 14);
                             ctx.fillStyle = '#0a0e1a'; ctx.font = 'bold 9px JetBrains Mono, monospace';
                             ctx.fillText('SL', 6, ySL + 3);
+                            // V8: draggable handle on right end
+                            ctx.beginPath(); ctx.arc(w - 10, ySL, 5, 0, 2 * Math.PI);
+                            ctx.fillStyle = '#fb7185'; ctx.fill();
+                            ctx.lineWidth = 1.5; ctx.strokeStyle = '#0a0e1a'; ctx.stroke();
+                            pos._slHandle = { x: w - 10, y: ySL, r: 6 };
                             ctx.restore();
                         }
                     }
@@ -5760,6 +6437,10 @@
                 const ctx = canvas.getContext('2d');
                 if (!ctx) return;
                 drawPositionLines(ctx);
+                // V8 TASK 5.1: SMC overlays (FVG / OB / BOS / CHoCH)
+                drawSMCOverlays(ctx);
+                // V8 TASK 5.3: Order Ticket preview lines (Entry/TP/SL dashed)
+                drawOrderTicketPreview(ctx);
                 // V6: Depth overlay if Depth mode is on
                 if (depthOverlayOn) drawDepthCurve(ctx);
             };
@@ -5767,27 +6448,120 @@
             window.renderDrawingsCanvas = renderDrawingsCanvas;
         }
 
-        // V6: Draw a depth curve on top of the chart (best-effort from current
-        // order book data).
+        // V8: Draw a real two-sided cumulative Bid/Ask depth chart.
+        //   • Bids: green left curve — cumulative bid size grows from mid-price
+        //     outward to lower prices (sweeping left & up the y-axis).
+        //   • Asks: red right curve — cumulative ask size grows from mid-price
+        //     outward to higher prices (sweeping right & up the y-axis).
+        //   • The two curves meet at the mid-price (center vertical line).
+        //   • Filled translucent area below each curve for institutional look.
         function drawDepthCurve(ctx) {
-            // Use orderBookAsks/Bids data if available; otherwise skip.
             const asks = window._v6Asks || [];
             const bids = window._v6Bids || [];
-            if (!asks.length || !bids.length || !activeSeries) return;
-            const w = drawingCanvas.width;
+            if (!asks.length || !bids.length) return;
+            const w = drawingCanvas.width, h = drawingCanvas.height;
+            if (w < 40 || h < 40) return;
+            // Sort asks ascending by price (lowest ask first), bids descending (highest bid first)
+            const askLvls = asks.map(([p, q]) => ({ p: parseFloat(p), q: parseFloat(q) })).filter(o => isFinite(o.p) && o.p > 0).sort((a, b) => a.p - b.p);
+            const bidLvls = bids.map(([p, q]) => ({ p: parseFloat(p), q: parseFloat(q) })).filter(o => isFinite(o.p) && o.p > 0).sort((a, b) => b.p - a.p);
+            if (!askLvls.length || !bidLvls.length) return;
+            // Cumulative sums
+            let cum = 0; const askCum = askLvls.map(o => (cum += o.q));
+            cum = 0; const bidCum = bidLvls.map(o => (cum += o.q));
+            const maxCum = Math.max(askCum[askCum.length - 1] || 1, bidCum[bidCum.length - 1] || 1);
+            // Price range
+            const minP = bidLvls[bidLvls.length - 1].p;
+            const maxP = askLvls[askLvls.length - 1].p;
+            const priceRange = Math.max(1e-9, maxP - minP);
+            const midPrice = (askLvls[0].p + bidLvls[0].p) / 2;
+
+            const axisW = chart?.priceScale ? (chart.priceScale('right').width() || 0) : 0;
+            const plotW = Math.max(60, w - axisW);
+            const plotH = h;
+            const midX = plotW * 0.5; // mid-price at center
+            const priceToX = (p) => midX + ((p - midPrice) / priceRange) * (plotW * 0.5);
+            const sizeToY = (cum) => plotH - 24 - (cum / maxCum) * (plotH - 48);
+
             ctx.save();
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)'; ctx.lineWidth = 1.5;
-            ctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
-            ctx.beginPath();
-            let started = false;
-            // Bids (left side)
-            for (const lvl of bids) {
-                const p = parseFloat(lvl[0]); if (!p) continue;
-                const y = activeSeries.priceToCoordinate(p); if (y === null) continue;
-                const x = w * 0.5 - 100; // placeholder
-                if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+            // Background grid lines
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.06)';
+            ctx.lineWidth = 1;
+            for (let i = 1; i < 6; i++) {
+                const y = Math.round((plotH / 6) * i) + 0.5;
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(plotW, y); ctx.stroke();
             }
+
+            // BID CURVE (green, left side)
+            ctx.beginPath();
+            ctx.moveTo(midX, plotH - 24);
+            bidLvls.forEach((o, i) => {
+                const x = priceToX(o.p);
+                const y = sizeToY(bidCum[i]);
+                ctx.lineTo(x, y);
+            });
+            // Close the path along the bottom
+            ctx.lineTo(priceToX(bidLvls[bidLvls.length - 1].p), plotH - 24);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.18)';
+            ctx.fill();
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            bidLvls.forEach((o, i) => {
+                const x = priceToX(o.p);
+                const y = sizeToY(bidCum[i]);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
             ctx.stroke();
+
+            // ASK CURVE (red, right side)
+            ctx.beginPath();
+            ctx.moveTo(midX, plotH - 24);
+            askLvls.forEach((o, i) => {
+                const x = priceToX(o.p);
+                const y = sizeToY(askCum[i]);
+                ctx.lineTo(x, y);
+            });
+            ctx.lineTo(priceToX(askLvls[askLvls.length - 1].p), plotH - 24);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(244, 63, 94, 0.18)';
+            ctx.fill();
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            askLvls.forEach((o, i) => {
+                const x = priceToX(o.p);
+                const y = sizeToY(askCum[i]);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Mid-price vertical dashed line + label
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(midX, 0); ctx.lineTo(midX, plotH - 24); ctx.stroke();
+            ctx.setLineDash([]);
+            // Mid-price label at top
+            ctx.font = 'bold 11px Fira Code, monospace';
+            ctx.fillStyle = '#38BDF8';
+            ctx.textAlign = 'center';
+            const midStr = '$' + formatPrice(midPrice);
+            const tw = ctx.measureText(midStr).width + 12;
+            ctx.fillRect(midX - tw / 2, 4, tw, 18);
+            ctx.fillStyle = '#0a0e1a';
+            ctx.fillText(midStr, midX, 17);
+
+            // Axis labels: left = lowest bid, right = highest ask
+            ctx.font = 'bold 10px Fira Code, monospace';
+            ctx.fillStyle = '#10b981'; ctx.textAlign = 'left';
+            ctx.fillText('$' + formatPrice(minP), 6, plotH - 6);
+            ctx.fillStyle = '#f43f5e'; ctx.textAlign = 'right';
+            ctx.fillText('$' + formatPrice(maxP), plotW - 6, plotH - 6);
+            // Title
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left';
+            ctx.fillText('Market Depth · Bid (green) vs Ask (red)', 8, plotH - 20);
             ctx.restore();
         }
 
@@ -5990,7 +6764,54 @@
             document.getElementById('aiTarget').innerText = `$${formatPrice(tp)}`;
             document.getElementById('aiStop').innerText = `$${formatPrice(sl)}`;
         };
-        window.applyAiSetupToOrder = () => { if (lastAiComputed) { document.getElementById('orderTpInput').value = lastAiComputed.tp; document.getElementById('orderSlInput').value = lastAiComputed.sl; } };
+        window.applyAiSetupToOrder = () => {
+            if (!lastAiComputed) return;
+            document.getElementById('orderTpInput').value = lastAiComputed.tp;
+            document.getElementById('orderSlInput').value = lastAiComputed.sl;
+            // V8 TASK 5.3: trigger preview lines on the chart + refresh risk box
+            orderTicketPreview = {
+                entry: lastAiComputed.entry,
+                tp: lastAiComputed.tp,
+                sl: lastAiComputed.sl,
+                side: lastAiComputed.isBull ? 'LONG' : 'SHORT'
+            };
+            updatePreTradeRisk();
+            renderDrawingsCanvas();
+            showToast('⚡ Auto-Fill applied — preview Entry / TP / SL lines on chart', 'success');
+        };
+        // V8 TASK 5.3: Order Ticket preview state — when TP/SL are populated
+        // (either manually or via ⚡ Auto-Fill), draw dashed guide lines on the chart
+        // at Entry (blue), TP (green), SL (red) so the trader can visually validate
+        // the trade setup before submitting.
+        let orderTicketPreview = null;
+        function drawOrderTicketPreview(ctx) {
+            if (!orderTicketPreview || !activeSeries) return;
+            if (!orderTicketPreview.entry || !isFinite(orderTicketPreview.entry)) return;
+            const w = drawingCanvas.width;
+            const draw = (price, color, label) => {
+                if (!price || !isFinite(price)) return;
+                const y = activeSeries.priceToCoordinate(price);
+                if (y === null || y === undefined) return;
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 1.2;
+                ctx.setLineDash([6, 4]);
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+                ctx.setLineDash([]);
+                // Label box on right end
+                ctx.font = 'bold 9px Fira Code, monospace';
+                const tw = ctx.measureText(label).width + 8;
+                ctx.fillStyle = color;
+                ctx.fillRect(w - tw - 2, y - 7, tw, 14);
+                ctx.fillStyle = '#0a0e1a';
+                ctx.textAlign = 'center';
+                ctx.fillText(label, w - tw / 2 - 2, y + 3);
+                ctx.restore();
+            };
+            draw(orderTicketPreview.entry, '#3b82f6', 'ENTRY');
+            draw(orderTicketPreview.tp, '#10b981', 'TP');
+            draw(orderTicketPreview.sl, '#f43f5e', 'SL');
+        }
 
         // 9. INDIVIDUAL ACCOUNT & CUSTOM PROFILE EDITOR
         function renderProfileUI() {
@@ -7423,6 +8244,9 @@
             if (currentUser) {
                 loginBtn.classList.add('hidden');
                 wrap.classList.remove('hidden');
+                // V8: auth state — logged IN: Cloud Synced + Profile ▾ visible
+                document.body.classList.add('auth-logged-in');
+                document.body.classList.remove('auth-logged-out');
                 document.getElementById('userChipAvatar').innerText = (userProfileData.display_name || 'YG').substring(0, 2).toUpperCase();
                 document.getElementById('userChipAvatar').style.backgroundColor = userProfileData.avatar_color || '#2563EB';
                 document.getElementById('userChipName').innerText = userProfileData.display_name || 'Trader';
@@ -7430,6 +8254,9 @@
             } else {
                 loginBtn.classList.remove('hidden');
                 wrap.classList.add('hidden');
+                // V8: auth state — logged OUT: Local Mode badge visible; Cloud Synced + Profile hidden
+                document.body.classList.add('auth-logged-out');
+                document.body.classList.remove('auth-logged-in');
             }
         }
         window.toggleUserMenu = () => document.getElementById('userMenuDropdown').classList.toggle('hidden');
@@ -7661,6 +8488,13 @@
             fib:    { title: 'Fib & Measure', tools: ['fib', 'measure'] },
             trade:  { title: 'Trade Tools', tools: ['longpos', 'shortpos', 'riskreward'] }
         };
+        // V8 TASK 2.1: SINGLE-POPOVER STATE MACHINE.
+        //   • openFlyoutCategory default = null (no flyouts open on load).
+        //   • Clicking a category icon toggles ONLY that one flyout;
+        //     any other open flyout is closed first.
+        //   • Selecting a tool OR clicking the chart canvas immediately
+        //     closes all flyouts (sets openFlyoutCategory = null).
+        let openFlyoutCategory = null;
         function railToolBtn(tool) {
             const meta = TOOL_META[tool] || {};
             return `<button onclick="setDrawingTool('${tool}')" id="draw-${tool}" data-tool="${tool}" class="js-draw-btn rf-item" title="${meta.label || tool} — ${meta.hint || ''}">${RAIL_SVGS[tool] || ''}<span>${meta.label || tool}</span></button>`;
@@ -7673,7 +8507,7 @@
             Object.entries(RAIL_GROUPS).forEach(([gKey, g]) => {
                 const active = g.tools.includes(currentTool) ? currentTool : g.tools[0];
                 html += `
-                <div class="rail-group relative">
+                <div class="rail-group relative" data-flyout-group="${gKey}">
                     <button onclick="toggleRailFlyout('${gKey}', event)" class="tool-btn rail-group-btn" title="${g.title} — click for the tool menu" id="rgbtn-${gKey}"><span id="rgicon-${gKey}" class="flex items-center justify-center">${RAIL_SVGS[active]}</span><span class="rg-caret">▾</span></button>
                     <div class="rail-flyout hidden" id="rfly-${gKey}">
                         <div class="rf-title">${g.title}</div>
@@ -7683,7 +8517,7 @@
             });
             html += '<div class="w-6 h-px bg-yog-700 my-0.5 flex-shrink-0"></div>';
             html += `
-                <div class="rail-group relative">
+                <div class="rail-group relative" data-flyout-group="util">
                     <button onclick="toggleRailFlyout('util', event)" class="tool-btn rail-group-btn" title="Utilities — magnet, lock, visibility, settings" id="rgbtn-util"><span id="rgicon-util" class="flex items-center justify-center">${RAIL_SVGS.style}</span><span class="rg-caret">▾</span></button>
                     <div class="rail-flyout rf-util hidden" id="rfly-util">
                         <div class="rf-title">Utilities</div>
@@ -7708,15 +8542,41 @@
             const stayBtn = document.getElementById('stayModeBtn');
             if (stayBtn) stayBtn.classList.toggle('tool-active', !!drawSettings.stayInMode);
             document.querySelectorAll('.js-draw-btn').forEach(b => b.classList.toggle('tool-active', b.dataset.tool === currentTool));
+            // V8: reset openFlyoutCategory to null on every render — initial load = no flyouts open
+            openFlyoutCategory = null;
         }
         window.toggleRailFlyout = function(group, e) {
             if (e) { e.stopPropagation(); e.preventDefault(); }
-            document.querySelectorAll('.rail-flyout').forEach(f => { if (f.id !== 'rfly-' + group) f.classList.add('hidden'); });
+            // Close every flyout first
+            document.querySelectorAll('.rail-flyout').forEach(f => f.classList.add('hidden'));
+            // If the requested group is already open, just close it (toggle off).
+            if (openFlyoutCategory === group) {
+                openFlyoutCategory = null;
+                return;
+            }
+            // Otherwise open only the requested flyout.
             const fly = document.getElementById('rfly-' + group);
-            if (fly) fly.classList.toggle('hidden');
+            if (fly) fly.classList.remove('hidden');
+            openFlyoutCategory = group;
         };
-        function closeRailFlyouts() { document.querySelectorAll('.rail-flyout').forEach(f => f.classList.add('hidden')); }
-        document.addEventListener('click', (e) => { if (!e.target.closest('.rail-group')) closeRailFlyouts(); });
+        function closeRailFlyouts() {
+            document.querySelectorAll('.rail-flyout').forEach(f => f.classList.add('hidden'));
+            openFlyoutCategory = null;
+        }
+        // V8: close flyouts on outside click, on canvas click, and on tool selection
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.rail-group') && !e.target.closest('.rail-flyout')) closeRailFlyouts();
+        });
+        // V8 TASK 2.1.3: when a drawing tool is selected, ensure any open flyout closes
+        // (the original setDrawingTool already calls closeRailFlyouts — no-op wrapper kept
+        //  here as a safety net in case the original is re-assigned elsewhere.)
+        const _origSetDrawingToolV8 = window.setDrawingTool;
+        if (typeof _origSetDrawingToolV8 === 'function') {
+            window.setDrawingTool = function(tool) {
+                _origSetDrawingToolV8(tool);
+                closeRailFlyouts();
+            };
+        }
         function refreshRailGroupIcons() {
             Object.entries(RAIL_GROUPS).forEach(([gKey, g]) => {
                 if (!g.tools.includes(currentTool)) return;
