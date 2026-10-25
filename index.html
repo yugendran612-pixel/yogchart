@@ -239,16 +239,16 @@
         }
         /* V9 BUGFIX: Critical CSS specificity fix — Tailwind's .hidden { display: none }
            has lower specificity than `#view-terminal { display: grid }`. Without this
-           !important override, the terminal view was ALWAYS visible (display: grid),
-           bleeding through beneath the home view and showing both pages stacked.
-           Same root cause as the flyout-menus bug. */
+           override, the terminal view was ALWAYS visible (display: grid), bleeding
+           through beneath the home view and showing both pages stacked.
+           Same root cause as the flyout-menus bug.
+           V9.1: SCOPED to specific element IDs only — DO NOT use a global
+           `.hidden { display: none !important }` because it overrides Tailwind's
+           responsive utilities (lg:flex, md:flex, sm:inline-flex, etc.) that
+           elements like #drawSidebar rely on for show-on-desktop behaviour. */
         #view-terminal.hidden,
         #view-home.hidden,
         #view-auth.hidden { display: none !important; }
-        /* V9: belt-and-suspenders — make Tailwind's .hidden ALWAYS win over any
-           ID-selector display rule, so this category of bug can never recur on
-           any other element (modals, dropdowns, flyouts, etc.). */
-        .hidden { display: none !important; }
         /* Row 1 + Row 2 — exact pixel heights */
         #view-terminal > header.yog-row1 { height: 44px; }
         #view-terminal > .yog-row2 { height: 40px; }
