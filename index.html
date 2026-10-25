@@ -162,7 +162,58 @@
             padding: 5px 10px; font-size: 11px; font-weight: 700; color: #38bdf8;
             cursor: pointer; font-family: 'JetBrains Mono', monospace;
         }
-        #quickTradeToggle:hover { background: rgba(30, 58, 95, 0.6); }
+        /* ================= V7: P0 FIXES — LAYOUT & CHART PHYSICS ================= */
+        /* Floating widgets must never cover the right price-scale labels (84px min) */
+        #chart-wrapper #fsFloatBtn { right: 84px; }
+        #chart-wrapper #drawingBanner { right: 84px; }
+        #quickTradeToggle { right: 84px; }
+        #quickTradeWidget { right: 84px; }
+
+        /* V7: Instrument header Row 2 — symbol dropdown panel */
+        #symbolDropdownPanel { width: 300px; }
+        #symbolDropdownPanel .qs-chip {
+            font-size: 10px; font-weight: 800; font-family: 'Fira Code', monospace;
+            background: #0E1628; color: #cbd5e1; border: 1px solid #1E2F52;
+            padding: 3px 8px; border-radius: 7px; cursor: pointer; transition: all .15s;
+        }
+        #symbolDropdownPanel .qs-chip:hover { background: #16223B; color: #38BDF8; border-color: #2563EB; }
+
+        /* V7: Left drawing rail — clean 1.5px SVG icon buttons + flyout menus */
+        #drawSidebar .tool-btn {
+            width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            color: #94a3b8; border: 1px solid transparent; cursor: pointer; transition: all .12s;
+            background: transparent;
+        }
+        #drawSidebar .tool-btn:hover { background: #16223B; color: #e2e8f0; }
+        #drawSidebar .tool-btn.tool-active { background: #2563EB; color: #fff; border-color: #38BDF8; box-shadow: 0 0 10px rgba(37,99,235,0.5); }
+        #drawSidebar .tool-btn svg { width: 18px; height: 18px; }
+        #drawSidebar .rail-flyout {
+            position: absolute; left: calc(100% + 6px); top: 0; z-index: 60;
+            background: rgba(8, 13, 26, 0.97); border: 1px solid #1e3a5f; border-radius: 12px;
+            padding: 6px; box-shadow: 0 10px 36px rgba(0,0,0,0.65); backdrop-filter: blur(10px);
+            display: grid; grid-template-columns: repeat(2, minmax(116px, 1fr)); gap: 2px; min-width: 250px;
+        }
+        #drawSidebar .rail-flyout.rf-util { grid-template-columns: 1fr 1fr; }
+        #drawSidebar .rf-item {
+            display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px;
+            font-size: 11px; font-weight: 700; color: #cbd5e1; cursor: pointer; border: 1px solid transparent;
+            background: transparent; text-align: left; transition: all .12s; white-space: nowrap;
+        }
+        #drawSidebar .rf-item:hover { background: #16223B; color: #fff; }
+        #drawSidebar .rf-item.tool-active { background: #2563EB; color: #fff; border-color: #38BDF8; }
+        #drawSidebar .rf-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+        #drawSidebar .rf-title {
+            grid-column: 1 / -1; font-size: 8px; letter-spacing: .14em; text-transform: uppercase;
+            font-weight: 800; color: #38bdf8; opacity: .75; padding: 3px 6px 1px;
+        }
+        #drawSidebar .rail-group-btn { position: relative; }
+        #drawSidebar .rail-group-btn .rg-caret {
+            position: absolute; right: 1px; bottom: 1px; font-size: 8px; color: #64748b; line-height: 1;
+        }
+        @media (max-height: 500px) and (orientation: landscape) {
+            header.h-14, header.h-12 { height: 2.5rem !important; }
+        }
 </style>
 </head>
 <body class="h-[100dvh] w-screen flex flex-col bg-yog-950 text-slate-200 overflow-hidden">
@@ -187,9 +238,10 @@
     </div>
 
     <!-- ========================================================= -->
-    <!-- TOP GLOBAL RESPONSIVE NAVIGATION BAR                      -->
+    <!-- V7 ROW 1: GLOBAL NAVIGATION BAR (48px) — decluttered      -->
+    <!--   Left: brand + view tabs · Right: equity, sync, profile  -->
     <!-- ========================================================= -->
-    <header class="h-14 bg-yog-900 border-b border-yog-700 px-2.5 sm:px-4 flex items-center justify-between gap-2 z-40 flex-shrink-0">
+    <header class="h-12 bg-yog-900 border-b border-yog-700 px-2.5 sm:px-4 flex items-center justify-between gap-2 z-40 flex-shrink-0">
         <div class="flex items-center gap-2 sm:gap-3 min-w-0">
             <div onclick="switchView('home')" class="flex items-center gap-2 cursor-pointer pr-2 sm:pr-3 border-r border-yog-700 group flex-shrink-0">
                 <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[1.5px] shadow-lg shadow-blue-500/20">
@@ -208,49 +260,15 @@
             <!-- Main View Switcher -->
             <div class="flex items-center gap-1 flex-shrink-0">
                 <button id="navHomeBtn" onclick="switchView('home')" class="nav-active text-[11px] sm:text-xs px-2 sm:px-3 py-1.5 rounded-lg font-bold border border-transparent transition flex items-center gap-1">
-                    <span>🌐</span> <span class="hidden md:inline">Markets & News</span><span class="md:hidden">Hub</span>
+                    <span>🌐</span> <span class="hidden md:inline">Markets &amp; News</span><span class="md:hidden">Hub</span>
                 </button>
                 <button id="navTermBtn" onclick="switchView('terminal')" class="text-[11px] sm:text-xs text-slate-400 hover:text-white px-2 sm:px-3 py-1.5 rounded-lg font-bold border border-transparent transition flex items-center gap-1">
                     <span>📈</span> <span class="hidden md:inline">Superchart</span><span class="md:hidden">Chart</span>
                 </button>
             </div>
-
-            <!-- Header Search with Closest-Match Dropdown (Visible on all devices) -->
-            <div class="relative flex-shrink-0" id="headerSearchWrap">
-                <div class="flex items-center bg-yog-950 border border-yog-700 focus-within:border-cyan-400 rounded-lg px-2 py-1">
-                    <span class="text-slate-500 text-xs mr-1">🔍</span>
-                    <input id="symbolInput" type="text" value="XRPUSDT" placeholder="Ticker..." autocomplete="off" class="bg-transparent border-none focus:outline-none text-xs font-bold uppercase w-16 sm:w-24 text-white terminal-font">
-                    <span id="streamStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" title="Live stream connected"></span><span id="assetBadge" class="hidden sm:inline text-[9px] bg-blue-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded font-bold">LIVE</span>
-                </div>
-                <div id="headerSearchDropdown" class="hidden absolute left-0 mt-1.5 w-64 sm:w-72 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto divide-y divide-yog-800"></div>
-            </div>
-
-            <!-- Live Price Ribbon -->
-            <div id="topTickerRibbon" class="hidden xl:flex items-center gap-5 pl-3 border-l border-yog-700 terminal-font text-xs">
-                <div>
-                    <div id="livePrice" class="font-bold text-base leading-none text-emerald-400">--</div>
-                    <div class="text-[10px] text-slate-500">Real-Time Feed</div>
-                </div>
-                <div>
-                    <div class="text-[10px] text-slate-500">24h Change</div>
-                    <div id="stat24hChange" class="font-semibold text-slate-300">--%</div>
-                </div>
-                <div>
-                    <div class="text-[10px] text-slate-500">24h High</div>
-                    <div id="stat24hHigh" class="font-semibold text-slate-300">--</div>
-                </div>
-                <div>
-                    <div class="text-[10px] text-slate-500">24h Low</div>
-                    <div id="stat24hLow" class="font-semibold text-slate-300">--</div>
-                </div>
-                <div>
-                    <div class="text-[10px] text-slate-500">24h Volume</div>
-                    <div id="stat24hVol" class="font-semibold text-cyan-400">--</div>
-                </div>
-            </div>
         </div>
 
-        <!-- Right Controls -->
+        <!-- Right Controls: Paper Equity · Cloud Sync Status · Profile -->
         <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             <div class="hidden lg:flex items-center gap-2 bg-yog-950 border border-yog-700 px-2.5 py-1 rounded-lg">
                 <div class="text-[10px] text-slate-400 uppercase font-bold">Equity</div>
@@ -258,19 +276,19 @@
                 <button onclick="openWalletModal()" class="text-[10px] bg-blue-600 hover:bg-blue-500 text-white font-bold px-1.5 py-0.5 rounded transition">+</button>
             </div>
 
-            <button id="saveWorkspace" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-cyan-500/30 transition hidden lg:inline-flex">
-                💾 Sync
+            <button id="saveWorkspace" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-cyan-500/30 transition hidden md:inline-flex items-center gap-1.5" title="Cloud sync status — save workspace to your account">
+                <span id="cloudSyncDot" class="w-2 h-2 rounded-full bg-cyan-400"></span> <span class="hidden lg:inline">Cloud Sync</span><span class="lg:hidden">Sync</span>
             </button>
 
             <button onclick="openProfileEditorModal()" class="bg-yog-800 hover:bg-yog-700 text-slate-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-yog-600 transition hidden md:inline-flex" title="Edit Account Profile">
-                ⚙️ <span class="hidden md:inline">Profile</span>
+                ⚙️ <span class="hidden lg:inline">Profile</span>
             </button>
 
             <!-- v2: Mobile overflow menu (prevents header crowding on small screens) -->
             <div id="headerMenuWrap" class="relative md:hidden">
                 <button onclick="toggleHeaderMenu()" class="bg-yog-800 hover:bg-yog-700 text-slate-200 text-[11px] font-bold w-8 h-8 rounded-lg border border-yog-600 transition flex items-center justify-center" title="More tools">⋯</button>
                 <div id="headerMenuDropdown" class="hidden absolute right-0 mt-2 w-52 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 py-1.5 text-xs">
-                    <button onclick="toggleHeaderMenu(); openProfileEditorModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">⚙️ Profile & Account</button>
+                    <button onclick="toggleHeaderMenu(); openProfileEditorModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">⚙️ Profile &amp; Account</button>
                     <button onclick="toggleHeaderMenu(); openWalletModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">💰 Paper Funds</button>
                     <button onclick="toggleHeaderMenu(); openWatchlistModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">⭐ Watchlist</button>
                     <button onclick="toggleHeaderMenu(); openTradingStatsModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">📊 Trading Stats</button>
@@ -289,7 +307,7 @@
                     <div class="px-3 py-2 border-b border-yog-700 mb-1">
                         <div class="text-slate-400 text-[10px] truncate" id="userMenuEmail">trader@yogchart.com</div>
                     </div>
-                    <button onclick="toggleUserMenu(); openProfileEditorModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">⚙️ Profile & Settings</button>
+                    <button onclick="toggleUserMenu(); openProfileEditorModal();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2.5">⚙️ Profile &amp; Settings</button>
                     <button onclick="toggleUserMenu(); handleSignOut();" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-rose-400 font-semibold flex items-center gap-2.5">🚪 Sign Out</button>
                 </div>
             </div>
@@ -525,132 +543,146 @@
     <!-- ========================================================= -->
     <div id="view-terminal" class="flex-1 flex flex-col overflow-hidden hidden">
         
-        <!-- Top Chart Control Bar (Scrollable horizontally on mobile phones) -->
-        <div class="h-10 bg-yog-900/90 border-b border-yog-700 px-2 sm:px-3 flex items-center justify-between gap-2 text-xs z-20 flex-shrink-0 overflow-x-auto no-scrollbar">
+        <!-- ========================================================= -->
+        <!-- V7 ROW 2: UNIFIED INSTRUMENT & CHART HEADER BAR (44px)    -->
+        <!--   Bybit/TradingView style: symbol dropdown + mark price   -->
+        <!--   + 24h stats + timeframe / type / mode / tools.          -->
+        <!--   (The old [Price | Countdown] pill was REMOVED here —    -->
+        <!--    the live price + candle countdown badge now lives on   -->
+        <!--    the right Y-axis price scale, drawn on the canvas.)    -->
+        <!-- ========================================================= -->
+        <div class="h-11 bg-yog-900/90 border-b border-yog-700 px-2 sm:px-3 flex items-center gap-2 text-xs z-20 flex-shrink-0 overflow-x-auto no-scrollbar relative">
+
+            <!-- ============ LEFT: Symbol Selector + Mark Price ============ -->
+            <div class="relative flex-shrink-0" id="symbolDropdownWrap">
+                <button onclick="toggleSymbolDropdown(event)" id="symDropdownBtn" class="flex items-center gap-1.5 bg-yog-950 border border-yog-700 hover:border-cyan-400 rounded-lg px-2.5 py-1.5 transition" title="Switch instrument">
+                    <span id="symDropdownLabel" class="font-extrabold text-white text-sm terminal-font whitespace-nowrap">XRPUSDT</span>
+                    <span id="symTypeChip" class="text-[8px] bg-blue-500/20 text-cyan-300 border border-cyan-500/30 px-1 py-0.5 rounded font-bold whitespace-nowrap">PERP</span>
+                    <span id="streamStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" title="Live stream connected"></span>
+                    <span class="text-slate-500 text-[10px]">▾</span>
+                </button>
+                <!-- Symbol search dropdown panel -->
+                <div id="symbolDropdownPanel" class="hidden absolute left-0 mt-1.5 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 p-2.5">
+                    <div class="flex items-center bg-yog-950 border border-yog-700 focus-within:border-cyan-400 rounded-lg px-2 py-1.5 mb-2">
+                        <span class="text-slate-500 text-xs mr-1.5">🔍</span>
+                        <input id="symbolInput" type="text" value="XRPUSDT" placeholder="Search ticker..." autocomplete="off" class="bg-transparent border-none focus:outline-none text-xs font-bold uppercase w-52 text-white terminal-font">
+                        <span id="assetBadge" class="text-[9px] bg-blue-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">LIVE</span>
+                    </div>
+                    <div id="headerSearchDropdown" class="hidden bg-yog-950 border border-yog-700 rounded-lg max-h-52 overflow-y-auto divide-y divide-yog-800"></div>
+                    <div class="flex flex-wrap gap-1 pt-2 mt-1 border-t border-yog-700/70">
+                        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider w-full mb-0.5">Quick access</span>
+                        <button onclick="quickSymbol('BTCUSDT')" class="qs-chip">BTC</button>
+                        <button onclick="quickSymbol('ETHUSDT')" class="qs-chip">ETH</button>
+                        <button onclick="quickSymbol('SOLUSDT')" class="qs-chip">SOL</button>
+                        <button onclick="quickSymbol('XRPUSDT')" class="qs-chip">XRP</button>
+                        <button onclick="quickSymbol('BNBUSDT')" class="qs-chip">BNB</button>
+                        <button onclick="quickSymbol('DOGEUSDT')" class="qs-chip">DOGE</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-6 w-px bg-yog-700 flex-shrink-0 hidden sm:block"></div>
+
+            <!-- Primary Mark Price (tabular font) + inline 24h% badge -->
             <div class="flex items-center gap-2 flex-shrink-0">
-                <div id="timeframeSelector" class="flex bg-yog-950 border border-yog-700 rounded-md p-0.5 text-[11px] font-bold terminal-font items-center">
-                    <button data-tf="1m" class="tf-btn px-2 py-0.5 rounded bg-blue-600 text-white">1m</button>
-                    <button data-tf="5m" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">5m</button>
-                    <button data-tf="15m" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">15m</button>
-                    <button data-tf="1h" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">1h</button>
-                    <button data-tf="4h" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">4h</button>
-                    <button data-tf="1d" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">1D</button>
-                    <button id="tfMoreBtn" onclick="toggleTfFlyout(event)" class="tf-btn px-1.5 py-0.5 rounded text-slate-400 hover:text-cyan-300" title="More timeframes & favorites">⋯</button>
+                <span id="livePrice" class="text-lg font-bold terminal-font leading-none text-emerald-400 whitespace-nowrap">--</span>
+                <span id="stat24hChange" class="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-emerald-500/15 text-emerald-400 border-emerald-500/25 whitespace-nowrap">--%</span>
+                <!-- Muted compact 24h stats (hide gracefully on smaller screens) -->
+                <div class="hidden xl:flex items-center gap-3 text-[10px] terminal-font">
+                    <div class="flex flex-col leading-tight"><span class="text-slate-500 text-[8px] uppercase font-bold tracking-wider">24h High</span><span id="stat24hHigh" class="font-semibold text-slate-300">--</span></div>
+                    <div class="flex flex-col leading-tight"><span class="text-slate-500 text-[8px] uppercase font-bold tracking-wider">24h Low</span><span id="stat24hLow" class="font-semibold text-slate-300">--</span></div>
+                    <div class="flex flex-col leading-tight"><span class="text-slate-500 text-[8px] uppercase font-bold tracking-wider">24h Turnover</span><span id="stat24hVol" class="font-semibold text-cyan-400">--</span></div>
                 </div>
-                <div id="tfFlyout" class="hidden absolute z-50 mt-1 top-9 left-2 w-64 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl p-2.5 text-[11px]">
-                    <div class="text-[9px] uppercase tracking-wider text-cyan-400 font-bold mb-1.5">Timeframes · click ★ to pin</div>
-                    <div id="tfFullGrid" class="grid grid-cols-4 gap-1 font-bold terminal-font"></div>
-                    <div class="text-[9px] uppercase tracking-wider text-cyan-400 font-bold mt-2.5 mb-1.5 pt-2 border-t border-yog-700">⭐ Pinned</div>
-                    <div id="tfPinnedRow" class="flex flex-wrap gap-1 font-bold terminal-font"></div>
-                </div>
-
-                <select id="chartTypeSelect" class="bg-yog-950 border border-yog-700 text-[11px] font-bold rounded-md px-2 py-1 text-slate-200 terminal-font focus:outline-none">
-                    <option value="Candlestick">🕯️ Candles</option>
-                    <option value="HollowCandles">◯ Hollow Candles</option>
-                    <option value="HeikinAshi">♨️ Heikin Ashi</option>
-                    <option value="Bar">📊 Bars (OHLC)</option>
-                    <option value="Line">📈 Line</option>
-                    <option value="Area">⛰️ Area</option>
-                    <option value="Baseline">⚖️ Baseline</option>
-                    <option value="VolumeCandles">▮ Volume Candles</option>
-                    <option value="HighLow">↕️ High-Low</option>
-                </select>
-                <!-- V6: Tri-mode chart switcher -->
-                <div class="flex bg-yog-950 border border-yog-700 rounded-md p-0.5 text-[10px] font-bold terminal-font" title="Chart mode">
-                    <button onclick="setChartMode('Standard')" id="modeBtnStandard" class="px-2 py-0.5 rounded bg-blue-600 text-white" title="Standard candle chart">Standard</button>
-                    <button onclick="setChartMode('TradingView')" id="modeBtnTradingView" class="px-2 py-0.5 rounded text-slate-400 hover:text-white" title="TradingView-style with study panes">TradingView</button>
-                    <button onclick="setChartMode('Depth')" id="modeBtnDepth" class="px-2 py-0.5 rounded text-slate-400 hover:text-white" title="Depth chart overlay">Depth</button>
-                </div>
-                <!-- V6: Y-axis scale controls -->
-                <div class="flex bg-yog-950 border border-yog-700 rounded-md p-0.5 text-[10px] font-bold terminal-font" title="Price scale mode">
-                    <button onclick="setYScaleMode('Auto')" id="yscaleAuto" class="px-1.5 py-0.5 rounded bg-blue-600 text-white" title="Auto-fit data to screen">A</button>
-                    <button onclick="setYScaleMode('Logarithmic')" id="yscaleLog" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-white" title="Logarithmic scale">L</button>
-                    <button onclick="setYScaleMode('Percentage')" id="yscalePct" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-white" title="Percentage scale">%</button>
-                </div>
-                <!-- V6: Live price countdown badge -->
-                <span id="livePriceCountdown" class="hidden md:inline-flex items-center gap-1.5 text-[10px] text-slate-400 terminal-font bg-yog-950 border border-yog-700 rounded-md px-2 py-1" title="Live price + countdown to candle close">
-                    <span class="text-emerald-400 font-bold" id="livePriceCountdownPrice">--</span>
-                    <span class="text-slate-600">|</span>
-                    <span class="text-amber-400 font-bold" id="livePriceCountdownTimer">--:--:--</span>
-                </span>
-
-                <button onclick="toggleIndicatorModal()" class="bg-yog-800 hover:bg-yog-700 text-cyan-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap">ƒx Indicators</button>
-                <button onclick="toggleRsiSubchart()" class="bg-yog-800 hover:bg-yog-700 text-slate-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap">📊 RSI</button>
-                <button onclick="toggleWatchlistSymbol(currentSymbol)" id="watchlistStarBtn" class="bg-yog-800 hover:bg-yog-700 text-slate-400 text-[14px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap" title="Add to / remove from watchlist">☆</button>
             </div>
 
-            <div class="flex items-center gap-1.5 flex-shrink-0">
-                <span id="activeToolLabel" class="text-[11px] text-cyan-400 font-mono hidden md:inline">Tool: Crosshair</span>
-                <button onclick="undoLastDrawing()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-slate-300 px-2 py-0.5 rounded border border-yog-700">↩ Undo</button>
-                <button onclick="clearAllDrawings()" class="text-[11px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded border border-rose-500/30">🗑️ Clear</button>
+            <div class="h-6 w-px bg-yog-700 flex-shrink-0 hidden md:block"></div>
+
+            <!-- ============ RIGHT: Chart Controls ============ -->
+            <div id="timeframeSelector" class="flex bg-yog-950 border border-yog-700 rounded-md p-0.5 text-[11px] font-bold terminal-font items-center flex-shrink-0">
+                <button data-tf="1m" class="tf-btn px-2 py-0.5 rounded bg-blue-600 text-white">1m</button>
+                <button data-tf="5m" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">5m</button>
+                <button data-tf="15m" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">15m</button>
+                <button data-tf="1h" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">1h</button>
+                <button data-tf="4h" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">4h</button>
+                <button data-tf="1d" class="tf-btn px-2 py-0.5 rounded text-slate-400 hover:text-white">1D</button>
+                <button id="tfMoreBtn" onclick="toggleTfFlyout(event)" class="tf-btn px-1.5 py-0.5 rounded text-slate-400 hover:text-cyan-300" title="More timeframes &amp; favorites">⋯</button>
+            </div>
+            <div id="tfFlyout" class="hidden absolute z-50 mt-1 top-10 left-2 w-64 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl p-2.5 text-[11px]">
+                <div class="text-[9px] uppercase tracking-wider text-cyan-400 font-bold mb-1.5">Timeframes · click ★ to pin</div>
+                <div id="tfFullGrid" class="grid grid-cols-4 gap-1 font-bold terminal-font"></div>
+                <div class="text-[9px] uppercase tracking-wider text-cyan-400 font-bold mt-2.5 mb-1.5 pt-2 border-t border-yog-700">⭐ Pinned</div>
+                <div id="tfPinnedRow" class="flex flex-wrap gap-1 font-bold terminal-font"></div>
+            </div>
+
+            <select id="chartTypeSelect" class="bg-yog-950 border border-yog-700 text-[11px] font-bold rounded-md px-2 py-1 text-slate-200 terminal-font focus:outline-none flex-shrink-0">
+                <option value="Candlestick">🕯️ Candles</option>
+                <option value="HollowCandles">◯ Hollow Candles</option>
+                <option value="HeikinAshi">♨️ Heikin Ashi</option>
+                <option value="Bar">📊 Bars (OHLC)</option>
+                <option value="Line">📈 Line</option>
+                <option value="Area">⛰️ Area</option>
+                <option value="Baseline">⚖️ Baseline</option>
+                <option value="VolumeCandles">▮ Volume Candles</option>
+                <option value="HighLow">↕️ High-Low</option>
+            </select>
+
+            <!-- V6: Tri-mode chart switcher -->
+            <div class="flex bg-yog-950 border border-yog-700 rounded-md p-0.5 text-[10px] font-bold terminal-font flex-shrink-0" title="Chart mode">
+                <button onclick="setChartMode('Standard')" id="modeBtnStandard" class="px-2 py-0.5 rounded bg-blue-600 text-white" title="Standard candle chart">Standard</button>
+                <button onclick="setChartMode('TradingView')" id="modeBtnTradingView" class="px-2 py-0.5 rounded text-slate-400 hover:text-white" title="TradingView-style with study panes">TradingView</button>
+                <button onclick="setChartMode('Depth')" id="modeBtnDepth" class="px-2 py-0.5 rounded text-slate-400 hover:text-white" title="Depth chart overlay">Depth</button>
+            </div>
+
+            <!-- V6: Y-axis scale controls (A = auto-fit reset) -->
+            <div class="flex bg-yog-950 border border-yog-700 rounded-md p-0.5 text-[10px] font-bold terminal-font flex-shrink-0" title="Price scale mode — double-click the Y-axis to auto-fit">
+                <button onclick="setYScaleMode('Auto')" id="yscaleAuto" class="px-1.5 py-0.5 rounded bg-blue-600 text-white" title="Auto-fit data to screen">A</button>
+                <button onclick="setYScaleMode('Logarithmic')" id="yscaleLog" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-white" title="Logarithmic scale">L</button>
+                <button onclick="setYScaleMode('Percentage')" id="yscalePct" class="px-1.5 py-0.5 rounded text-slate-400 hover:text-white" title="Percentage scale">%</button>
+            </div>
+
+            <button onclick="toggleIndicatorModal()" class="bg-yog-800 hover:bg-yog-700 text-cyan-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap flex-shrink-0">ƒx Indicators</button>
+
+            <div class="flex items-center gap-1 flex-shrink-0">
+                <button onclick="undoLastDrawing()" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-slate-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap" title="Undo last drawing (Ctrl+Z)">↩ Undo</button>
+                <button onclick="clearAllDrawings()" class="text-[11px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded border border-rose-500/30 whitespace-nowrap" title="Clear all drawings">🗑️ Clear</button>
                 <button onclick="toggleBarReplay()" id="replayToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-amber-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Bar Replay — step candle-by-candle through history">⏮ <span class="hidden sm:inline">Replay</span></button>
-                <button onclick="shareChartSnapshot()" id="shareSnapshotBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Share chart snapshot as PNG">📷 <span class="hidden sm:inline">Snapshot</span></button>
-                <button onclick="toggleQuickTradeWidget()" id="qtBtn" class="text-[11px] bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 whitespace-nowrap transition" title="Toggle Quick Trade widget on chart">⚡ <span class="hidden sm:inline">Trade</span></button>
-                <button onclick="openChartGridModal()" id="gridBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Multi-chart grid (2×2 live monitoring)">⊞ <span class="hidden sm:inline">Grid</span></button>
-                <button onclick="openPriceAlertsModal()" id="alertsBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-rose-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Price alerts">🔔 <span class="hidden sm:inline">Alerts</span></button>
-                <div class="relative" id="layoutMenuWrap">
-                <button onclick="toggleLayoutMenu()" id="layoutToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Customize layout on the fly">⧉ <span class="hidden sm:inline">Layout</span></button>
-                <div id="layoutMenuDropdown" class="hidden absolute right-0 mt-2 w-60 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 py-1.5 text-xs">
-                    <div class="px-3 py-1.5 text-[10px] uppercase tracking-wider text-cyan-400 font-bold">Panels (toggle instantly)</div>
-                    <label class="flex items-center gap-2.5 px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold cursor-pointer"><input type="checkbox" id="layChkDrawRail" onchange="setLayoutPref('drawRail', this.checked)" class="accent-blue-500"> ✏️ Drawing Rail</label>
-                    <label class="flex items-center gap-2.5 px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold cursor-pointer"><input type="checkbox" id="layChkBook" onchange="setLayoutPref('book', this.checked)" class="accent-blue-500"> 📊 Order Book &amp; Tape</label>
-                    <label class="flex items-center gap-2.5 px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold cursor-pointer"><input type="checkbox" id="layChkTrade" onchange="setLayoutPref('trade', this.checked)" class="accent-blue-500"> ⚡ Trade &amp; AI Panel</label>
-                    <label class="flex items-center gap-2.5 px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold cursor-pointer"><input type="checkbox" id="layChkPositions" onchange="setLayoutPref('positions', this.checked)" class="accent-blue-500"> 💼 Positions Dock</label>
-                    <div class="border-t border-yog-700 my-1"></div>
-                    <button onclick="toggleFocusMode()" id="focusModeBtn" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-amber-300 font-semibold flex items-center gap-2.5">🎯 Focus Mode <span class="text-[10px] text-slate-500 ml-auto">pure chart</span></button>
-                    <div class="px-3 py-2 text-[10px] text-slate-500 border-t border-yog-700 mt-1">Layout saves automatically to this device and your cloud account.</div>
-                </div>
+                <button onclick="toggleChartFullscreen()" id="fsToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Toggle fullscreen chart (PC, phone &amp; landscape)">⛶ <span class="hidden sm:inline">Fullscreen</span></button>
             </div>
-                <button onclick="toggleChartFullscreen()" id="fsToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Toggle fullscreen chart (PC, phone & landscape)">⛶ <span class="hidden sm:inline">Fullscreen</span></button>
+
+            <!-- Secondary chart tools (scroll for more on small screens) -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+                <button onclick="toggleRsiSubchart()" class="bg-yog-800 hover:bg-yog-700 text-slate-300 text-[11px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap" title="RSI sub-pane">📊 RSI</button>
+                <button onclick="toggleWatchlistSymbol(currentSymbol)" id="watchlistStarBtn" class="bg-yog-800 hover:bg-yog-700 text-slate-400 text-[14px] font-bold px-2 py-1 rounded-md border border-yog-600 transition whitespace-nowrap" title="Add to / remove from watchlist">☆</button>
+                <button onclick="shareChartSnapshot()" id="shareSnapshotBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Share chart snapshot as PNG">📷 <span class="hidden lg:inline">Snapshot</span></button>
+                <button onclick="toggleQuickTradeWidget()" id="qtBtn" class="text-[11px] bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 px-2 py-0.5 rounded border border-emerald-500/30 whitespace-nowrap transition" title="Toggle Quick Trade widget on chart">⚡ <span class="hidden lg:inline">Trade</span></button>
+                <button onclick="openChartGridModal()" id="gridBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Multi-chart grid (2×2 live monitoring)">⊞ <span class="hidden lg:inline">Grid</span></button>
+                <button onclick="openPriceAlertsModal()" id="alertsBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-rose-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Price alerts">🔔 <span class="hidden lg:inline">Alerts</span></button>
+                <div class="relative" id="layoutMenuWrap">
+                    <button onclick="toggleLayoutMenu()" id="layoutToggleBtn" class="text-[11px] bg-yog-800 hover:bg-yog-700 text-cyan-300 px-2 py-0.5 rounded border border-yog-700 whitespace-nowrap transition" title="Customize layout on the fly">⧉ <span class="hidden lg:inline">Layout</span></button>
+                    <div id="layoutMenuDropdown" class="hidden absolute right-0 mt-2 w-60 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl z-50 py-1.5 text-xs">
+                        <div class="px-3 py-1.5 text-[10px] uppercase tracking-wider text-cyan-400 font-bold">Panels (toggle instantly)</div>
+                        <label class="flex items-center gap-2.5 px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold cursor-pointer"><input type="checkbox" id="layChkDrawRail" onchange="setLayoutPref('drawRail', this.checked)" class="accent-blue-500"> ✏️ Drawing Rail</label>
+                        <label class="flex items-center gap-2.5 px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold cursor-pointer"><input type="checkbox" id="layChkBook" onchange="setLayoutPref('book', this.checked)" class="accent-blue-500"> 📊 Order Book &amp; Tape</label>
+                        <label class="flex items-center gap-2.5 px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold cursor-pointer"><input type="checkbox" id="layChkTrade" onchange="setLayoutPref('trade', this.checked)" class="accent-blue-500"> ⚡ Trade &amp; AI Panel</label>
+                        <label class="flex items-center gap-2.5 px-3 py-2.5 hover:bg-yog-800 text-slate-200 font-semibold cursor-pointer"><input type="checkbox" id="layChkPositions" onchange="setLayoutPref('positions', this.checked)" class="accent-blue-500"> 💼 Positions Dock</label>
+                        <div class="border-t border-yog-700 my-1"></div>
+                        <button onclick="toggleFocusMode()" id="focusModeBtn" class="w-full text-left px-3 py-2.5 hover:bg-yog-800 text-amber-300 font-semibold flex items-center gap-2.5">🎯 Focus Mode <span class="text-[10px] text-slate-500 ml-auto">pure chart</span></button>
+                        <div class="px-3 py-2 text-[10px] text-slate-500 border-t border-yog-700 mt-1">Layout saves automatically to this device and your cloud account.</div>
+                    </div>
+                </div>
+                <span id="activeToolLabel" class="text-[11px] text-cyan-400 font-mono hidden xl:inline whitespace-nowrap">Tool: Crosshair</span>
             </div>
         </div>
 
-        <!-- Responsive Workspace Body -->
+
         <div class="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden min-h-0">
             
             <!-- Chart + Drawing Rail Wrapper (Always Visible & High Priority on Phone/Tablet/Desktop/TV) -->
             <div id="mobileChartPane" class="flex-1 flex min-h-[300px] sm:min-h-[420px] lg:min-h-0 min-w-0">
-                <!-- Left Drawing Suite Toolbar (desktop only — phones/tablets use the floating tool tray) -->
-                <aside id="drawSidebar" class="w-10 sm:w-12 bg-yog-900 border-r border-yog-700 hidden lg:flex flex-col items-center py-2 gap-1 z-20 flex-shrink-0 overflow-y-auto no-scrollbar">
-                    <div class="text-[7px] uppercase tracking-wider text-cyan-400/70 font-bold">Draw</div>
-                    <button onclick="setDrawingTool('cursor')" id="draw-cursor" data-tool="cursor" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent tool-active" title="Select / Move (Esc)">➕</button>
-                    <button onclick="setDrawingTool('trendline')" id="draw-trendline" data-tool="trendline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Trendline (T)">📏</button>
-                    <button onclick="setDrawingTool('ray')" id="draw-ray" data-tool="ray" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Ray (Y)">↗️</button>
-                    <button onclick="setDrawingTool('arrow')" id="draw-arrow" data-tool="arrow" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Arrow (A)">➜</button>
-                    <button onclick="setDrawingTool('channel')" id="draw-channel" data-tool="channel" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Channel (C)">☰</button>
-                    <button onclick="setDrawingTool('hline')" id="draw-hline" data-tool="hline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Horizontal S/R (H)">➖</button>
-                    <button onclick="setDrawingTool('vline')" id="draw-vline" data-tool="vline" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Vertical (V)">┃</button>
-                    <div class="text-[7px] uppercase tracking-wider text-cyan-400/70 font-bold mt-1 pt-1 border-t border-yog-700/60 w-6 text-center">Shp</div>
-                    <button onclick="setDrawingTool('rect')" id="draw-rect" data-tool="rect" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Zone Box (R)">🔲</button>
-                    <button onclick="setDrawingTool('ellipse')" id="draw-ellipse" data-tool="ellipse" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Ellipse (E)">⬭</button>
-                    <button onclick="setDrawingTool('brush')" id="draw-brush" data-tool="brush" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Brush (B)">✏️</button>
-                    <button onclick="setDrawingTool('text')" id="draw-text" data-tool="text" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Text (X)">🔤</button>
-                    <div class="text-[7px] uppercase tracking-wider text-cyan-400/70 font-bold mt-1 pt-1 border-t border-yog-700/60 w-6 text-center">Fib</div>
-                    <button onclick="setDrawingTool('fib')" id="draw-fib" data-tool="fib" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Fibonacci (F)">📐</button>
-                    <button onclick="setDrawingTool('measure')" id="draw-measure" data-tool="measure" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Measure (M)">🔍</button>
-                    <div class="text-[7px] uppercase tracking-wider text-cyan-400/70 font-bold mt-1 pt-1 border-t border-yog-700/60 w-6 text-center">Pos</div>
-                    <button onclick="setDrawingTool('longpos')" id="draw-longpos" data-tool="longpos" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Long Position (L)">🟢</button>
-                    <button onclick="setDrawingTool('shortpos')" id="draw-shortpos" data-tool="shortpos" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Short Position (S)">🔴</button>
-                    <button onclick="setDrawingTool('riskreward')" id="draw-riskreward" data-tool="riskreward" class="js-draw-btn w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Risk:Reward (Q)">⚖️</button>
-                    <div class="text-[7px] uppercase tracking-wider text-cyan-400/70 font-bold mt-1 pt-1 border-t border-yog-700/60 w-6 text-center">Util</div>
-                    <button onclick="cycleMagnet()" id="magnetToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-[10px] hover:bg-yog-700 border border-transparent" title="Magnet (Off→Weak→Strong) — G">🧲</button>
-                    <button onclick="toggleLockDrawings()" id="lockToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Lock drawings (K)">🔒</button>
-                    <div class="relative">
-                        <button onclick="toggleVisMenu(event)" id="visMenuBtn" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Visibility menu">👁</button>
-                        <div id="visMenuDropdown" class="hidden absolute left-9 top-0 z-50 bg-yog-900 border border-yog-600 rounded-xl shadow-2xl py-1.5 text-[11px] w-48">
-                            <div class="px-3 py-1 text-[9px] uppercase tracking-wider text-cyan-400 font-bold">Visibility</div>
-                            <button onclick="toggleHideDrawings()" class="w-full text-left px-3 py-1.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2"><span>✏️</span><span>Hide Drawings</span></button>
-                            <button onclick="toggleHideIndicators()" class="w-full text-left px-3 py-1.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2"><span>📈</span><span>Hide Indicators</span></button>
-                            <button onclick="toggleHidePositions()" class="w-full text-left px-3 py-1.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2"><span>💼</span><span>Hide Positions/Orders</span></button>
-                            <button onclick="hideAllOverlays()" class="w-full text-left px-3 py-1.5 hover:bg-yog-800 text-slate-200 font-semibold flex items-center gap-2"><span>⊘</span><span>Hide All</span></button>
-                        </div>
-                    </div>
-                    <button onclick="openObjectTreeModal()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Object Tree & Layer Manager">📋</button>
-                    <button onclick="openDrawingSettingsModal()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Drawing properties">🎨</button>
-                    <div class="w-7 h-px bg-yog-700 my-1"></div>
-                    <button onclick="undoLastDrawing()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs hover:bg-yog-700 border border-transparent" title="Undo (Ctrl+Z)">↩</button>
-                    <button onclick="clearAllDrawings()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center text-xs text-rose-400 hover:bg-rose-500/10 border border-transparent" title="Clear all (Shift+Del)">🗑</button>
-                </aside>
+                <!-- V7 LEFT DRAWING RAIL — clean 1.5px SVG icons with flyout
+                     menus (content injected by renderDrawRail(); no raw text
+                     labels). Phones/tablets use the floating tool tray. -->
+                <aside id="drawSidebar" class="w-11 bg-yog-900 border-r border-yog-700 hidden lg:flex flex-col items-center py-2 gap-1.5 z-20 flex-shrink-0"></aside>
 
                 <!-- Center Interactive Chart -->
                 <section class="flex-1 flex flex-col min-w-0 bg-yog-950 relative" id="chart-wrapper">
@@ -869,8 +901,8 @@
             <aside id="mobileBookPane" class="w-full lg:w-60 bg-yog-900 border-t lg:border-t-0 lg:border-l border-yog-700 flex-col terminal-font text-[11px] z-10 flex-shrink-0 hidden xl:flex">
                 <div class="h-8 px-3 border-b border-yog-700 flex items-center justify-between bg-yog-950/40">
                     <span class="font-bold text-slate-300">Liquidity Book</span>
-                    <select id="tickGrouping" class="bg-yog-950 border border-yog-700 rounded text-[10px] px-1.5 py-0.5 text-cyan-400">
-                        <option value="0.0001">0.0001</option><option value="0.001">0.001</option><option value="0.01">0.01</option><option value="0.1">0.1</option><option value="1">1.0</option>
+                    <select id="tickGrouping" class="bg-yog-950 border border-yog-700 rounded text-[10px] px-1.5 py-0.5 text-cyan-400" title="Price grouping tick — auto-set per instrument">
+                        <option value="0.0000001">0.0000001</option><option value="0.000001">0.000001</option><option value="0.00001">0.00001</option><option value="0.0001">0.0001</option><option value="0.001">0.001</option><option value="0.01">0.01</option><option value="0.1">0.1</option><option value="1">1.0</option>
                     </select>
                 </div>
                 <div class="flex justify-between text-[10px] text-slate-500 px-3 py-1 bg-yog-950"><span>Price</span><span>Size</span><span>Sum</span></div>
@@ -1328,10 +1360,16 @@
                             </div>
                         </div>
                         <div id="signupErr" class="hidden text-xs font-bold bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg px-3 py-2.5 leading-relaxed"></div>
+                        <div id="signupLocalFallback" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2.5">
+                            <p class="text-[11px] text-amber-200 font-semibold leading-relaxed">Auth server rate-limited (60s cooldown per email). You can keep trading right now — your workspace persists locally on this device.</p>
+                            <button type="button" onclick="continueInLocalMode()" class="mt-2 w-full bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-bold px-3 py-2 rounded-lg text-xs transition">💻 Continue in Local Quant Workspace →</button>
+                            <p class="text-[10px] text-slate-500 mt-1.5">Or wait a minute and try creating the account again — nothing is lost.</p>
+                        </div>
                         <button id="signupBtn" type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-extrabold py-3 rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2 text-sm">
                             Create Account
                         </button>
                         <p class="text-center text-xs text-slate-500">Already registered? <button type="button" onclick="switchAuthTab('signin')" class="text-cyan-400 font-bold hover:text-cyan-300">Sign in instead</button></p>
+                        <p class="text-center text-[11px] text-slate-600">Not ready? <button type="button" onclick="continueInLocalMode()" class="text-slate-400 font-bold hover:text-slate-200 underline">Continue in Local Quant Workspace</button> — data stays on this device.</p>
                         <p class="text-[10px] text-slate-600 leading-relaxed">By creating an account you agree that Yogchart is a simulation &amp; research terminal for educational paper trading only — not financial advice.</p>
                     </form>
 
@@ -1755,16 +1793,28 @@
         //   formatPrice returns a string with decimals chosen by magnitude.
         //   Also exposes formatPriceStr(p) -> "$..." and parsePriceTickSize(p).
         // ================================================================
+        // ================================================================
+        // V7 P0 FIX: Instrument-specific Tick-Size & Precision Engine
+        //   Rules (per engineering directive):
+        //     • BTC/ETH/SPX-class (price >= 100):      tick 0.10   → 2 decimals
+        //     • Mid-cap ($0.10 – $100, e.g. XRP/KAS):  tick 0.0001 → 4 decimals
+        //     • Small ($0.01 – $0.10):                  tick 0.00001 → 5 decimals
+        //     • Micro (< $0.01, e.g. HMSTR/PEPE):       tick 0.0000001 → 7–8 decimals
+        //   Never show "80682.8399" for BTC — always 80,682.10-style pricing.
+        // ================================================================
+        window.priceDecimalsFor = function(price) {
+            const abs = Math.abs(Number(price));
+            if (!isFinite(abs) || abs === 0) return 2;
+            if (abs >= 100) return 2;          // BTC, ETH, SPX500, indices …
+            if (abs >= 0.10) return 4;         // XRP, KAS, EOS …
+            if (abs >= 0.01) return 5;
+            if (abs >= 0.0001) return 7;       // micro caps
+            return 8;
+        };
         window.formatPrice = function(price, _sym) {
             if (price === null || price === undefined || isNaN(price)) return '--';
             const p = Number(price);
-            const abs = Math.abs(p);
-            let decimals;
-            if (abs >= 1000) decimals = 2;
-            else if (abs >= 1) decimals = 4;
-            else if (abs >= 0.01) decimals = 5;
-            else if (abs >= 0.0001) decimals = 7;
-            else decimals = 8;
+            const decimals = window.priceDecimalsFor(p);
             return p.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
         };
         window.formatPriceStr = function(price, _sym) {
@@ -1774,11 +1824,20 @@
         // Returns the tick-size step for a given price magnitude.
         window.priceTickSize = function(price) {
             const abs = Math.abs(Number(price || 0));
-            if (abs >= 1000) return 0.01;
-            if (abs >= 1) return 0.0001;
+            if (abs >= 100) return 0.1;          // BTCUSDT / ETHUSDT / SPX500 → 0.10
+            if (abs >= 0.10) return 0.0001;      // XRPUSDT / KASUSDT / EOSUSDT
             if (abs >= 0.01) return 0.00001;
-            if (abs >= 0.0001) return 0.0000001;
+            if (abs >= 0.0001) return 0.0000001; // HMSTRUSDT-class micro caps
             return 0.00000001;
+        };
+        // V7: adaptive order-size formatter — never renders a flat "0.0"
+        window.fmtSize = function(q) {
+            q = Number(q) || 0;
+            if (q >= 10000) return q.toFixed(0);
+            if (q >= 100) return q.toFixed(1);
+            if (q >= 1) return q.toFixed(2);
+            if (q >= 0.01) return q.toFixed(3);
+            return q.toFixed(4);
         };
 
         // ================================================================
@@ -2421,7 +2480,7 @@
             });
         }
 
-        bindAutocomplete(document.getElementById('symbolInput'), document.getElementById('headerSearchDropdown'), (sym) => { switchView('terminal'); initSymbol(sym, currentTimeframe); });
+        bindAutocomplete(document.getElementById('symbolInput'), document.getElementById('headerSearchDropdown'), (sym) => { closeSymbolDropdown(); switchView('terminal'); initSymbol(sym, currentTimeframe); });
         bindAutocomplete(document.getElementById('screenerSearch'), document.getElementById('screenerSearchDropdown'), (sym) => { switchView('terminal'); initSymbol(sym, currentTimeframe); });
 
         // 3. LIVE BLOOMBERG MARKETS NEWS WIRE
@@ -2657,7 +2716,8 @@
             } else {
                 h.classList.add('hidden'); t.classList.remove('hidden');
                 navTerm.classList.add('nav-active'); navHome.classList.remove('nav-active');
-                setTimeout(() => { resizeChartsAndCanvas(); chart.timeScale().fitContent(); }, 60);
+                // V7: resize only — do NOT fitContent() so the user's zoom/pan position persists
+                setTimeout(() => { resizeChartsAndCanvas(); }, 60);
             }
         };
 
@@ -2765,7 +2825,10 @@
             if (!param.time || !activeSeries) return;
             const d = param.seriesData.get(activeSeries);
             if (!d) return;
-            document.getElementById('ohlcLegend').innerText = d.open !== undefined ? `O: ${d.open}  H: ${d.high}  L: ${d.low}  C: ${d.close}` : `Price: ${d.value}`;
+            // V7: tick-size aware legend formatting (never raw float soup)
+            document.getElementById('ohlcLegend').innerText = d.open !== undefined
+                ? `O: ${formatPrice(d.open)}  H: ${formatPrice(d.high)}  L: ${formatPrice(d.low)}  C: ${formatPrice(d.close)}`
+                : `Price: ${formatPrice(d.value)}`;
         });
 
 
@@ -2878,28 +2941,31 @@
             });
         };
 
-        // V6: Live price + countdown timer to candle close
+        // ================================================================
+        // V7 P0 FIX: Live Price + Candle Countdown badge.
+        //   The old sub-toolbar [Price | Countdown] pill was DELETED —
+        //   this timer now feeds `liveCountdownStr`, which the drawing
+        //   canvas renders as a badge pinned to the right Y-axis price
+        //   scale, vertically aligned with the live candle's close price.
+        // ================================================================
         let countdownTimer = null;
+        let liveCountdownStr = '--:--';
         window.startLiveCountdown = function() {
             if (countdownTimer) clearInterval(countdownTimer);
             const update = () => {
-                const priceEl = document.getElementById('livePriceCountdownPrice');
-                const timerEl = document.getElementById('livePriceCountdownTimer');
-                if (!priceEl || !timerEl) return;
-                if (typeof lastKnownPrice === 'number' && !isNaN(lastKnownPrice)) {
-                    priceEl.innerText = formatPrice(lastKnownPrice);
-                }
                 // Compute seconds to next candle close based on timeframe
                 const tf = currentTimeframe;
                 const ms = tfToMs(tf);
-                if (!ms) { timerEl.innerText = '--:--:--'; return; }
+                if (!ms) { liveCountdownStr = '--:--'; return; }
                 const now = Date.now();
                 const remaining = ms - (now % ms);
                 const s = Math.floor(remaining / 1000);
                 const hh = Math.floor(s / 3600);
                 const mm = Math.floor((s % 3600) / 60);
                 const ss = s % 60;
-                timerEl.innerText = (hh > 0 ? String(hh).padStart(2,'0') + ':' : '') + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+                liveCountdownStr = (hh > 0 ? String(hh).padStart(2,'0') + ':' : '') + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+                // Re-render the canvas so the Y-axis badge countdown ticks live
+                if (typeof renderDrawingsCanvas === 'function') renderDrawingsCanvas();
             };
             update();
             countdownTimer = setInterval(update, 1000);
@@ -2975,7 +3041,12 @@
             _origSetChartType(type);
         };
         // Re-expose globally for inline onclick
-        window.setChartType = setChartType;
+        // V7: also strip the native last-value price line so the custom
+        // Y-axis live-price badge (price + countdown) is the only marker.
+        window.setChartType = function(v7type) {
+            setChartType(v7type);
+            if (activeSeries) { try { activeSeries.applyOptions({ priceLineVisible: false, lastValueVisible: false }); } catch (e) {} }
+        };
 
         function setChartType(type) {
             currentChartType = type;
@@ -3280,6 +3351,9 @@
 
         function updateAllChartSeries() {
             if (!activeSeries || rawCandles.length === 0) return;
+            // V7: main series never draws its own native price line/label —
+            //     the custom Y-axis badge (price + countdown) replaces it.
+            try { activeSeries.applyOptions({ priceLineVisible: false, lastValueVisible: false }); } catch (e) {}
             if (currentChartType === 'HeikinAshi') { activeSeries.setData(calcHeikinAshi(rawCandles)); }
             else if (currentChartType === 'HighLow') {
                 const hl = [];
@@ -3292,7 +3366,21 @@
             else if (['Line', 'Area', 'Baseline'].includes(currentChartType)) activeSeries.setData(rawCandles.map(c => ({ time: c.time, value: c.close })));
             else activeSeries.setData(rawCandles);
 
-            // SMA 1/2/3
+            // V7 P0 FIX: MA legend is ALWAYS computed & shown (7 / 25 / 99),
+            // independent of whether the MA series overlays are toggled on.
+            [7, 25, 99].forEach((maLen, i) => {
+                const el = document.getElementById(`legMA${i + 1}`);
+                if (!el) return;
+                if (rawCandles.length >= maLen) {
+                    let sum = 0;
+                    for (let j = rawCandles.length - maLen; j < rawCandles.length; j++) sum += rawCandles[j].close;
+                    el.innerText = `MA(${maLen}): ${formatPrice(sum / maLen)}`;
+                } else {
+                    el.innerText = `MA(${maLen}): --`;
+                }
+            });
+
+            // SMA 1/2/3 overlays (visibility still user-controlled via ƒx Indicators)
             [1, 2, 3].forEach(idx => {
                 const chk = document.getElementById(`chkMA${idx}`).checked;
                 const len = parseInt(document.getElementById(`lenMA${idx}`).value) || 7;
@@ -3302,7 +3390,8 @@
                 if (chk) {
                     const arr = calculateSMA(rawCandles, len);
                     sObj.setData(arr);
-                    if (arr.length) document.getElementById(`legMA${idx}`).innerText = `MA(${len}): ${arr[arr.length - 1].value.toFixed(4)}`;
+                } else {
+                    try { sObj.setData([]); } catch (e) {}
                 }
             });
 
@@ -3531,6 +3620,82 @@
         new ResizeObserver(resizeChartsAndCanvas).observe(chartContainer);
         window.addEventListener('orientationchange', () => setTimeout(resizeChartsAndCanvas, 200));
 
+        // ================================================================
+        // V7 P0 FIX: CURSOR-CENTERED WHEEL ZOOM + AXIS INTERACTIONS
+        //   • onWheel: e.preventDefault() inside the chart container → the
+        //     browser page NEVER scrolls while hovering the chart.
+        //   • barSpacing (candle width + gap) is clamped 1.5px – 60px and
+        //     the zoom is anchored on the exact bar under the cursor.
+        //   • Dragging vertically on the right Y-axis (72px zone) expands /
+        //     compresses the visible price range (LWC axisPressedMouseMove).
+        //   • Double-clicking the right Y-axis (or the `A` button) instantly
+        //     resets autoScale and fits the visible candles.
+        //   • Dragging horizontally on the bottom X-axis (28px zone)
+        //     compresses / expands time spacing (LWC axisPressedMouseMove).
+        //   Capture-phase on the wrapper so we run BEFORE any chart-internal
+        //   wheel handlers — pointer-events pass straight through the
+        //   drawing overlay (it is pointer-events:none, always).
+        // ================================================================
+        const chartWrapperEl = document.getElementById('chart-wrapper');
+        let lastWheelAt = 0;
+        chartWrapperEl.addEventListener('wheel', (e) => {
+            // Only own the wheel when the pointer is over the actual chart canvas
+            // (floating panels like Quick Trade keep native behaviour).
+            if (!chartContainer.contains(e.target)) return;
+            e.preventDefault();               // ← the page NEVER scrolls over the chart
+            if (!activeSeries || !rawCandles.length) return;
+            const now = performance.now();
+            if (now - lastWheelAt < 24) return; // coalesce high-frequency trackpad streams
+            lastWheelAt = now;
+
+            const ts = chart.timeScale();
+            const rect = chartContainer.getBoundingClientRect();
+            if (!rect.width) return;
+            const range = ts.getVisibleLogicalRange();
+            if (!range || !isFinite(range.from) || !isFinite(range.to)) return;
+            const axisW = chart.priceScale('right').width() || 0;
+            const paneW = Math.max(60, rect.width - axisW);
+            const x = Math.max(0, Math.min(paneW, e.clientX - rect.left));
+
+            const span = range.to - range.from;
+            const bs = paneW / span;                    // current live bar spacing (px)
+            const dir = (e.deltaY < 0 || e.deltaX < 0) ? 1 : -1;   // wheel up = zoom in
+            const targetBs = Math.min(60, Math.max(1.5, bs * Math.pow(1.17, dir)));
+            if (Math.abs(targetBs - bs) < 0.01) return;             // already at clamp
+            const applied = targetBs / bs;
+
+            // Pin the bar under the cursor: keep its logical index at the same x
+            let anchor = null;
+            try { anchor = ts.coordinateToLogical(x); } catch (err) { anchor = null; }
+            if (anchor === null || anchor === undefined || !isFinite(anchor)) {
+                anchor = (range.from + range.to) / 2;               // fall back to centre-zoom
+            }
+            const newSpan = span / applied;
+            const from = anchor - (anchor - range.from) / applied;
+            ts.setVisibleLogicalRange({ from: from, to: from + newSpan });
+            renderDrawingsCanvas();
+        }, { passive: false, capture: true });
+
+        // V7: double-click the right Y-axis → autoScale ON (fit candles);
+        //      double-click the bottom X-axis → fit all content horizontally.
+        chartWrapperEl.addEventListener('dblclick', (e) => {
+            if (!chartContainer.contains(e.target)) return;
+            const rect = chartContainer.getBoundingClientRect();
+            if (!rect.width) return;
+            const axisW = chart.priceScale('right').width() || 0;
+            const inPriceAxis = (e.clientX - rect.left) >= (rect.width - axisW - 8);
+            const inTimeAxis = (e.clientY - rect.top) >= (rect.height - 32);
+            if (inPriceAxis) {
+                // autoScale back on → fits visible candles with breathing padding
+                window.setYScaleMode('Auto');
+            } else if (inTimeAxis) {
+                chart.timeScale().fitContent();
+            }
+        }, true);
+
+        // V7: hover state for drawing hit-testing (cursor mode)
+        let hoverDrawingIdx = -1;
+
         // v3: expanded tool metadata — shared by sidebar + floating tray
         const TOOL_META = {
             cursor:    { icon: '➕',  label: 'Select',      hint: 'Tap to select, drag to move, long-press to delete' },
@@ -3553,23 +3718,27 @@
         const TWO_POINT_TOOLS = new Set(['trendline','ray','fib','rect','arrow','channel','longpos','shortpos','riskreward','measure','ellipse']);
         const ONE_POINT_TOOLS = new Set(['hline','vline','text']);
 
-        // v5: chart interaction mode — pinch-zoom (phone) + wheel-zoom (PC) ALWAYS work.
+        // v5→v7: chart interaction mode — pinch-zoom (phone) ALWAYS works.
         // When a drawing tool is active we only disable single-pointer panning so
-        // one finger / mouse-drag draws while 2-finger pinch + wheel still zoom.
+        // one finger / mouse-drag draws while 2-finger pinch still zooms.
+        // V7: the mouse WHEEL is now fully owned by our custom cursor-centered
+        // zoom handler (below) — LWC's own wheel zoom/scroll is disabled so the
+        // two never fight, and e.preventDefault() guarantees the page NEVER
+        // scrolls while the pointer is over the chart.
         function updateChartInteractionMode() {
             const drawing = currentTool !== 'cursor';
             chart.applyOptions({
                 handleScroll: {
-                    mouseWheel: true,           // PC wheel zoom always on
+                    mouseWheel: false,          // V7: custom wheel zoom owns the wheel
                     pressedMouseMove: !drawing,  // mouse drag pans only in cursor mode
                     horzTouchDrag: !drawing,     // 1-finger horizontal pan only in cursor mode
                     vertTouchDrag: !drawing      // 1-finger vertical pan only in cursor mode
                 },
                 handleScale: {
-                    mouseWheel: true,            // PC wheel scale always on
+                    mouseWheel: false,           // V7: custom wheel zoom owns the wheel
                     pinch: true,                 // phone pinch-zoom ALWAYS on
-                    axisPressedMouseMove: true,   // drag on price/time axis to scale always on
-                    axisDoubleClick: true         // double-click axis to auto-fit always on
+                    axisPressedMouseMove: true,  // drag price/time axis to scale always on
+                    axisDoubleClick: true        // double-click axis to auto-fit always on
                 }
             });
             chartContainer.style.cursor = drawing ? 'crosshair' : 'default';
@@ -3579,7 +3748,10 @@
             currentTool = tool; pendingAnchor = null; mousePreviewPoint = null;
             isDraggingDraw = false; dragStartPoint = null; dragCurrentPoint = null;
             channelPhase = 0; channelBaseLine = null;
+            hoverDrawingIdx = -1;
             document.querySelectorAll('.js-draw-btn').forEach(b => b.classList.toggle('tool-active', b.dataset.tool === tool));
+            closeRailFlyouts();
+            refreshRailGroupIcons();
             const trayIconEl = document.getElementById('toolTrayIcon');
             if (trayIconEl && TOOL_META[tool]) trayIconEl.innerText = TOOL_META[tool].icon;
             const isDraw = tool !== 'cursor';
@@ -4108,7 +4280,29 @@
                 renderDrawingsCanvas();
                 return;
             }
+            // V7: cursor mode & not dragging → live hover hit-testing.
+            // Hovering within tolerance of a drawing highlights it and shows
+            // its anchor handles (rendered by renderDrawingsCanvas).
+            if (currentTool === 'cursor' && movingDrawingIdx < 0) {
+                const idx = findDrawingAt(pt.x, pt.y);
+                if (idx !== hoverDrawingIdx) {
+                    hoverDrawingIdx = idx;
+                    chartContainer.style.cursor = idx >= 0 ? 'move' : 'default';
+                    renderDrawingsCanvas();
+                }
+                return;
+            }
             if (currentTool === 'cursor') return;
+
+            // V7: tap-tap drawing state machine — anchor 1 placed, preview
+            // follows the pointer at full frame-rate with live metrics until
+            // the second click commits the drawing.
+            if (pendingAnchor && !isDraggingDraw) {
+                mousePreviewPoint = pt;
+                showMagnifier(pt, computeDragInfoExtra(currentTool, pendingAnchor, pt));
+                renderDrawingsCanvas();
+                return;
+            }
 
             if (currentTool === 'brush' && isBrushing) {
                 currentBrushStroke.push({ time: pt.time, price: pt.price });
@@ -4146,26 +4340,42 @@
                     saveSymbolWorkspaceLocalAndCloud();
                 }
                 currentBrushStroke = [];
-                setDrawingTool('cursor');
+                if (!drawSettings.stayInMode) setDrawingTool('cursor');
                 hideMagnifier();
                 return;
             }
             if (isDraggingDraw && dragStartPoint && dragCurrentPoint) {
                 const moved = Math.hypot(dragCurrentPoint.x - dragStartPoint.x, dragCurrentPoint.y - dragStartPoint.y);
                 if (moved >= 4) {
-                    commitTwoPoint(currentTool, dragStartPoint, dragCurrentPoint);
+                    // DRAG path: press → drag → release commits the drawing.
+                    // (If an anchor was already placed by a first click, the drag
+                    //  continues from that anchor — click-then-drag also works.)
+                    const p1 = pendingAnchor || dragStartPoint;
+                    commitTwoPoint(currentTool, p1, dragCurrentPoint);
+                    pendingAnchor = null; mousePreviewPoint = null;
+                } else {
+                    // V7 CLICK path — tap-tap state machine:
+                    //   Step 1: click places Anchor 1 {time, price}
+                    //   Step 2: pointer move renders the live preview + metrics
+                    //   Step 3: second click commits Anchor 2
+                    if (!pendingAnchor) {
+                        pendingAnchor = { x: dragStartPoint.x, y: dragStartPoint.y, time: dragStartPoint.time, price: dragStartPoint.price };
+                        mousePreviewPoint = { x: dragStartPoint.x, y: dragStartPoint.y, time: dragStartPoint.time, price: dragStartPoint.price };
+                        showMagnifier(pendingAnchor, 'Anchor 1 set — move, then click to finish (Esc cancels)');
+                        renderDrawingsCanvas();
+                    } else {
+                        commitTwoPoint(currentTool, pendingAnchor, dragCurrentPoint);
+                        pendingAnchor = null; mousePreviewPoint = null;
+                    }
                 }
                 isDraggingDraw = false;
                 dragStartPoint = null;
                 dragCurrentPoint = null;
-                if (currentTool !== 'channel' || channelPhase === 1) {
-                    // Auto-return to cursor unless channel phase 1 just completed
-                    if (currentTool === 'channel' && channelPhase === 0) {
-                        // Will be flipped to 1 inside commitTwoPoint
-                    } else {
-                        setDrawingTool('cursor');
-                    }
-                } else {
+                // Auto-return to Crosshair unless the channel tool is awaiting
+                // its phase-2 width drag, an anchor is pending, or the user has
+                // toggled "Stay in Drawing Mode" ON.
+                const channelAwaitingWidth = (currentTool === 'channel' && channelPhase === 1);
+                if (!channelAwaitingWidth && !pendingAnchor && !drawSettings.stayInMode) {
                     setDrawingTool('cursor');
                 }
             }
@@ -4179,19 +4389,24 @@
         }, true); // v5: capture phase
 
         function computeDragInfoExtra(tool, p1, p2) {
-            if (!p1 || !p2 || p1.price === null || p2.price === null) return TOOL_META[tool].label;
+            if (!p1 || !p2 || p1.price === null || p2.price === null) return TOOL_META[tool]?.label || '';
             const dp = p2.price - p1.price;
-            const dpPct = (dp / p1.price) * 100;
+            const dpPct = p1.price ? (dp / p1.price) * 100 : 0;
+            const bars = Math.max(1, Math.round(Math.abs(p2.time - p1.time) / Math.max(1, tfToMs(currentTimeframe) / 1000)));
             if (tool === 'measure') {
-                const bars = Math.round(Math.abs(p2.time - p1.time) / 60);
-                return `Δ$${dp.toFixed(4)}  Δ${dpPct.toFixed(2)}%  ${bars} bars`;
+                return `Δ$${fmtPrice(dp)}  Δ${dpPct.toFixed(2)}%  ${bars} bars`;
             }
-            if (tool === 'longpos' || tool === 'shortpos' || tool === 'riskreward') {
+            if (tool === 'longpos' || tool === 'shortpos') {
+                // entry → target: reward = |Δ|, stop auto-set at 1:1 → R:R 1.0
+                const reward = Math.abs(dp);
+                return `Target Δ$${fmtPrice(dp)}  Δ${dpPct.toFixed(2)}%  R:R 1.0  ${bars} bars`;
+            }
+            if (tool === 'riskreward') {
+                // entry → stop defines 1R; show risk magnitude
                 const risk = Math.abs(dp);
-                const rr = risk > 0 ? Math.abs(p2.price - p1.price) / risk : 0;
-                return `Risk $${risk.toFixed(4)}  Δ${dpPct.toFixed(2)}%`;
+                return `Risk 1R $${fmtPrice(risk)}  Δ${dpPct.toFixed(2)}%  ${bars} bars`;
             }
-            return `Δ${dpPct.toFixed(2)}%`;
+            return `Δ$${fmtPrice(dp)}  Δ${dpPct.toFixed(2)}%  ${bars} bars`;
         }
 
         function commitOnePoint(tool, pt) {
@@ -4205,7 +4420,7 @@
                 userDrawings.push({ type: 'text', time: pt.time, price: pt.price, text: label, color: drawSettings.defaultColor });
             }
             saveSymbolWorkspaceLocalAndCloud();
-            setDrawingTool('cursor');
+            if (!drawSettings.stayInMode) setDrawingTool('cursor');
             renderDrawingsCanvas();
         }
 
@@ -4239,9 +4454,32 @@
         window.undoLastDrawing = () => {
             if (userDrawings.length === 0) { showToast('Nothing to undo', 'info'); return; }
             userDrawings.pop();
+            if (selectedDrawingIdx >= userDrawings.length) selectedDrawingIdx = -1;
+            hoverDrawingIdx = -1;
             saveSymbolWorkspaceLocalAndCloud();
             renderDrawingsCanvas();
             showToast('↩ Undid last drawing', 'info');
+        };
+        // V7: Delete / Backspace removes the SELECTED drawing (falls back to undo)
+        window.deleteSelectedDrawing = function() {
+            if (selectedDrawingIdx >= 0 && userDrawings[selectedDrawingIdx]) {
+                userDrawings.splice(selectedDrawingIdx, 1);
+                selectedDrawingIdx = -1;
+                hoverDrawingIdx = -1;
+                saveSymbolWorkspaceLocalAndCloud();
+                renderDrawingsCanvas();
+                showToast('🗑 Selected drawing deleted', 'info');
+            } else {
+                undoLastDrawing();
+            }
+        };
+        // V7: "Stay in Drawing Mode" — keep the tool armed after each commit
+        window.toggleStayMode = function() {
+            drawSettings.stayInMode = !drawSettings.stayInMode;
+            saveDrawSettings();
+            const btn = document.getElementById('stayModeBtn');
+            if (btn) btn.classList.toggle('tool-active', drawSettings.stayInMode);
+            showToast(drawSettings.stayInMode ? '📌 Stay in Drawing Mode ON — tool stays armed after each drawing' : '📌 Stay in Drawing Mode OFF — auto-return to Crosshair', 'info');
         };
         window.clearAllDrawings = () => {
             if (userDrawings.length === 0) return;
@@ -4556,8 +4794,104 @@
             const preview = pendingPreviewObj();
             if (preview) drawShapeObject(preview);
             if (isBrushing && currentBrushStroke.length > 1) drawShapeObject({ type: 'brush', points: currentBrushStroke, color: drawSettings.brushColor, width: drawSettings.brushWidth });
-            // Legacy tap-tap preview (kept for compatibility — unused in v3 drag mode)
+            // V7 tap-tap preview: anchor 1 placed → live preview until 2nd click
             if (pendingAnchor && mousePreviewPoint) drawShapeObject({ type: currentTool, p1: pendingAnchor, p2: mousePreviewPoint });
+            // V7: hover / selection anchor handles (white fill + blue ring, 5px)
+            if (currentTool === 'cursor') {
+                if (hoverDrawingIdx >= 0 && userDrawings[hoverDrawingIdx] && hoverDrawingIdx !== selectedDrawingIdx) {
+                    drawAnchorHandles(userDrawings[hoverDrawingIdx], false);
+                }
+                if (selectedDrawingIdx >= 0 && userDrawings[selectedDrawingIdx]) {
+                    drawAnchorHandles(userDrawings[selectedDrawingIdx], true);
+                }
+            }
+            // V7 P0 FIX: live price + candle-close countdown badge pinned to the
+            // right Y-axis price scale, vertically aligned with the live candle
+            // close (priceToCoordinate), with a dashed price line across the pane.
+            drawLiveAxisBadge();
+        }
+
+        // V7: white/blue 5px anchor handles for hovered / selected drawings
+        function drawAnchorHandles(d, isSelected) {
+            const anchorPts = [];
+            if (d.p1) anchorPts.push(d.p1);
+            if (d.p2) anchorPts.push(d.p2);
+            if (d.type === 'text' && d.time !== undefined) anchorPts.push({ time: d.time, price: d.price });
+            if (d.type === 'brush' && Array.isArray(d.points) && d.points.length) {
+                anchorPts.push(d.points[0]);
+                anchorPts.push(d.points[d.points.length - 1]);
+            }
+            ctx.save();
+            anchorPts.forEach(pt => {
+                if (pt.time === null || pt.time === undefined) return;
+                const x = chart.timeScale().timeToCoordinate(pt.time);
+                const y = activeSeries.priceToCoordinate(pt.price);
+                if (x === null || y === null) return;
+                ctx.beginPath(); ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = '#ffffff'; ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = isSelected ? '#2563eb' : '#38bdf8';
+                ctx.stroke();
+            });
+            ctx.restore();
+        }
+
+        // V7: rounded-rect helper (no ctx.roundRect dependency)
+        function rrPath(x, y, w, h, r) {
+            r = Math.min(r, w / 2, h / 2);
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        // V7 P0 FIX: the Live Price + Candle Countdown badge on the right Y-axis.
+        //   • dashed horizontal price line across the chart pane at the live close
+        //   • colored badge ON the price scale at priceToCoordinate(lastKnownPrice)
+        //   • countdown to candle close on the badge's second line
+        function drawLiveAxisBadge() {
+            if (!rawCandles.length || !lastKnownPrice || !isFinite(lastKnownPrice)) return;
+            const y = activeSeries.priceToCoordinate(lastKnownPrice);
+            if (y === null || y < -20 || y > drawingCanvas.height + 20) return;
+            const axisW = chart.priceScale('right').width() || 64;
+            const last = rawCandles[rawCandles.length - 1];
+            const up = lastKnownPrice >= (last.open ?? lastKnownPrice);
+            const col = up ? '#10b981' : '#f43f5e';
+
+            // Dashed price line across the pane, stopping at the Y-axis
+            ctx.save();
+            ctx.setLineDash([5, 4]);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = hexAlpha(col, 0.75);
+            ctx.beginPath(); ctx.moveTo(0, Math.round(y) + 0.5); ctx.lineTo(drawingCanvas.width - axisW, Math.round(y) + 0.5); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Badge on the price scale
+            const pxStr = formatPrice(lastKnownPrice);
+            const cdStr = String(liveCountdownStr || '');
+            ctx.font = 'bold 10px Fira Code, monospace';
+            const w1 = ctx.measureText(pxStr).width;
+            ctx.font = '600 9px Fira Code, monospace';
+            const w2 = cdStr ? ctx.measureText(cdStr).width : 0;
+            const bw = Math.max(w1, w2) + 12;
+            const bh = cdStr ? 30 : 18;
+            const bx2 = drawingCanvas.width - axisW + (axisW - bw) / 2;
+            const by = Math.max(2, Math.min(drawingCanvas.height - bh - 2, y - bh / 2));
+            ctx.fillStyle = col;
+            rrPath(bx2, by, bw, bh, 4); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px Fira Code, monospace';
+            ctx.textBaseline = 'top';
+            ctx.fillText(pxStr, bx2 + 6, by + 4);
+            if (cdStr) {
+                ctx.font = '600 9px Fira Code, monospace';
+                ctx.fillStyle = 'rgba(255,255,255,0.88)';
+                ctx.fillText(cdStr, bx2 + 6, by + 17);
+            }
+            ctx.restore();
         }
 
         // 6. STREAMING ENGINE
@@ -4664,7 +4998,9 @@
             if (k === 'g') { toggleMagnet(); return; }
             if (k === 'k') { toggleLockDrawings(); return; }
             if (k === 'n') { toggleHideDrawings(); return; }
-            if (k === 'delete' || k === 'backspace') { e.preventDefault(); undoLastDrawing(); return; }
+            // V7: Delete/Backspace removes the SELECTED drawing first (if any),
+            // otherwise falls back to undoing the last drawing.
+            if (k === 'delete' || k === 'backspace') { e.preventDefault(); deleteSelectedDrawing(); return; }
         });
 
         // ================================================================
@@ -4695,7 +5031,18 @@
             if (wsRetryTimer) { clearTimeout(wsRetryTimer); wsRetryTimer = null; }
             if (restFallbackTimer) { clearInterval(restFallbackTimer); restFallbackTimer = null; }
             if (synthInterval) { clearInterval(synthInterval); synthInterval = null; }
-            if (wsMux) { try { wsMux.close(); } catch (e) {} wsMux = null; }
+            // V7 P0 FIX: close EVERY socket this engine ever opened (tracked in
+            // liveSockets). The old code only closed `wsMux` — any socket that
+            // had been superseded by a reconnect was ORPHANED and kept pushing
+            // its symbol's klines into rawCandles (the "zombie stream" that
+            // caused BTC prices to bleed into the SOL chart).
+            liveSockets.forEach(sock => {
+                sock._intentional = true;   // V7: per-socket flag — close events for
+                                            // torn-down sockets are NEVER misread as failures
+                try { sock.close(); } catch (e) {}
+            });
+            liveSockets.clear();
+            wsMux = null;
         }
 
         function scheduleWsReconnect() {
@@ -4706,6 +5053,7 @@
             wsRetryDelay = Math.min(wsRetryDelay * 2, 30000); // exponential backoff, cap 30s
         }
 
+        let restDepthCycle = 0;
         function startRestFallback() {
             if (restFallbackTimer) return;
             updateStreamStatusDot('rest');
@@ -4714,20 +5062,31 @@
                 if (wsMux && wsMux.readyState === WebSocket.OPEN) { stopRestFallback(); return; }
                 if (!currentSymbol || !activeSeries) return;
                 try {
-                    const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=' + currentSymbol);
-                    if (!r.ok) return;
-                    const d = await r.json();
-                    const c = parseFloat(d.price);
-                    if (!isFinite(c)) return;
-                    lastStreamMsgAt = Date.now();
-                    lastKnownPrice = c;
-                    const last = rawCandles[rawCandles.length - 1];
-                    if (last) {
-                        last.close = c; if (c > last.high) last.high = c; if (c < last.low) last.low = c;
-                        if (['Line', 'Area', 'Baseline'].includes(currentChartType)) activeSeries.update({ time: last.time, value: c });
-                        else activeSeries.update(last);
-                        updateLivePriceHeader(c, c >= last.open);
-                        renderPositionsDock(c); checkPositionTriggers(c); checkPriceAlerts(c);
+                    const d = await binanceFetchJson('/api/v3/ticker/price?symbol=' + currentSymbol);
+                    if (d && isFinite(parseFloat(d.price))) {
+                        const c = parseFloat(d.price);
+                        lastStreamMsgAt = Date.now();
+                        lastKnownPrice = c;
+                        const last = rawCandles[rawCandles.length - 1];
+                        if (last) {
+                            last.close = c; if (c > last.high) last.high = c; if (c < last.low) last.low = c;
+                            if (['Line', 'Area', 'Baseline'].includes(currentChartType)) activeSeries.update({ time: last.time, value: c });
+                            else activeSeries.update(last);
+                            updateLivePriceHeader(c, c >= last.open);
+                            renderPositionsDock(c); checkPositionTriggers(c); checkPriceAlerts(c);
+                        }
+                    }
+                    // V7: every ~12s also refresh depth snapshot + 24h stats so the
+                    // Liquidity Book and header stay coherent while WS is down.
+                    restDepthCycle = (restDepthCycle + 1) % 4;
+                    if (restDepthCycle === 0) {
+                        const dp = await binanceFetchJson('/api/v3/depth?symbol=' + currentSymbol + '&limit=20');
+                        if (dp && Array.isArray(dp.asks) && Array.isArray(dp.bids) && dp.asks.length) latestDepthMsg = dp;
+                        const tk = await binanceFetchJson('/api/v3/ticker/24hr?symbol=' + currentSymbol);
+                        if (tk && tk.lastPrice) {
+                            updateTopRibbon(parseFloat(tk.lastPrice), parseFloat(tk.priceChangePercent) || 0,
+                                            parseFloat(tk.highPrice), parseFloat(tk.lowPrice), parseFloat(tk.quoteVolume) || 0);
+                        }
                     }
                 } catch (e) { /* keep trying */ }
             }, 3000);
@@ -4736,25 +5095,43 @@
             if (restFallbackTimer) { clearInterval(restFallbackTimer); restFallbackTimer = null; }
         }
 
+        // V7: rotate Binance WS hosts so a blocked/dead endpoint self-heals
+        const WS_HOSTS = ['wss://stream.binance.com:9443', 'wss://data-stream.binance.vision'];
+        let wsHostIdx = 0;
+        // V7 P0 FIX: track every socket this engine opens so teardownStream can
+        // close them ALL (no orphans). wsMux alone was not enough.
+        const liveSockets = new Set();
         function connectLiveStream(s, timeframe) {
-            wsIntentionalClose = false;
             stopRestFallback();
+            // V7: never stack a duplicate stream for the same symbol
+            if (wsMux && wsMux.readyState === WebSocket.OPEN && wsMux._sym === s) return;
+            const wsUrl = WS_HOSTS[wsHostIdx % WS_HOSTS.length] + '/stream?streams=' + s + '@kline_' + timeframe + '/' + s + '@trade/' + s + '@depth20@100ms';
+            let sock;
             try {
-                wsMux = new WebSocket('wss://stream.binance.com:9443/stream?streams=' + s + '@kline_' + timeframe + '/' + s + '@trade/' + s + '@depth20@100ms');
+                sock = new WebSocket(wsUrl);
             } catch (e) {
+                wsHostIdx++;
                 scheduleWsReconnect(); startRestFallback(); return;
             }
-            wsMux.onopen = () => {
+            sock._sym = s;
+            liveSockets.add(sock);
+            wsMux = sock;
+            wsIntentionalClose = false;
+            sock.onopen = () => {
                 wsRetryDelay = 1000; // reset backoff on success
                 lastStreamMsgAt = Date.now();
                 updateStreamStatusDot('live');
             };
-            wsMux.onmessage = (evt) => {
+            sock.onmessage = (evt) => {
                 lastStreamMsgAt = Date.now();
                 try {
                     const packet = JSON.parse(evt.data);
                     if (!packet?.data) return;
                     const { stream, data: msg } = packet;
+                    // V7 P0 FIX (zombie-proof): only accept data streams for the
+                    // ACTIVE symbol. Even if a stale socket somehow survived, its
+                    // messages can never contaminate the current symbol's state.
+                    if (typeof stream !== 'string' || !stream.startsWith(s + '@')) return;
                     if (stream.includes('@kline_')) {
                         const c = parseFloat(msg.k.c); lastKnownPrice = c;
                         const bar = { time: Math.floor(msg.k.t / 1000), open: parseFloat(msg.k.o), high: parseFloat(msg.k.h), low: parseFloat(msg.k.l), close: c };
@@ -4768,14 +5145,23 @@
                     else if (stream.includes('@depth20')) latestDepthMsg = msg;
                 } catch (err) { /* ignore malformed frame */ }
             };
-            wsMux.onclose = () => {
-                if (wsIntentionalClose) return;
+            sock.onclose = () => {
+                liveSockets.delete(sock);
+                // V7: per-socket intentional flag — a teardown-initiated close is
+                // NEVER misread as a connection failure (the old global flag could
+                // be reset by a newer connectLiveStream before this event arrived,
+                // spawning spurious reconnects that orphaned live sockets).
+                if (sock._intentional) return;
+                // Only the ACTIVE socket's death triggers recovery — a superseded
+                // duplicate dying silently must not cause reconnect storms.
+                if (wsMux !== sock) return;
                 updateStreamStatusDot('down');
+                wsHostIdx++;                    // V7: try the alternate WS host next
                 scheduleWsReconnect();
                 startRestFallback();
             };
-            wsMux.onerror = () => {
-                updateStreamStatusDot('down');
+            sock.onerror = () => {
+                if (wsMux === sock) updateStreamStatusDot('down');
                 // onclose follows onerror; reconnect handled there
             };
         }
@@ -4813,68 +5199,149 @@
 
 
 
+        // ================================================================
+        // V7 P0 FIX: ATOMIC SYMBOL SWITCHING + MULTI-HOST DATA LOADING
+        //   Root cause of the "BTC header / XRP candles" corruption: the old
+        //   initSymbol had NO request token, so a slow response from a
+        //   previous symbol could resolve AFTER a newer switch and overwrite
+        //   the chart with stale data. It also never cleared old candles and
+        //   only tried api.binance.com (geo-blocked in some regions).
+        //   Fixes:
+        //     1. symbolLoadToken — every await is followed by a staleness
+        //        check; late responses from a superseded symbol are dropped.
+        //     2. ALL previous-symbol state (candles, depth, prices, legends)
+        //        is wiped BEFORE the new symbol loads — mixed data is now
+        //        impossible even mid-load.
+        //     3. binanceFetchJson rotates api.binance.com → data-api.binance
+        //        .vision → api1-3.binance.com until one answers.
+        //     4. An initial depth snapshot is fetched via REST so the
+        //        Liquidity Book populates instantly (realistic non-zero size).
+        // ================================================================
+        let symbolLoadToken = 0;
+        const BINANCE_HOSTS = ['https://api.binance.com', 'https://data-api.binance.vision', 'https://api1.binance.com', 'https://api2.binance.com', 'https://api3.binance.com'];
+        let binanceHostIdx = 0;
+        async function binanceFetchJson(path) {
+            for (let i = 0; i < BINANCE_HOSTS.length; i++) {
+                const idx = (binanceHostIdx + i) % BINANCE_HOSTS.length;
+                try {
+                    const r = await fetch(BINANCE_HOSTS[idx] + path);
+                    if (r.ok) { binanceHostIdx = idx; return await r.json(); }
+                } catch (e) { /* try next host */ }
+            }
+            return null;
+        }
+        // V7: auto-pick the Liquidity Book tick grouping for the instrument
+        function autoSelectTickGrouping(price) {
+            const sel = document.getElementById('tickGrouping');
+            if (!sel || !isFinite(price) || price <= 0) return;
+            const tick = priceTickSize(price);
+            const opts = Array.from(sel.options).map(o => parseFloat(o.value));
+            let best = opts[0];
+            for (const o of opts) if (o <= tick * 1.0001) best = o;   // largest option ≤ instrument tick
+            sel.value = String(best);
+        }
+        // V7: reset every previous-symbol UI surface before loading the new one
+        function resetInstrumentSurfaces() {
+            ['legMA1', 'legMA2', 'legMA3'].forEach((id, i) => { const el = document.getElementById(id); if (el) el.innerText = `MA(${[7,25,99][i]}): --`; });
+            const ohlc = document.getElementById('ohlcLegend'); if (ohlc) ohlc.innerText = 'O: -- H: -- L: -- C: --';
+            ['stat24hHigh', 'stat24hLow', 'stat24hVol'].forEach(id => { const el = document.getElementById(id); if (el) el.innerText = '--'; });
+            const chgEl = document.getElementById('stat24hChange');
+            if (chgEl) { chgEl.innerText = '--%'; chgEl.className = 'text-[10px] font-bold px-1.5 py-0.5 rounded border bg-slate-500/10 text-slate-400 border-slate-600/40 whitespace-nowrap'; }
+            const lp = document.getElementById('livePrice'); if (lp) { lp.innerText = '--'; lp.className = 'text-lg font-bold terminal-font leading-none text-slate-400 whitespace-nowrap'; }
+            const mid = document.getElementById('obMidPrice'); if (mid) { mid.innerText = '--'; mid.className = 'font-bold text-sm text-slate-400'; }
+            document.getElementById('orderBookAsks').innerHTML = '';
+            document.getElementById('orderBookBids').innerHTML = '';
+            const sp = document.getElementById('orderBookSpread'); if (sp) sp.innerText = 'Spread: --';
+        }
+
         async function initSymbol(symbol, timeframe = '1m') {
-            currentSymbol = symbol.toUpperCase(); currentTimeframe = timeframe;
+            const token = ++symbolLoadToken;               // V7: supersede all in-flight loads
+            symbol = String(symbol || '').toUpperCase();
+            currentSymbol = symbol; currentTimeframe = timeframe;
             if (window.activeSymbolStore) window.activeSymbolStore.setSymbol(currentSymbol, { timeframe: currentTimeframe });
-            document.getElementById('symbolInput').value = currentSymbol;
+            const symInput = document.getElementById('symbolInput'); if (symInput) symInput.value = currentSymbol;
+            const symLbl = document.getElementById('symDropdownLabel'); if (symLbl) symLbl.innerText = currentSymbol;
             document.getElementById('chartTitleSymbol').innerText = `${currentSymbol} · ${timeframe}`;
             const fsBadge = document.getElementById('fsSymbolBadge');
             if (fsBadge) fsBadge.innerText = `${currentSymbol} · ${timeframe}`;
             updateWatchlistStar();
             document.getElementById('orderTape').innerHTML = '';
+
+            // ---- V7: wipe ALL previous-symbol state (no stale bleed-through) ----
+            teardownStream();
+            rawCandles = [];
+            latestDepthMsg = null;
+            lastKnownPrice = 0;
+            resetInstrumentSurfaces();
+            if (activeSeries) { try { activeSeries.setData([]); } catch (e) {} }
+
             await loadSymbolWorkspace(currentSymbol);
+            if (token !== symbolLoadToken) return;          // superseded — abort
             if (!activeSeries) setChartType(currentChartType);
 
             const catalogEntry = multiAssetCatalog.find(a => a.symbol === currentSymbol);
             const isCryptoStream = catalogEntry ? catalogEntry.isLiveCrypto : currentSymbol.endsWith('USDT');
 
-            teardownStream();
+            // V7: symbol type chip — Perp for live crypto, asset class otherwise
+            const typeChip = document.getElementById('symTypeChip');
+            if (typeChip) {
+                typeChip.innerText = isCryptoStream ? 'PERP' : (catalogEntry ? catalogEntry.category.toUpperCase() : 'GLOBAL');
+                typeChip.title = isCryptoStream ? 'Perpetual-style live stream' : 'Simulated instrument';
+            }
 
             if (isCryptoStream) {
                 document.getElementById('assetBadge').innerText = 'LIVE';
-                try {
-                    const [klinesRes, tickerRes] = await Promise.all([
-                        fetch(`https://api.binance.com/api/v3/klines?symbol=${currentSymbol}&interval=${timeframe}&limit=300`),
-                        fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${currentSymbol}`)
-                    ]);
-                    if (klinesRes.ok) {
-                        const data = await klinesRes.json();
-                        rawCandles = data.map(d => ({ time: Math.floor(d[0] / 1000), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) })).sort((a, b) => a.time - b.time);
-                        lastKnownPrice = rawCandles[rawCandles.length - 1].close;
-                        updateAllChartSeries(); runAiAnalysis();
-                    }
-                    if (tickerRes.ok) {
-                        const tk = await tickerRes.json();
-                        updateTopRibbon(parseFloat(tk.lastPrice), parseFloat(tk.priceChangePercent), parseFloat(tk.highPrice), parseFloat(tk.lowPrice), parseFloat(tk.quoteVolume));
-                    }
-                } catch (e) {}
+                const [kl, tk, dp] = await Promise.all([
+                    binanceFetchJson(`/api/v3/klines?symbol=${currentSymbol}&interval=${timeframe}&limit=500`),
+                    binanceFetchJson(`/api/v3/ticker/24hr?symbol=${currentSymbol}`),
+                    binanceFetchJson(`/api/v3/depth?symbol=${currentSymbol}&limit=20`)
+                ]);
+                if (token !== symbolLoadToken) return;      // superseded — abort
+                if (Array.isArray(kl) && kl.length) {
+                    rawCandles = kl.map(d => ({ time: Math.floor(d[0] / 1000), open: parseFloat(d[1]), high: parseFloat(d[2]), low: parseFloat(d[3]), close: parseFloat(d[4]) })).sort((a, b) => a.time - b.time);
+                    lastKnownPrice = rawCandles[rawCandles.length - 1].close;
+                    updateAllChartSeries(); runAiAnalysis();
+                    autoSelectTickGrouping(lastKnownPrice);
+                } else {
+                    showToast(`⚠ ${currentSymbol}: candles unavailable right now — live stream will fill in`, 'error');
+                }
+                if (tk && tk.lastPrice) {
+                    updateTopRibbon(parseFloat(tk.lastPrice), parseFloat(tk.priceChangePercent) || 0, parseFloat(tk.highPrice), parseFloat(tk.lowPrice), parseFloat(tk.quoteVolume) || 0);
+                }
+                if (dp && Array.isArray(dp.asks) && Array.isArray(dp.bids) && dp.asks.length) {
+                    latestDepthMsg = { asks: dp.asks, bids: dp.bids };   // instant Liquidity Book population
+                }
 
                 const s = currentSymbol.toLowerCase();
-                connectLiveStream(s, timeframe);
+                if (token === symbolLoadToken) connectLiveStream(s, timeframe);
             } else {
                 document.getElementById('assetBadge').innerText = catalogEntry ? catalogEntry.category.toUpperCase() : 'GLOBAL';
                 const basePrice = catalogEntry ? catalogEntry.price : 150;
+                const tick = priceTickSize(basePrice);
+                const dec = window.priceDecimalsFor(basePrice);
                 const nowSec = Math.floor(Date.now() / 1000);
                 rawCandles = []; let p = basePrice * 0.985;
-                for (let i = 260; i >= 0; i--) {
-                    const o = p, delta = (Math.random() - 0.492) * (basePrice * 0.0022), c = +(o + delta).toFixed(4);
-                    const h = +(Math.max(o, c) + Math.random() * (basePrice * 0.0014)).toFixed(4);
-                    const l = +(Math.min(o, c) - Math.random() * (basePrice * 0.0014)).toFixed(4);
+                for (let i = 400; i >= 0; i--) {
+                    const o = p, delta = (Math.random() - 0.492) * (basePrice * 0.0022), c = +(o + delta).toFixed(dec);
+                    const h = +(Math.max(o, c) + Math.random() * (basePrice * 0.0014)).toFixed(dec);
+                    const l = +(Math.min(o, c) - Math.random() * (basePrice * 0.0014)).toFixed(dec);
                     rawCandles.push({ time: nowSec - i * 60, open: o, high: h, low: l, close: c }); p = c;
                 }
                 lastKnownPrice = p; updateAllChartSeries(); runAiAnalysis();
                 updateTopRibbon(p, catalogEntry?.change || 0.85, p * 1.012, p * 0.988, catalogEntry?.vol || 450000000);
+                autoSelectTickGrouping(basePrice);
 
                 synthInterval = setInterval(() => {
-                    const last = rawCandles[rawCandles.length - 1], tick = (Math.random() - 0.495) * (basePrice * 0.0007), c = +(last.close + tick).toFixed(4);
+                    if (token !== symbolLoadToken) { clearInterval(synthInterval); return; }  // V7: self-kill if superseded
+                    const last = rawCandles[rawCandles.length - 1], tk2 = (Math.random() - 0.495) * (basePrice * 0.0007), c = +(last.close + tk2).toFixed(dec);
                     last.close = c; if (c > last.high) last.high = c; if (c < last.low) last.low = c; lastKnownPrice = c;
                     if (['Line', 'Area', 'Baseline'].includes(currentChartType)) activeSeries.update({ time: last.time, value: c }); else activeSeries.update(last);
-                    updateLivePriceHeader(c, tick >= 0); renderPositionsDock(c); checkPositionTriggers(c); checkPriceAlerts(c);
-                    appendTradeTape(c, +(Math.random() * 45 + 1).toFixed(2), tick >= 0, Date.now());
+                    updateLivePriceHeader(c, tk2 >= 0); renderPositionsDock(c); checkPositionTriggers(c); checkPriceAlerts(c);
+                    appendTradeTape(c, +(Math.random() * 45 + 1).toFixed(2), tk2 >= 0, Date.now());
                     const asks = [], bids = [];
                     for (let i = 1; i <= 10; i++) {
-                        asks.push([(c + i * (basePrice * 0.0002)).toFixed(4), (Math.random() * 100 + 10).toFixed(2)]);
-                        bids.push([(c - i * (basePrice * 0.0002)).toFixed(4), (Math.random() * 100 + 10).toFixed(2)]);
+                        asks.push([(c + i * tick).toFixed(dec), (Math.random() * 90 + 12).toFixed(2)]);
+                        bids.push([(c - i * tick).toFixed(dec), (Math.random() * 90 + 12).toFixed(2)]);
                     }
                     latestDepthMsg = { asks, bids };
                 }, 650);
@@ -4883,24 +5350,31 @@
 
         function updateLivePriceHeader(price, isUp) {
             const pStr = '$' + (formatPrice(price));
+            // V7: Primary Mark Price — crisp tabular font, text-lg bold (Row 2)
             const el = document.getElementById('livePrice');
-            el.innerText = pStr; el.className = `font-bold text-base leading-none ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
+            el.innerText = pStr; el.className = `text-lg font-bold terminal-font leading-none whitespace-nowrap ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
             const mobEl = document.getElementById('mobileLivePriceBadge');
-            mobEl.innerText = pStr; mobEl.className = `font-bold xl:hidden ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
+            if (mobEl) { mobEl.innerText = pStr; mobEl.className = `font-bold xl:hidden ${isUp ? 'text-emerald-400' : 'text-rose-400'}`; }
             const fsEl = document.getElementById('fsLivePrice');
             if (fsEl) { fsEl.innerText = pStr; fsEl.className = `font-bold text-xs terminal-font whitespace-nowrap ${isUp ? 'text-emerald-400' : 'text-rose-400'}`; }
             const mid = document.getElementById('obMidPrice');
-            mid.innerText = pStr; mid.className = `font-bold text-sm ${isUp ? 'text-emerald-400' : 'text-rose-400'}`;
+            if (mid) { mid.innerText = pStr; mid.className = `font-bold text-sm ${isUp ? 'text-emerald-400' : 'text-rose-400'}`; }
         }
 
         function updateTopRibbon(last, chgPct, high, low, vol) {
-            updateLivePriceHeader(last, chgPct >= 0);
+            updateLivePriceHeader(last, (isFinite(chgPct) ? chgPct : 0) >= 0);
+            // V7: inline 24h % badge styling (Row 2) + NaN guards
+            const safeChg = isFinite(chgPct) ? chgPct : 0;
             const chgEl = document.getElementById('stat24hChange');
-            chgEl.innerText = `${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%`;
-            chgEl.className = `font-semibold ${chgPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+            if (chgEl) {
+                chgEl.innerText = `${safeChg >= 0 ? '+' : ''}${safeChg.toFixed(2)}%`;
+                chgEl.className = `text-[10px] font-bold px-1.5 py-0.5 rounded border whitespace-nowrap ${safeChg >= 0
+                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25'
+                    : 'bg-rose-500/15 text-rose-400 border-rose-500/25'}`;
+            }
             document.getElementById('stat24hHigh').innerText = '$' + (formatPrice(high));
             document.getElementById('stat24hLow').innerText = '$' + (formatPrice(low));
-            document.getElementById('stat24hVol').innerText = formatVol(vol);
+            document.getElementById('stat24hVol').innerText = (isFinite(vol) && vol > 0) ? formatVol(vol) : '--';
         }
 
         setInterval(() => {
@@ -4929,8 +5403,8 @@
                 return `<div onclick="fillLimitFromBook('${p}')" class="flex justify-between px-2 py-0.5 relative cursor-pointer hover:bg-yog-800/60" title="Click to fill limit price">
                     <div class="absolute right-0 top-0 h-full bg-rose-500/10" style="width:${pct}%"></div>
                     <span class="text-rose-400 font-semibold relative">${p}</span>
-                    <span class="text-slate-300 relative">${q.toFixed(1)}</span>
-                    <span class="text-slate-500 relative">${cum.toFixed(0)}</span>
+                    <span class="text-slate-300 relative">${fmtSize(q)}</span>
+                    <span class="text-slate-500 relative">${fmtSize(cum)}</span>
                 </div>`;
             }).join('');
             document.getElementById('orderBookBids').innerHTML = bids.map(([p, q], i) => {
@@ -4939,8 +5413,8 @@
                 return `<div onclick="fillLimitFromBook('${p}')" class="flex justify-between px-2 py-0.5 relative cursor-pointer hover:bg-yog-800/60" title="Click to fill limit price">
                     <div class="absolute right-0 top-0 h-full bg-emerald-500/10" style="width:${pct}%"></div>
                     <span class="text-emerald-400 font-semibold relative">${p}</span>
-                    <span class="text-slate-300 relative">${q.toFixed(1)}</span>
-                    <span class="text-slate-500 relative">${cum.toFixed(0)}</span>
+                    <span class="text-slate-300 relative">${fmtSize(q)}</span>
+                    <span class="text-slate-500 relative">${fmtSize(cum)}</span>
                 </div>`;
             }).join('');
             if (asks.length && bids.length) {
@@ -6667,6 +7141,12 @@
         }
         function friendlyAuthError(err) {
             const m = String(err?.message || err || '').toLowerCase();
+            const code = String(err?.code || '').toLowerCase();
+            const combined = m + ' ' + code;
+            // V7: explicit Supabase 429 / email-send rate-limit detection
+            if (combined.includes('over_email_send_rate_limit') || combined.includes('429') || (combined.includes('rate') && combined.includes('limit'))) {
+                return 'Email rate limit reached — Supabase enforces a 60-second cooldown per address. Wait a minute, or continue in Local Workspace mode below.';
+            }
             if (m.includes('invalid login credentials')) return 'Incorrect email or password. Please try again.';
             if (m.includes('email not confirmed')) return 'Your email is not confirmed yet — open the verification link we sent you, then sign in.';
             if (m.includes('already registered')) return 'An account with this email already exists. Try signing in instead.';
@@ -6676,6 +7156,13 @@
             if (m.includes('fetch') || m.includes('network')) return 'Network error — check your connection and Supabase project URL.';
             return err?.message || 'Unexpected error. Please try again.';
         }
+        // V7: Local Quant Workspace Mode — never lock the trader out of the
+        // terminal because of an auth rate-limit. Data persists to localStorage.
+        window.continueInLocalMode = function() {
+            hideAuthPage();
+            switchView('terminal');
+            showToast('💻 Local Quant Workspace active — charts, drawings & paper trading persist on this device', 'info');
+        };
         window.togglePwVisibility = function(inputId, btnEl) {
             const input = document.getElementById(inputId);
             if (!input) return;
@@ -6711,6 +7198,8 @@
         };
 
         window.handleSignIn = async function() {
+            const btn = document.getElementById('signinBtn');
+            if (btn && btn.disabled) return;          // V7: double-submit guard (60s OTP cooldown protection)
             const email = document.getElementById('signinEmail').value.trim();
             const password = document.getElementById('signinPass').value;
             document.getElementById('signinErr').classList.add('hidden');
@@ -6723,26 +7212,44 @@
         };
 
         window.handleSignUp = async function() {
+            const btn = document.getElementById('signupBtn');
+            if (btn && btn.disabled) return;          // V7: double-submit guard — never trip Supabase's 60s cooldown by accident
             const name = document.getElementById('signupName').value.trim();
             const email = document.getElementById('signupEmail').value.trim();
             const password = document.getElementById('signupPass').value;
             const confirm = document.getElementById('signupPass2').value;
             document.getElementById('signupErr').classList.add('hidden');
+            document.getElementById('signupLocalFallback').classList.add('hidden');
             if (name.length < 2) { authShowError('signupErr', 'Please enter a display name (at least 2 characters).'); return; }
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { authShowError('signupErr', 'Please enter a valid email address.'); return; }
             if (password.length < 6) { authShowError('signupErr', 'Password must be at least 6 characters.'); return; }
             if (password !== confirm) { authShowError('signupErr', 'Passwords do not match.'); return; }
             authBusy('signupBtn', true);
+            // V7 P0 FIX: redirect URL is ALWAYS built from the active browser
+            // origin — no hardcoded vercel.com / yogchart.vercel.app anywhere,
+            // so confirmation emails can never bounce users to a foreign host.
+            const redirectOrigin = (typeof window !== 'undefined' && window.location && /^https?:/.test(window.location.origin || ''))
+                ? window.location.origin
+                : (window.location?.protocol + '//' + window.location?.host);
             const { data, error } = await supabaseClient.auth.signUp({
                 email, password,
-                options: { data: { full_name: name }, emailRedirectTo: window.location.origin + window.location.pathname }
+                options: { data: { full_name: name }, emailRedirectTo: `${redirectOrigin}/` }
             });
             authBusy('signupBtn', false);
-            if (error) { authShowError('signupErr', friendlyAuthError(error)); return; }
+            if (error) {
+                authShowError('signupErr', friendlyAuthError(error));
+                // V7: rate-limited? Offer Local Quant Workspace instead of a lock-out
+                const combined = (String(error.message || '') + ' ' + String(error.code || '')).toLowerCase();
+                const isRateLimit = combined.includes('over_email_send_rate_limit') || combined.includes('429') || (combined.includes('rate') && combined.includes('limit'));
+                if (isRateLimit) document.getElementById('signupLocalFallback').classList.remove('hidden');
+                return;
+            }
             if (data?.session && data?.user) {
+                // V7: instant session (Confirm Email disabled) — straight into the
+                // terminal, no "Check your email" blocker. onAuthStateChange
+                // activates the account & syncs the cloud workspace immediately.
                 userProfileData.display_name = name;
                 localStorage.setItem('yog_profile_meta', JSON.stringify(userProfileData));
-                // Signed in immediately (email confirmation disabled) — onAuthStateChange takes over.
             } else if (data?.user) {
                 document.getElementById('checkEmailLabel').innerText = email;
                 switchAuthTab('check');
@@ -6752,12 +7259,18 @@
         };
 
         window.handleForgotPassword = async function() {
+            const btn = document.getElementById('forgotBtn');
+            if (btn && btn.disabled) return;          // V7: double-submit guard
             const email = document.getElementById('forgotEmail').value.trim();
             document.getElementById('forgotErr').classList.add('hidden');
             document.getElementById('forgotOk').classList.add('hidden');
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { authShowError('forgotErr', 'Please enter a valid email address.'); return; }
             authBusy('forgotBtn', true);
-            const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+            // V7: dynamic redirect origin — never vercel.com
+            const redirectOrigin = (typeof window !== 'undefined' && window.location && /^https?:/.test(window.location.origin || ''))
+                ? window.location.origin
+                : (window.location?.protocol + '//' + window.location?.host);
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: `${redirectOrigin}/` });
             authBusy('forgotBtn', false);
             if (error) { authShowError('forgotErr', friendlyAuthError(error)); return; }
             const ok = document.getElementById('forgotOk');
@@ -7110,6 +7623,142 @@
         let fsResizeTimer = null;
         window.addEventListener('resize', () => { clearTimeout(fsResizeTimer); fsResizeTimer = setTimeout(resizeChartsAndCanvas, 180); });
 
+        // ================================================================
+        // V7 P0 FIX: LEFT DRAWING RAIL — clean 1.5px SVG icons with hover
+        //   tooltips and grouped flyout menus (no raw text labels like "SHP").
+        //   Groups: Lines · Shapes · Fib/Measure · Trade · Utilities.
+        //   The active tool's icon is mirrored on its group button.
+        // ================================================================
+        const RAIL_SVGS = {
+            cursor:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>',
+            trendline:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><path d="M6.6 17.4L17.4 6.6"/></svg>',
+            ray:        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="19" r="2"/><path d="M7 17L21 3"/></svg>',
+            arrow:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L20 4M13 4h7v7"/></svg>',
+            channel:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18L15 6M8 21L20 9"/></svg>',
+            hline:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><circle cx="12" cy="12" r="1.6"/></svg>',
+            vline:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/></svg>',
+            rect:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="12" rx="1"/></svg>',
+            ellipse:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="8" ry="5.5"/></svg>',
+            brush:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5l5 5L8 21H3v-5L14 5z"/><path d="M12.5 6.5l5 5"/></svg>',
+            text:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M12 6v13"/></svg>',
+            fib:        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16M4 9h12M4 14h9M4 19h16"/></svg>',
+            measure:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="1"/><path d="M7 9v3M11 9v3M15 9v3"/></svg>',
+            longpos:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l6 6h-4v10h-4V10H6l6-6z"/></svg>',
+            shortpos:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20l6-6h-4V4h-4v10H6l6 6z"/></svg>',
+            riskreward: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M12 6l-7 4m7-4l7 4"/><path d="M2 15a3.5 3.5 0 007 0l-3.5-5L2 15zM15 15a3.5 3.5 0 007 0l-3.5-5L15 15z"/></svg>',
+            magnet:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v8a6 6 0 0012 0V4h-4v8a2 2 0 01-4 0V4H6z"/><path d="M6 8h4M14 8h4"/></svg>',
+            lock:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+            eye:        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+            tree:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>',
+            style:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h9M17 8h3M4 16h4M12 16h8"/><circle cx="15" cy="8" r="2"/><circle cx="10" cy="16" r="2"/></svg>',
+            stay:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0114-5M20 12a8 8 0 01-14 5"/><path d="M18 3v4h-4M6 21v-4h4"/></svg>',
+            undo:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>',
+            trash:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2"/><path d="M6 7l1 13h10l1-13"/></svg>'
+        };
+        const RAIL_GROUPS = {
+            lines:  { title: 'Lines',  tools: ['trendline', 'ray', 'arrow', 'channel', 'hline', 'vline'] },
+            shapes: { title: 'Shapes', tools: ['rect', 'ellipse', 'brush', 'text'] },
+            fib:    { title: 'Fib & Measure', tools: ['fib', 'measure'] },
+            trade:  { title: 'Trade Tools', tools: ['longpos', 'shortpos', 'riskreward'] }
+        };
+        function railToolBtn(tool) {
+            const meta = TOOL_META[tool] || {};
+            return `<button onclick="setDrawingTool('${tool}')" id="draw-${tool}" data-tool="${tool}" class="js-draw-btn rf-item" title="${meta.label || tool} — ${meta.hint || ''}">${RAIL_SVGS[tool] || ''}<span>${meta.label || tool}</span></button>`;
+        }
+        function renderDrawRail() {
+            const rail = document.getElementById('drawSidebar');
+            if (!rail) return;
+            let html = `<button onclick="setDrawingTool('cursor')" id="draw-cursor" data-tool="cursor" class="js-draw-btn tool-btn tool-active" title="Select / Move — Esc">${RAIL_SVGS.cursor}</button>`;
+            html += '<div class="w-6 h-px bg-yog-700 my-0.5 flex-shrink-0"></div>';
+            Object.entries(RAIL_GROUPS).forEach(([gKey, g]) => {
+                const active = g.tools.includes(currentTool) ? currentTool : g.tools[0];
+                html += `
+                <div class="rail-group relative">
+                    <button onclick="toggleRailFlyout('${gKey}', event)" class="tool-btn rail-group-btn" title="${g.title} — click for the tool menu" id="rgbtn-${gKey}"><span id="rgicon-${gKey}" class="flex items-center justify-center">${RAIL_SVGS[active]}</span><span class="rg-caret">▾</span></button>
+                    <div class="rail-flyout hidden" id="rfly-${gKey}">
+                        <div class="rf-title">${g.title}</div>
+                        ${g.tools.map(t => railToolBtn(t)).join('')}
+                    </div>
+                </div>`;
+            });
+            html += '<div class="w-6 h-px bg-yog-700 my-0.5 flex-shrink-0"></div>';
+            html += `
+                <div class="rail-group relative">
+                    <button onclick="toggleRailFlyout('util', event)" class="tool-btn rail-group-btn" title="Utilities — magnet, lock, visibility, settings" id="rgbtn-util"><span id="rgicon-util" class="flex items-center justify-center">${RAIL_SVGS.style}</span><span class="rg-caret">▾</span></button>
+                    <div class="rail-flyout rf-util hidden" id="rfly-util">
+                        <div class="rf-title">Utilities</div>
+                        <button onclick="cycleMagnet()" id="magnetToggleBtn" class="rf-item" title="Magnet snap (G) — Off → Weak → Strong">${RAIL_SVGS.magnet}<span>Magnet</span></button>
+                        <button onclick="toggleLockDrawings()" id="lockToggleBtn" class="rf-item" title="Lock all drawings (K)">${RAIL_SVGS.lock}<span>Lock All</span></button>
+                        <button onclick="toggleHideDrawings()" id="hideToggleBtn" class="rf-item" title="Hide / show drawings (N)">${RAIL_SVGS.eye}<span>Hide Draw</span></button>
+                        <button onclick="toggleStayMode()" id="stayModeBtn" class="rf-item" title="Stay in Drawing Mode — keep the tool armed after each drawing">${RAIL_SVGS.stay}<span>Stay Mode</span></button>
+                        <button onclick="openObjectTreeModal()" class="rf-item" title="Object Tree &amp; layer manager">${RAIL_SVGS.tree}<span>Object Tree</span></button>
+                        <button onclick="openDrawingSettingsModal()" class="rf-item" title="Drawing style defaults">${RAIL_SVGS.style}<span>Style</span></button>
+                        <button onclick="undoLastDrawing()" class="rf-item" title="Undo last drawing (Ctrl+Z)">${RAIL_SVGS.undo}<span>Undo</span></button>
+                        <button onclick="clearAllDrawings()" class="rf-item" title="Clear all drawings" style="color:#fb7185;">${RAIL_SVGS.trash}<span>Clear All</span></button>
+                    </div>
+                </div>`;
+            rail.innerHTML = html;
+            // restore persistent toggle states
+            const magBtn = document.getElementById('magnetToggleBtn');
+            if (magBtn) magBtn.classList.toggle('tool-active', !!drawSettings.magnet);
+            const lockBtn = document.getElementById('lockToggleBtn');
+            if (lockBtn) lockBtn.classList.toggle('tool-active', !!drawSettings.locked);
+            const hideBtn = document.getElementById('hideToggleBtn');
+            if (hideBtn) hideBtn.classList.toggle('tool-active', !drawSettings.visible);
+            const stayBtn = document.getElementById('stayModeBtn');
+            if (stayBtn) stayBtn.classList.toggle('tool-active', !!drawSettings.stayInMode);
+            document.querySelectorAll('.js-draw-btn').forEach(b => b.classList.toggle('tool-active', b.dataset.tool === currentTool));
+        }
+        window.toggleRailFlyout = function(group, e) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            document.querySelectorAll('.rail-flyout').forEach(f => { if (f.id !== 'rfly-' + group) f.classList.add('hidden'); });
+            const fly = document.getElementById('rfly-' + group);
+            if (fly) fly.classList.toggle('hidden');
+        };
+        function closeRailFlyouts() { document.querySelectorAll('.rail-flyout').forEach(f => f.classList.add('hidden')); }
+        document.addEventListener('click', (e) => { if (!e.target.closest('.rail-group')) closeRailFlyouts(); });
+        function refreshRailGroupIcons() {
+            Object.entries(RAIL_GROUPS).forEach(([gKey, g]) => {
+                if (!g.tools.includes(currentTool)) return;
+                const holder = document.getElementById('rgicon-' + gKey);
+                if (holder) holder.innerHTML = RAIL_SVGS[currentTool] || holder.innerHTML;
+            });
+        }
+
+        // ================================================================
+        // V7: SYMBOL DROPDOWN (Row 2) — click to open, search + quick chips
+        // ================================================================
+        window.toggleSymbolDropdown = function(e) {
+            if (e) e.stopPropagation();
+            const p = document.getElementById('symbolDropdownPanel');
+            if (!p) return;
+            const willOpen = p.classList.contains('hidden');
+            p.classList.toggle('hidden');
+            if (willOpen) {
+                const inp = document.getElementById('symbolInput');
+                if (inp) { inp.focus(); inp.select(); }
+            }
+        };
+        function closeSymbolDropdown() { const p = document.getElementById('symbolDropdownPanel'); if (p) p.classList.add('hidden'); }
+        window.quickSymbol = function(sym) {
+            closeSymbolDropdown();
+            switchView('terminal');
+            initSymbol(sym, currentTimeframe);
+        };
+        document.addEventListener('click', (e) => { if (!e.target.closest('#symbolDropdownWrap')) closeSymbolDropdown(); });
+
+        // V7: QA / power-user debug hooks (read-only views of module state)
+        window.__yog = {
+            chart,
+            get activeSeries() { return activeSeries; },
+            get rawCandles() { return rawCandles; },
+            get userDrawings() { return userDrawings; },
+            get currentTool() { return currentTool; },
+            get lastKnownPrice() { return lastKnownPrice; }
+        };
+
+        renderDrawRail();
+        updateChartInteractionMode();   // V7: custom wheel-zoom mode armed from first paint
         renderFeaturedCards();
         renderScreenerTable();
         updateWalletDisplays();
